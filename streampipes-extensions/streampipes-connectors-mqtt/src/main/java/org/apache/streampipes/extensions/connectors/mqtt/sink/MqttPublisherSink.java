@@ -32,15 +32,21 @@ import org.apache.streampipes.sdk.builder.StreamRequirementsBuilder;
 import org.apache.streampipes.sdk.builder.sink.DataSinkConfiguration;
 import org.apache.streampipes.sdk.helpers.Locales;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MqttPublisherSink implements IStreamPipesDataSink {
     public static final String ID = "org.apache.streampipes.sinks.brokers.jvm.mqtt";
+
+    private static final Logger LOG = LoggerFactory.getLogger(MqttPublisherSink.class);
 
     private static final int DEFAULT_MQTT_PORT = 1883;
     private static final int DEFAULT_RECONNECT_PERIOD = 30;
     private static final int DEFAULT_KEEP_ALIVE = 30;
 
-
     private MqttPublisher mqttClient;
+    private boolean dynamicTopicEnabled;
+    private String topicFieldSelector;
 
 
     @Override
@@ -55,7 +61,9 @@ public class MqttPublisherSink implements IStreamPipesDataSink {
                          .requiredTextParameter(MqttConnectUtils.getBrokerUrlLabel())
         .requiredAlternatives(MqttConnectUtils.getAccessModeLabel(), MqttConnectUtils.getAnonymousAccess(),
             MqttConnectUtils.getUsernameAccess(),  MqttConnectUtils.getClientCertAccess())
-        .requiredTextParameter(MqttConnectUtils.getTopicLabel())
+        .requiredAlternatives(MqttConnectUtils.getTopicModeLabel(),
+                    MqttConnectUtils.getStaticTopicAlternative(),
+                    MqttConnectUtils.getDynamicTopicAlternative())
                         .requiredSingleValueSelection(
                                 MqttConnectUtils.getQosLevelLabel(),
                                 MqttConnectUtils.getQOSLevelSelection())
@@ -79,13 +87,37 @@ public class MqttPublisherSink implements IStreamPipesDataSink {
 
     @Override
     public void onPipelineStarted(IDataSinkParameters params, EventSinkRuntimeContext runtimeContext) {
+        String topicMode = params.extractor().selectedAlternativeInternalId(MqttConnectUtils.TOPIC_MODE);
+        this.dynamicTopicEnabled = MqttConnectUtils.DYNAMIC_TOPIC_ALTERNATIVE.equals(topicMode);
+        if (this.dynamicTopicEnabled) {
+            this.topicFieldSelector = params.extractor().mappingPropertyValue(MqttConnectUtils.TOPIC_FIELD);
+        }
         this.mqttClient = new MqttPublisher(params);
         this.mqttClient.connect();
     }
 
     @Override
     public void onEvent(Event event) throws SpRuntimeException {
-        this.mqttClient.publish(event);
+        if (this.dynamicTopicEnabled) {
+            try {
+                var field = event.getFieldBySelector(this.topicFieldSelector);
+                if (field == null) {
+                    LOG.warn("Dynamic MQTT topic field '{}' not found in event, skipping", this.topicFieldSelector);
+                    return;
+                }
+                String topic = field.getAsPrimitive().getAsString();
+                if (topic == null || topic.isBlank()) {
+                    LOG.warn("Dynamic MQTT topic resolved to blank value, skipping event");
+                    return;
+                }
+                this.mqttClient.publish(event, topic);
+            } catch (Exception e) {
+                LOG.warn("Could not resolve dynamic MQTT topic from field '{}': {}",
+                    this.topicFieldSelector, e.getMessage());
+            }
+        } else {
+            this.mqttClient.publish(event);
+        }
     }
 
     @Override

@@ -69,18 +69,28 @@ public class MqttPublisher extends MqttBase {
   public void publish(Event event) {
     JsonDataFormatDefinition dataFormatDefinition = new JsonDataFormatDefinition();
     byte[] payload = new String(dataFormatDefinition.fromMap(event.getRaw())).getBytes();
+    publishPayload(payload, super.mqttConfig.getTopic());
+  }
+
+  public void publish(Event event, String overrideTopic) {
+    JsonDataFormatDefinition dataFormatDefinition = new JsonDataFormatDefinition();
+    byte[] payload = new String(dataFormatDefinition.fromMap(event.getRaw())).getBytes();
+    publishPayload(payload, overrideTopic);
+  }
+
+  private void publishPayload(byte[] payload, String topic) {
     try {
       MqttQos qos = super.mqttConfig.getQos();
 
       client.publishWith()
-          .topic(super.mqttConfig.getTopic())
+          .topic(topic)
           .payload(payload)
           .qos(qos)
           .retain(super.mqttConfig.isRetain())
           .send()
           .whenComplete((ack, error) -> {
             if (error != null) {
-              LOG.error("MQTT publish failed", error);
+              LOG.error("MQTT publish failed to topic {}", topic, error);
             }
           });
     } catch (Exception e) {

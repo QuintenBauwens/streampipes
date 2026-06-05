@@ -49,7 +49,12 @@ public class MqttConnectUtils {
   public static final String CLIENTKEY = "clientkey";
   public static final String BROKER_URL = "broker_url";
   public static final String TOPIC = "topic";
-  // Pubisher
+  // Publisher topic mode
+  public static final String TOPIC_MODE = "topic-mode";
+  public static final String STATIC_TOPIC_ALTERNATIVE = "static-topic-alternative";
+  public static final String DYNAMIC_TOPIC_ALTERNATIVE = "dynamic-topic-alternative";
+  public static final String TOPIC_FIELD = "topic-field";
+  // Publisher
   public static final String QOS_LEVEL_KEY = "qos-level";
   public static final String CLEAN_SESSION_KEY = "clean-session";
   public static final String WILL_RETAIN = "will-retain";
@@ -75,6 +80,23 @@ public class MqttConnectUtils {
 
   public static Label getTopicLabel() {
     return Labels.withId(TOPIC);
+  }
+
+  public static Label getTopicModeLabel() {
+    return Labels.withId(TOPIC_MODE);
+  }
+
+  public static StaticPropertyAlternative getStaticTopicAlternative() {
+    return Alternatives.from(Labels.withId(STATIC_TOPIC_ALTERNATIVE),
+        StaticProperties.stringFreeTextProperty(Labels.withId(TOPIC)),
+        true);
+  }
+
+  public static StaticPropertyAlternative getDynamicTopicAlternative() {
+    var mp = new org.apache.streampipes.model.staticproperty.MappingPropertyUnary(
+        TOPIC_FIELD, "Topic Field", TOPIC_FIELD);
+    mp.setPropertyScope(org.apache.streampipes.model.schema.PropertyScope.NONE.name());
+    return Alternatives.from(Labels.withId(DYNAMIC_TOPIC_ALTERNATIVE), mp);
   }
 
   public static Label getQosLevelLabel() {
@@ -273,7 +295,10 @@ public class MqttConnectUtils {
 
   public static MqttConfig extractDataSinkParams(IParameterExtractor extractor) {
 
-    MqttConfig mqttConfig = getMqttConfig(extractor);
+    String topicMode = extractor.selectedAlternativeInternalId(TOPIC_MODE);
+    // For dynamic mode, pass an empty placeholder so getMqttConfig doesn't read the absent TOPIC param
+    String topicInput = DYNAMIC_TOPIC_ALTERNATIVE.equals(topicMode) ? "" : null;
+    MqttConfig mqttConfig = getMqttConfig(extractor, topicInput);
 
     mqttConfig.setQos(MqttConnectUtils.extractQoSFromString(
         extractor.selectedSingleValue(QOS_LEVEL_KEY, String.class)));
