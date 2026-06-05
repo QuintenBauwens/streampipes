@@ -15,7 +15,14 @@ Follow this workflow every session, no exceptions:
 2. Do not start new work until you understand what is already in progress.
 
 ### During the Session
-- After completing each logical unit of work (a feature, a bug fix, a verified build), update `.github/HANDOFF.md` immediately:
+- **After completing each feature or logical unit of work, create a git commit immediately:**
+  - Stage only the files for that feature (`git add <specific files>`)
+  - Use conventional commit format: `feat(<scope>): <short description>`
+  - Common scopes: `mqtt`, `assets`, `connect`, `enricher`, `rest`, `ui`
+  - Example: `git commit -m "feat(mqtt): support dynamic topic from event field"`
+  - Always include the Co-authored-by trailer: `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`
+  - Do **not** bundle multiple features into one commit
+- After each commit, update `.github/HANDOFF.md`:
   - Move completed items to ✅ in the Status table
   - Add any new files created/modified to the file inventory
   - Record any technical decisions or gotchas discovered
