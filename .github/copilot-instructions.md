@@ -1,7 +1,5 @@
 # GitHub Copilot Instructions for Apache StreamPipes
 
-> **Active work in progress:** See `.github/HANDOFF.md` for the current feature branch status, all modified files, and what needs to be done next before starting any new work.
-
 Apache StreamPipes is an (Industrial) IoT self-service analytics platform. It is a Maven monorepo with a Java/Spring Boot backend and an Angular frontend under `ui/`.
 
 ---

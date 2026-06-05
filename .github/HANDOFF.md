@@ -23,22 +23,20 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | Platform-services API methods | ✅ Done | `importMaximoAssets()` + `uploadAdapterConfig()` |
 | Frontend: Maximo import button (assets) | ✅ Done | Needs Angular build verification |
 | Frontend: YAML upload button (connect) | ✅ Done (code added) | Needs Angular build verification |
-| **Angular build verification** | ❌ Pending | `npm install` was interrupted |
+| **Angular build verification** | ✅ Done | Build passes — only pre-existing CommonJS warnings |
 
 ---
 
-## First Thing To Do Next Session
+## Status: All Features Complete ✅
 
-Run the Angular build:
-```powershell
-cd C:\repos\streampipes\ui
-npm install
-npm run build-dev   # faster than full build; skips i18n validation
-```
+All 5 features are implemented, compile-verified (backend), and build-verified (frontend Angular dev build).
+Each feature has its own git commit on branch `copilot-cli`.
 
-If there are TypeScript errors, they will be in:
-- `ui/src/app/assets/components/asset-overview/asset-overview.component.ts` — Maximo import handler
-- `ui/src/app/connect/components/existing-adapters/existing-adapters.component.ts` — YAML upload handler
+## Next Steps (if any)
+
+- Integration test against a running StreamPipes instance
+- Push `copilot-cli` branch and open a pull request
+- Consider adding Cypress E2E tests for the two new UI buttons
 
 ---
 
