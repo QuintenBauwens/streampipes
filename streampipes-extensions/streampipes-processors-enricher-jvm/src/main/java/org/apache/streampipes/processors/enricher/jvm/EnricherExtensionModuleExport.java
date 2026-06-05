@@ -22,6 +22,7 @@ import org.apache.streampipes.extensions.api.connect.StreamPipesAdapter;
 import org.apache.streampipes.extensions.api.declarer.IExtensionModuleExport;
 import org.apache.streampipes.extensions.api.migration.IModelMigrator;
 import org.apache.streampipes.extensions.api.pe.IStreamPipesPipelineElement;
+import org.apache.streampipes.processors.enricher.jvm.processor.assethierarchy.AssetHierarchyEnrichmentProcessor;
 import org.apache.streampipes.processors.enricher.jvm.processor.expression.MathExpressionProcessor;
 import org.apache.streampipes.processors.enricher.jvm.processor.jseval.JSEvalProcessor;
 import org.apache.streampipes.processors.enricher.jvm.processor.limitsalert.SensorLimitAlertProcessor;
@@ -50,7 +51,8 @@ public class EnricherExtensionModuleExport implements IExtensionModuleExport {
         new StaticMathOpProcessor(),
         new TrigonometryProcessor(),
         new ValueChangeProcessor(),
-        new MathExpressionProcessor()
+        new MathExpressionProcessor(),
+        new AssetHierarchyEnrichmentProcessor()
     );
   }
 
