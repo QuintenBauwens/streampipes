@@ -49,6 +49,12 @@ export class AssetManagementService {
         return this.http.delete(`${this.assetBasePath}/${assetId}`);
     }
 
+    importMaximoAssets(file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        return this.http.post(`${this.assetBasePath}/import/maximo`, formData);
+    }
+
     private get assetBasePath() {
         return this.platformServicesCommons.apiBasePath + '/assets';
     }

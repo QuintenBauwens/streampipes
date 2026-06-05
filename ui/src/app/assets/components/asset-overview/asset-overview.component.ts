@@ -16,7 +16,7 @@
  *
  */
 
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import {
     MatCell,
     MatCellDef,
@@ -49,8 +49,7 @@ import { IdGeneratorService } from '../../../core-services/id-generator/id-gener
 import { UserPrivilege } from '../../../core/auth/user-privilege.enum';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
     FlexDirective,
     LayoutAlignDirective,
@@ -106,6 +105,9 @@ export class SpAssetOverviewComponent implements OnInit {
 
     @ViewChild(MatSort)
     sort: MatSort;
+
+    @ViewChild('maximoFileInput')
+    maximoFileInput: ElementRef<HTMLInputElement>;
 
     dataSource: MatTableDataSource<SpAssetModel> =
         new MatTableDataSource<SpAssetModel>();
@@ -255,5 +257,53 @@ export class SpAssetOverviewComponent implements OnInit {
                 },
             },
         );
+    }
+
+    triggerMaximoImport(): void {
+        this.maximoFileInput.nativeElement.value = '';
+        this.maximoFileInput.nativeElement.click();
+    }
+
+    onMaximoFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) {
+            return;
+        }
+        const file = input.files[0];
+        this.assetService.importMaximoAssets(file).subscribe({
+            next: result => {
+                this.loadAssets();
+                this.assetBrowserService.refreshBrowserAssetData();
+                const msg = this.translateService.instant(
+                    'Imported {{count}} root asset(s) from Maximo.',
+                    { count: result.createdCount },
+                );
+                this.dialog.open(ConfirmDialogComponent, {
+                    width: '500px',
+                    data: {
+                        title: this.translateService.instant(
+                            'Maximo import complete',
+                        ),
+                        subtitle: msg,
+                        cancelTitle: undefined,
+                        confirmTitle: this.translateService.instant('OK'),
+                    },
+                });
+            },
+            error: err => {
+                this.dialog.open(ConfirmDialogComponent, {
+                    width: '500px',
+                    data: {
+                        title: this.translateService.instant(
+                            'Maximo import failed',
+                        ),
+                        subtitle:
+                            err?.error || this.translateService.instant('An unexpected error occurred.'),
+                        cancelTitle: undefined,
+                        confirmTitle: this.translateService.instant('OK'),
+                    },
+                });
+            },
+        });
     }
 }

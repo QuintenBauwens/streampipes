@@ -34,6 +34,25 @@
                 <i class="material-icons">add</i>&nbsp;
                 {{ 'New asset' | translate }}
             </button>
+            &nbsp;
+            <button
+                mat-button
+                mat-flat-button
+                color="accent"
+                data-cy="import-maximo-assets-button"
+                (click)="triggerMaximoImport()"
+                matTooltip="{{ 'Import assets from a Maximo location JSON file' | translate }}"
+            >
+                <i class="material-icons">upload_file</i>&nbsp;
+                {{ 'Import from Maximo' | translate }}
+            </button>
+            <input
+                #maximoFileInput
+                type="file"
+                accept=".json"
+                style="display: none"
+                (change)="onMaximoFileSelected($event)"
+            />
         }
         <div fxFlex fxLayout="row" fxLayoutAlign="end center">
             <button
