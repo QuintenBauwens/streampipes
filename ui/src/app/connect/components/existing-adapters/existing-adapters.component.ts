@@ -16,7 +16,7 @@
  *
  */
 
-import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
     AdapterDescription,
     AdapterMonitoringService,
@@ -118,6 +118,9 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
 
     @ViewChild(MatSort)
     sort: MatSort;
+
+    @ViewChild('adapterConfigFileInput')
+    adapterConfigFileInput: ElementRef<HTMLInputElement>;
 
     displayedColumns: string[] = [
         'status',
@@ -388,6 +391,42 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
     createNewAdapter(): void {
         this.router.navigate(['connect', 'catalog']).then(() => {
             this.shepherdService.trigger('new-adapter-clicked');
+        });
+    }
+
+    triggerAdapterConfigUpload(): void {
+        this.adapterConfigFileInput.nativeElement.value = '';
+        this.adapterConfigFileInput.nativeElement.click();
+    }
+
+    onAdapterConfigFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) {
+            return;
+        }
+        this.adapterService.uploadAdapterConfig(input.files[0]).subscribe({
+            next: () => {
+                this.getAdaptersRunning();
+            },
+            error: err => {
+                const dialogRef = this.dialogService.open(
+                    SpExceptionDetailsDialogComponent,
+                    {
+                        panelType: PanelType.STANDARD_PANEL,
+                        title: this.translate.instant(
+                            'Adapter config upload failed',
+                        ),
+                        width: '70vw',
+                        data: {
+                            message: err?.error,
+                            title: this.translate.instant(
+                                'Could not import adapter configuration',
+                            ),
+                            additionalButton: false,
+                        },
+                    },
+                );
+            },
         });
     }
 

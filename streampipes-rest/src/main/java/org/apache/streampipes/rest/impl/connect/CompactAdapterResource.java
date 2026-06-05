@@ -39,6 +39,8 @@ import org.apache.streampipes.rest.shared.exception.BadRequestException;
 import org.apache.streampipes.rest.shared.exception.SpMessageException;
 import org.apache.streampipes.storage.management.StorageDispatcher;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -50,7 +52,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v2/connect/compact-adapters")
@@ -95,7 +99,33 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
   public ResponseEntity<?> addAdapterCompact(
       @RequestBody CompactAdapter compactAdapter
   ) throws Exception {
+    return createAdapter(compactAdapter);
+  }
 
+  /**
+   * Creates an adapter from an uploaded YAML or JSON file containing a {@link CompactAdapter} definition.
+   * The file must be sent as multipart form data with part name {@code file}.
+   */
+  @PostMapping(
+      path = "/upload",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+  )
+  @PreAuthorize("this.hasWriteAuthority()")
+  public ResponseEntity<?> uploadAdapterConfig(@RequestPart("file") MultipartFile file) throws Exception {
+    if (file.isEmpty()) {
+      return badRequest("Uploaded file is empty");
+    }
+    try {
+      var yamlMapper = new ObjectMapper(new YAMLFactory());
+      var compactAdapter = yamlMapper.readValue(file.getInputStream(), CompactAdapter.class);
+      return createAdapter(compactAdapter);
+    } catch (Exception e) {
+      LOG.error("Failed to parse adapter config file", e);
+      return badRequest("Could not parse adapter config: " + e.getMessage());
+    }
+  }
+
+  private ResponseEntity<?> createAdapter(CompactAdapter compactAdapter) throws Exception {
     var principalSid = getAuthenticatedUserSid();
     var adapterDescription = convertToAdapterDescription(compactAdapter, principalSid);
 

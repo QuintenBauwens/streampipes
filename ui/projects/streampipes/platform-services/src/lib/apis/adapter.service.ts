@@ -104,6 +104,15 @@ export class AdapterService {
             .pipe(map(response => Message.fromData(response as any)));
     }
 
+    uploadAdapterConfig(file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        return this.http.post(
+            `${this.connectPath}/compact-adapters/upload`,
+            formData,
+        );
+    }
+
     updateAdapter(adapter: AdapterDescription): Observable<Message> {
         return this.http
             .put(`${this.connectPath}/master/adapters`, adapter)

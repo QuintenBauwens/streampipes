@@ -34,6 +34,24 @@
                 'New adapter' | translate
             }}
         </button>
+        &nbsp;
+        <button
+            mat-flat-button
+            data-cy="connect-upload-adapter-config-button"
+            (click)="triggerAdapterConfigUpload()"
+            [matTooltip]="'Upload adapter configuration from YAML file' | translate"
+        >
+            <i class="material-icons">upload_file</i>&nbsp;{{
+                'Upload config' | translate
+            }}
+        </button>
+        <input
+            #adapterConfigFileInput
+            type="file"
+            accept=".yaml,.yml"
+            style="display: none"
+            (change)="onAdapterConfigFileSelected($event)"
+        />
         <div fxFlex fxLayout="row" fxLayoutAlign="end center">
             <sp-connect-filter-toolbar
                 class="filter-bar-margin"
