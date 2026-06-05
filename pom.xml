@@ -1319,6 +1319,11 @@
                         <!-- Exclude AI agent guidance files -->
                         <exclude>**/AGENTS.md</exclude>
 
+                        <!-- Exclude Copilot session and project-specific docs -->
+                        <exclude>.github/copilot-instructions.md</exclude>
+                        <exclude>.github/HANDOFF.md</exclude>
+                        <exclude>adjustment.md</exclude>
+
 
 
           <!-- Resource files for Integration Test-->
