@@ -22,6 +22,7 @@
 
 export * from './lib/apis/commons.service';
 export * from './lib/apis/adapter.service';
+export * from './lib/apis/adapter-asset-mapping.service';
 export * from './lib/apis/adapter-monitoring.service';
 export * from './lib/apis/asset-management.service';
 export * from './lib/apis/compact-pipeline.service';

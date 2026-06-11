@@ -16,7 +16,13 @@
  *
  */
 
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import {
+    Component,
+    ElementRef,
+    inject,
+    OnInit,
+    ViewChild,
+} from '@angular/core';
 import {
     MatCell,
     MatCellDef,
@@ -49,7 +55,8 @@ import { IdGeneratorService } from '../../../core-services/id-generator/id-gener
 import { UserPrivilege } from '../../../core/auth/user-privilege.enum';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
     FlexDirective,
     LayoutAlignDirective,
@@ -59,6 +66,7 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatMenuItem } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'sp-asset-overview',
@@ -84,6 +92,7 @@ import { MatIcon } from '@angular/material/icon';
         SpTableActionsDirective,
         MatMenuItem,
         MatIcon,
+        RouterLink,
         TranslatePipe,
     ],
 })
@@ -298,7 +307,10 @@ export class SpAssetOverviewComponent implements OnInit {
                             'Maximo import failed',
                         ),
                         subtitle:
-                            err?.error || this.translateService.instant('An unexpected error occurred.'),
+                            err?.error ||
+                            this.translateService.instant(
+                                'An unexpected error occurred.',
+                            ),
                         cancelTitle: undefined,
                         confirmTitle: this.translateService.instant('OK'),
                     },

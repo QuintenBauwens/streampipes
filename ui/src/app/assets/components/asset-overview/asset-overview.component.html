@@ -41,7 +41,9 @@
                 color="accent"
                 data-cy="import-maximo-assets-button"
                 (click)="triggerMaximoImport()"
-                matTooltip="{{ 'Import assets from a Maximo location JSON file' | translate }}"
+                matTooltip="{{
+                    'Import assets from a Maximo location JSON file' | translate
+                }}"
             >
                 <i class="material-icons">upload_file</i>&nbsp;
                 {{ 'Import from Maximo' | translate }}
@@ -54,6 +56,18 @@
                 (change)="onMaximoFileSelected($event)"
             />
         }
+        &nbsp;
+        <button
+            mat-button
+            mat-flat-button
+            color="accent"
+            data-cy="adapter-mappings-button"
+            [routerLink]="['assets', 'mappings']"
+            matTooltip="{{ 'Manage adapter-to-asset mappings' | translate }}"
+        >
+            <i class="material-icons">link</i>&nbsp;
+            {{ 'Adapter Mappings' | translate }}
+        </button>
         <div fxFlex fxLayout="row" fxLayoutAlign="end center">
             <button
                 mat-icon-button

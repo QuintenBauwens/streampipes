@@ -20,6 +20,7 @@ import { Routes } from '@angular/router';
 import { SpAssetOverviewComponent } from './components/asset-overview/asset-overview.component';
 import { SpViewAssetComponent } from './components/asset-details/view-asset/view-asset.component';
 import { SpAssetDetailsComponent } from './components/asset-details/edit-asset/asset-details.component';
+import { SpAdapterAssetMappingsComponent } from './components/adapter-asset-mappings/adapter-asset-mappings.component';
 import { UserPrivilege } from '../core/auth/user-privilege.enum';
 import { PageAuthGuard } from '../core/auth/guards/page-auth.can-activate.guard';
 
@@ -47,6 +48,10 @@ export const ASSET_ROUTES: Routes = [
                     privileges: [UserPrivilege.PRIVILEGE_WRITE_ASSETS],
                 },
                 canActivate: [PageAuthGuard],
+            },
+            {
+                path: 'mappings',
+                component: SpAdapterAssetMappingsComponent,
             },
         ],
     },

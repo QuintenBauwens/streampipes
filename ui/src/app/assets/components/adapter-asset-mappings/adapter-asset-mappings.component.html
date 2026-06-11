@@ -1,0 +1,177 @@
+<!--
+~ Licensed to the Apache Software Foundation (ASF) under one or more
+~ contributor license agreements.  See the NOTICE file distributed with
+~ this work for additional information regarding copyright ownership.
+~ The ASF licenses this file to You under the Apache License, Version 2.0
+~ (the "License"); you may not use this file except in compliance with
+~ the License.  You may obtain a copy of the License at
+~
+~    http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+~
+-->
+<sp-basic-view [showBackLink]="false" [padding]="true">
+    <div
+        nav
+        fxFlex="100"
+        fxLayout="row"
+        fxLayoutAlign="start center"
+        class="pl-10"
+    >
+        <button
+            mat-flat-button
+            color="accent"
+            (click)="triggerCsvUpload()"
+            matTooltip="{{
+                'Upload a CSV file (adapterName,assetLocation)' | translate
+            }}"
+            data-cy="upload-mapping-csv-button"
+        >
+            <mat-icon>upload_file</mat-icon>&nbsp;
+            {{ 'Upload CSV' | translate }}
+        </button>
+        <input
+            #csvFileInput
+            type="file"
+            accept=".csv"
+            style="display: none"
+            (change)="onCsvFileSelected($event)"
+        />
+    </div>
+
+    <div fxLayout="column" fxLayoutGap="20px">
+        <!-- Add single mapping form -->
+        <mat-card appearance="outlined">
+            <mat-card-header>
+                <mat-card-title>{{ 'Add Mapping' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{
+                    'Map an adapter name to its asset hierarchy location'
+                        | translate
+                }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <div
+                    fxLayout="row"
+                    fxLayoutGap="16px"
+                    fxLayoutAlign="start center"
+                >
+                    <mat-form-field appearance="outline" fxFlex="35">
+                        <mat-label>{{ 'Adapter Name' | translate }}</mat-label>
+                        <input
+                            matInput
+                            [(ngModel)]="newAdapterName"
+                            placeholder="e.g. My MQTT Sensor"
+                            data-cy="mapping-adapter-name-input"
+                        />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" fxFlex="35">
+                        <mat-label>{{
+                            'Asset Location' | translate
+                        }}</mat-label>
+                        <input
+                            matInput
+                            [(ngModel)]="newAssetLocation"
+                            placeholder="e.g. B/Zone1/Machine1"
+                            data-cy="mapping-asset-location-input"
+                        />
+                    </mat-form-field>
+                    <button
+                        mat-flat-button
+                        color="accent"
+                        [disabled]="!newAdapterName || !newAssetLocation"
+                        (click)="addMapping()"
+                        data-cy="add-mapping-button"
+                    >
+                        <mat-icon>add</mat-icon>&nbsp;
+                        {{ 'Add' | translate }}
+                    </button>
+                </div>
+                @if (saveError) {
+                    <p class="color-warn sp-subtitle-2">{{ saveError }}</p>
+                }
+                @if (saveSuccess) {
+                    <p class="color-success sp-subtitle-2">
+                        {{ 'Mapping saved successfully.' | translate }}
+                    </p>
+                }
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Mappings table -->
+        <mat-card appearance="outlined">
+            <mat-card-header>
+                <mat-card-title>{{
+                    'Existing Mappings' | translate
+                }}</mat-card-title>
+                <mat-card-subtitle>
+                    {{ mappings.length }}
+                    {{ 'mapping(s) configured' | translate }}
+                </mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                @if (uploadResult) {
+                    <div class="mb-10">
+                        <span class="sp-subtitle-2">
+                            {{ uploadResult.savedCount }}
+                            {{ 'mapping(s) imported from CSV.' | translate }}
+                            @if (uploadResult.errors?.length > 0) {
+                                {{ uploadResult.errors.length }}
+                                {{ 'error(s):' | translate }}
+                                {{ uploadResult.errors.join(', ') }}
+                            }
+                        </span>
+                    </div>
+                }
+                <mat-table [dataSource]="mappings" class="w-100">
+                    <ng-container matColumnDef="adapterName">
+                        <mat-header-cell *matHeaderCellDef>{{
+                            'Adapter Name' | translate
+                        }}</mat-header-cell>
+                        <mat-cell *matCellDef="let row">{{
+                            row.elementId
+                        }}</mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="assetLocation">
+                        <mat-header-cell *matHeaderCellDef>{{
+                            'Asset Location' | translate
+                        }}</mat-header-cell>
+                        <mat-cell *matCellDef="let row">{{
+                            row.topic
+                        }}</mat-cell>
+                    </ng-container>
+
+                    <mat-header-row
+                        *matHeaderRowDef="displayedColumns"
+                    ></mat-header-row>
+                    <mat-row
+                        *matRowDef="let row; columns: displayedColumns"
+                    ></mat-row>
+                </mat-table>
+
+                @if (mappings.length === 0) {
+                    <div
+                        fxLayout="column"
+                        fxLayoutAlign="center center"
+                        class="mt-20 mb-20"
+                    >
+                        <mat-icon class="icon-xl color-disabled"
+                            >link_off</mat-icon
+                        >
+                        <p class="sp-subtitle-2 color-disabled">
+                            {{
+                                'No mappings yet. Add one above or upload a CSV.'
+                                    | translate
+                            }}
+                        </p>
+                    </div>
+                }
+            </mat-card-content>
+        </mat-card>
+    </div>
+</sp-basic-view>
