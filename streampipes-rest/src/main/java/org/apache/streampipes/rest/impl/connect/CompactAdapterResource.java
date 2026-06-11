@@ -40,6 +40,9 @@ import org.apache.streampipes.rest.shared.exception.BadRequestException;
 import org.apache.streampipes.rest.shared.exception.SpMessageException;
 import org.apache.streampipes.storage.management.StorageDispatcher;
 
+import org.apache.streampipes.extensions.api.connect.exception.WorkerAdapterException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.Logger;
@@ -120,9 +123,18 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
       var yamlMapper = new ObjectMapper(new YAMLFactory());
       var compactAdapter = yamlMapper.readValue(file.getInputStream(), CompactAdapter.class);
       return createAdapter(compactAdapter);
-    } catch (Exception e) {
+    } catch (JsonProcessingException e) {
       LOG.error("Failed to parse adapter config file", e);
-      return badRequest("Could not parse adapter config: " + e.getMessage());
+      return badRequest("Could not parse adapter config file: " + e.getOriginalMessage());
+    } catch (WorkerAdapterException e) {
+      LOG.error("Adapter worker error during upload-based adapter creation", e);
+      return badRequest(
+          "Adapter created but source system is unreachable for schema detection. "
+              + "Ensure the source (e.g. MQTT broker) is running and accessible: "
+              + e.getMessage());
+    } catch (Exception e) {
+      LOG.error("Unexpected error creating adapter from uploaded file", e);
+      return badRequest("Could not create adapter: " + e.getMessage());
     }
   }
 
