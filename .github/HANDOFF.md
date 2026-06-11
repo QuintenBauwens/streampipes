@@ -21,22 +21,24 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | YAML adapter upload endpoint | ✅ Done | Backend compile-verified |
 | Asset hierarchy enrichment processor | ✅ Done | Backend compile-verified |
 | Platform-services API methods | ✅ Done | `importMaximoAssets()` + `uploadAdapterConfig()` |
-| Frontend: Maximo import button (assets) | ✅ Done | Needs Angular build verification |
-| Frontend: YAML upload button (connect) | ✅ Done (code added) | Needs Angular build verification |
+| Frontend: Maximo import button (assets) | ✅ Done | Angular build passes |
+| Frontend: YAML upload button (connect) | ✅ Done | Angular build passes |
 | **Angular build verification** | ✅ Done | Build passes — only pre-existing CommonJS warnings |
+| Adapter-to-asset topic mapping (backend) | ✅ Done | CouchDB `adapter-asset-mappings` db; enrichment + asset linking service |
+| Adapter-to-asset mapping UI page | ✅ Done | `/assets/mappings` route; table + add form + CSV upload |
+| Upload error handling fix | ✅ Done | Separate catches for `JsonProcessingException` vs `WorkerAdapterException` |
 
 ---
 
 ## Status: All Features Complete ✅
 
-All 5 features are implemented, compile-verified (backend), and build-verified (frontend Angular dev build).
+All features implemented, compile-verified (backend), build-verified (frontend), and deployed against a live instance.
 Each feature has its own git commit on branch `copilot-cli`.
 
 ## Next Steps (if any)
 
-- Integration test against a running StreamPipes instance
 - Push `copilot-cli` branch and open a pull request
-- Consider adding Cypress E2E tests for the two new UI buttons
+- Consider adding Cypress E2E tests for the new UI buttons and mapping page
 
 ---
 
@@ -66,10 +68,13 @@ Each feature has its own git commit on branch `copilot-cli`.
 |---|---|
 | `ui/projects/streampipes/platform-services/src/lib/apis/asset-management.service.ts` | MODIFIED — `importMaximoAssets(file)` |
 | `ui/projects/streampipes/platform-services/src/lib/apis/adapter.service.ts` | MODIFIED — `uploadAdapterConfig(file)` |
-| `ui/src/app/assets/components/asset-overview/asset-overview.component.html` | MODIFIED — "Import from Maximo" button + hidden file input |
-| `ui/src/app/assets/components/asset-overview/asset-overview.component.ts` | MODIFIED — `triggerMaximoImport()`, `onMaximoFileSelected()`, `@ViewChild maximoFileInput` |
-| `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — "Upload config" button + hidden file input |
-| `ui/src/app/connect/components/existing-adapters/existing-adapters.component.ts` | MODIFIED — `triggerAdapterConfigUpload()`, `onAdapterConfigFileSelected()`, `@ViewChild adapterConfigFileInput` |
+| `ui/src/app/assets/components/asset-overview/asset-overview.component.html` | MODIFIED — "Import from Maximo" button + "Adapter Mappings" nav button |
+| `ui/src/app/assets/components/asset-overview/asset-overview.component.ts` | MODIFIED — `triggerMaximoImport()`, `RouterLink` added |
+| `ui/src/app/assets/assets.routes.ts` | MODIFIED — added `/assets/mappings` route |
+| `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | NEW — `getAllMappings()`, `saveMapping()`, `uploadMappingCsv()` |
+| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports `adapter-asset-mapping.service` |
+| `ui/src/app/assets/components/adapter-asset-mappings/adapter-asset-mappings.component.ts` | NEW — mapping management page component |
+| `ui/src/app/assets/components/adapter-asset-mappings/adapter-asset-mappings.component.html` | NEW — template |
 
 ---
 
