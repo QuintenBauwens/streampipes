@@ -27,6 +27,8 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | Adapter-to-asset topic mapping (backend) | ✅ Done | CouchDB `adapter-asset-mappings` db; enrichment + asset linking service |
 | Adapter-to-asset mapping UI page | ✅ Done | `/assets/mappings` route; table + add form + CSV upload |
 | Upload error handling fix | ✅ Done | Separate catches for `JsonProcessingException` vs `WorkerAdapterException` |
+| Routing fix for mappings button | ✅ Done | Fixed absolute routerLink; added "Asset Mappings" button to connect page |
+| YAML upload with pre-defined schema | ✅ Done | Skip live device guessing when `schema` block is present in YAML |
 
 ---
 
@@ -98,9 +100,12 @@ Each feature has its own git commit on branch `copilot-cli`.
 - Use `SO.TEXT` (String constant from `org.apache.streampipes.vocabulary.SO`), NOT `XSD.STRING` (URI) in `EpProperties.stringEp()`
 - No storage access — all config is static text params set at pipeline design time
 
-### YAML Adapter Upload
-- `jackson-dataformat-yaml` already in `streampipes-rest` pom
-- New endpoint is `/api/v2/connect/compact-adapters/upload` (multipart) — complements the existing JSON/YAML body endpoint
+### AdapterSchemaGenerator fix
+
+- `AdapterSchemaGenerator.apply()` previously **always** called `getSampleData()` → required a live device connection
+- Now: if `compactAdapter.schema()` is non-null/non-empty, skip live-device calls and build `EventSchema` directly from schema keys
+- Default `runtimeType` = `XSD double` URI (fits Modbus/energy meter registers)
+- Live-device path still used when no schema is provided (existing behaviour)
 
 ---
 
