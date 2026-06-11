@@ -39,10 +39,13 @@ package org.apache.streampipes.model.connect.adapter.compact;
 import org.apache.streampipes.model.connect.TransformationConfig;
 import org.apache.streampipes.model.shared.annotation.TsModel;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 import java.util.Map;
 
 @TsModel
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record CompactAdapter(
     String id,
     String name,
@@ -51,5 +54,6 @@ public record CompactAdapter(
     List<Map<String, Object>> configuration,
     TransformationConfig transformationConfig,
     Map<String, CompactEventProperty> schema,
-    CreateOptions createOptions
+    CreateOptions createOptions,
+    String topic
 ) {}

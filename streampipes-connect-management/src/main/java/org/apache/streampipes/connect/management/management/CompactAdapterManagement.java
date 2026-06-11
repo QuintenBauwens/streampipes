@@ -58,7 +58,8 @@ public class CompactAdapterManagement {
         generator.getConfig(),
         adapterDescription.getTransformationConfig(),
         generator.getSchema(),
-        generator.getCreateOptions()
+        generator.getCreateOptions(),
+        null
     );
   }
 

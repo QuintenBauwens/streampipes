@@ -30,6 +30,7 @@ import org.apache.streampipes.connect.management.management.WorkerRestClient;
 import org.apache.streampipes.manager.api.extensions.ExtensionServiceRequestManager;
 import org.apache.streampipes.manager.execution.endpoint.ExtensionsServiceEndpointGenerator;
 import org.apache.streampipes.manager.pipeline.compact.CompactPipelineManagement;
+import org.apache.streampipes.model.connect.adapter.AdapterAssetMapping;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
 import org.apache.streampipes.model.message.Notifications;
@@ -142,6 +143,10 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
                            .body(Notifications.error(e.getMessage()));
     }
 
+    if (compactAdapter.topic() != null && !compactAdapter.topic().isBlank()) {
+      saveAssetMapping(adapterId, compactAdapter.topic());
+    }
+
     try {
       if (compactAdapter.createOptions() != null) {
         if (compactAdapter.createOptions()
@@ -224,6 +229,21 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
       return compactAdapterManagement.convertToAdapterDescription(compactAdapter, existingAdapter, principalSid);
     } catch (AdapterException e) {
       throw new SpMessageException(HttpStatus.BAD_REQUEST, Notifications.error(e.getMessage()));
+    }
+  }
+
+  private void saveAssetMapping(String adapterId, String topic) {
+    try {
+      var storage = StorageDispatcher.INSTANCE.getNoSqlStore().getAdapterAssetMappingStorage();
+      var existing = storage.getElementById(adapterId);
+      if (existing != null) {
+        existing.setTopic(topic);
+        storage.updateElement(existing);
+      } else {
+        storage.persist(new AdapterAssetMapping(adapterId, topic));
+      }
+    } catch (Exception e) {
+      LOG.warn("Could not save asset mapping for adapter {}: {}", adapterId, e.getMessage());
     }
   }
 }

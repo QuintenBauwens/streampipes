@@ -17,6 +17,7 @@
  */
 package org.apache.streampipes.storage.api.core;
 
+import org.apache.streampipes.storage.api.connect.IAdapterAssetMappingStorage;
 import org.apache.streampipes.storage.api.connect.IAdapterStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerDashboardStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerWidgetStorage;
@@ -108,4 +109,6 @@ public interface INoSqlStorage {
   IAssetStorage getAssetStorage();
 
   ITransformationScriptTemplateStorage getTransformationScriptTemplateStorage();
+
+  IAdapterAssetMappingStorage getAdapterAssetMappingStorage();
 }

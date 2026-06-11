@@ -18,6 +18,7 @@
 package org.apache.streampipes.storage.couchdb;
 
 import org.apache.streampipes.model.datalake.DataLakeMeasure;
+import org.apache.streampipes.storage.api.connect.IAdapterAssetMappingStorage;
 import org.apache.streampipes.storage.api.connect.IAdapterStorage;
 import org.apache.streampipes.storage.api.core.INoSqlStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerDashboardStorage;
@@ -48,6 +49,7 @@ import org.apache.streampipes.storage.api.user.IRoleStorage;
 import org.apache.streampipes.storage.api.user.IUserActivationTokenStorage;
 import org.apache.streampipes.storage.api.user.IUserGroupStorage;
 import org.apache.streampipes.storage.api.user.IUserStorage;
+import org.apache.streampipes.storage.couchdb.impl.connect.AdapterAssetMappingStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.connect.AdapterDescriptionStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.connect.AdapterInstanceStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.explorer.DataExplorerDashboardStorageImpl;
@@ -233,5 +235,10 @@ public class CouchDbStorageManager implements INoSqlStorage {
   @Override
   public ITransformationScriptTemplateStorage getTransformationScriptTemplateStorage() {
     return new TransformationScriptTemplateStorageImpl();
+  }
+
+  @Override
+  public IAdapterAssetMappingStorage getAdapterAssetMappingStorage() {
+    return new AdapterAssetMappingStorageImpl();
   }
 }
