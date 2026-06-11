@@ -30,11 +30,11 @@ import org.apache.streampipes.connect.management.management.WorkerRestClient;
 import org.apache.streampipes.manager.api.extensions.ExtensionServiceRequestManager;
 import org.apache.streampipes.manager.execution.endpoint.ExtensionsServiceEndpointGenerator;
 import org.apache.streampipes.manager.pipeline.compact.CompactPipelineManagement;
-import org.apache.streampipes.model.connect.adapter.AdapterAssetMapping;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
 import org.apache.streampipes.model.message.Notifications;
 import org.apache.streampipes.resource.management.SpResourceManager;
+import org.apache.streampipes.resource.management.connect.AdapterAssetEnrichmentService;
 import org.apache.streampipes.rest.shared.constants.SpMediaType;
 import org.apache.streampipes.rest.shared.exception.BadRequestException;
 import org.apache.streampipes.rest.shared.exception.SpMessageException;
@@ -132,6 +132,9 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
 
     var adapterId = adapterDescription.getElementId();
 
+    // Enrich schema and link to asset if a pre-mapping exists for this adapter name
+    new AdapterAssetEnrichmentService().enrichAndLink(adapterDescription);
+
     try {
       managementService.addAdapter(adapterDescription, adapterId, principalSid);
     } catch (AdapterException e) {
@@ -141,10 +144,6 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
       );
       return ResponseEntity.status(HttpStatus.CONFLICT)
                            .body(Notifications.error(e.getMessage()));
-    }
-
-    if (compactAdapter.topic() != null && !compactAdapter.topic().isBlank()) {
-      saveAssetMapping(adapterId, compactAdapter.topic());
     }
 
     try {
@@ -229,21 +228,6 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
       return compactAdapterManagement.convertToAdapterDescription(compactAdapter, existingAdapter, principalSid);
     } catch (AdapterException e) {
       throw new SpMessageException(HttpStatus.BAD_REQUEST, Notifications.error(e.getMessage()));
-    }
-  }
-
-  private void saveAssetMapping(String adapterId, String topic) {
-    try {
-      var storage = StorageDispatcher.INSTANCE.getNoSqlStore().getAdapterAssetMappingStorage();
-      var existing = storage.getElementById(adapterId);
-      if (existing != null) {
-        existing.setTopic(topic);
-        storage.updateElement(existing);
-      } else {
-        storage.persist(new AdapterAssetMapping(adapterId, topic));
-      }
-    } catch (Exception e) {
-      LOG.warn("Could not save asset mapping for adapter {}: {}", adapterId, e.getMessage());
     }
   }
 }
