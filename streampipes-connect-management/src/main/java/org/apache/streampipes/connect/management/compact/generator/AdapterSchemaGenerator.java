@@ -25,10 +25,17 @@ import org.apache.streampipes.connect.management.management.GuessManagement;
 import org.apache.streampipes.extensions.api.connect.exception.WorkerAdapterException;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
+import org.apache.streampipes.model.connect.adapter.compact.CompactEventProperty;
+import org.apache.streampipes.model.schema.EventPropertyPrimitive;
+import org.apache.streampipes.model.schema.EventSchema;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class AdapterSchemaGenerator implements AdapterModelGenerator {
+
+  private static final String XSD_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
 
   private final SchemaMetadataEnricher enricher;
   private final GuessManagement guessManagement;
@@ -50,40 +57,47 @@ public class AdapterSchemaGenerator implements AdapterModelGenerator {
       throws WorkerAdapterException, NoServiceEndpointsAvailableException, IOException, AdapterException {
 
     if (compactAdapter.transformationConfig() != null && compactAdapter.transformationConfig()
-                                                                       .getScript() != null) {
+                                                                      .getScript() != null) {
       adapterDescription.getTransformationConfig()
                         .setScript(compactAdapter.transformationConfig()
                                                  .getScript());
     }
 
-    var sampleData = guessManagement.getSampleData(adapterDescription);
-    adapterDescription.getTransformationConfig()
-                      .setInputs(sampleData.getSamples());
-
     setDefaultScriptIfNotSet(adapterDescription);
     setDefaultScriptLanguageIfNotSet(adapterDescription);
 
-    guessManagement.transformSampleData(adapterDescription, userId);
-
-    var eventSchema = guessManagement.guessSchema(adapterDescription);
-    if (eventSchema != null) {
-      adapterDescription.getDataStream()
-                        .setEventSchema(eventSchema);
-    }
-
     var schemaDef = compactAdapter.schema();
 
-    if (schemaDef != null) {
+    if (schemaDef != null && !schemaDef.isEmpty()) {
+      // Schema is pre-defined in the YAML — build directly without connecting to the live device
       adapterDescription.getDataStream()
-                        .getEventSchema()
-                        .getEventProperties()
-                        .forEach(ep -> {
-                          if (schemaDef.containsKey(ep.getRuntimeName())) {
-                            var compactPropertyDef = schemaDef.get(ep.getRuntimeName());
-                            enricher.enrich(ep, compactPropertyDef);
-                          }
-                        });
+                        .setEventSchema(buildSchemaFromDefinition(schemaDef));
+    } else {
+      // No pre-defined schema — auto-guess by connecting to the live device
+      var sampleData = guessManagement.getSampleData(adapterDescription);
+      adapterDescription.getTransformationConfig()
+                        .setInputs(sampleData.getSamples());
+
+      guessManagement.transformSampleData(adapterDescription, userId);
+
+      var eventSchema = guessManagement.guessSchema(adapterDescription);
+      if (eventSchema != null) {
+        adapterDescription.getDataStream()
+                          .setEventSchema(eventSchema);
+      }
     }
+  }
+
+  private EventSchema buildSchemaFromDefinition(Map<String, CompactEventProperty> schemaDef) {
+    var properties = new ArrayList<EventPropertyPrimitive>();
+    schemaDef.forEach((fieldName, propDef) -> {
+      var ep = new EventPropertyPrimitive(XSD_DOUBLE, fieldName, "", "");
+      if (propDef != null) {
+        enricher.enrich(ep, propDef);
+      }
+      properties.add(ep);
+    });
+    return new EventSchema(new ArrayList<>(properties));
   }
 
   private void setDefaultScriptIfNotSet(AdapterDescription adapterDescription) {
