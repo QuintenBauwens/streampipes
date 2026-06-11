@@ -39,7 +39,9 @@
             mat-flat-button
             data-cy="connect-upload-adapter-config-button"
             (click)="triggerAdapterConfigUpload()"
-            [matTooltip]="'Upload adapter configuration from YAML file' | translate"
+            [matTooltip]="
+                'Upload adapter configuration from YAML file' | translate
+            "
         >
             <i class="material-icons">upload_file</i>&nbsp;{{
                 'Upload config' | translate
@@ -52,6 +54,17 @@
             style="display: none"
             (change)="onAdapterConfigFileSelected($event)"
         />
+        &nbsp;
+        <button
+            mat-flat-button
+            data-cy="connect-asset-mappings-button"
+            [routerLink]="['/assets/mappings']"
+            [matTooltip]="'Manage adapter-to-asset mappings' | translate"
+        >
+            <i class="material-icons">link</i>&nbsp;{{
+                'Asset Mappings' | translate
+            }}
+        </button>
         <div fxFlex fxLayout="row" fxLayoutAlign="end center">
             <sp-connect-filter-toolbar
                 class="filter-bar-margin"

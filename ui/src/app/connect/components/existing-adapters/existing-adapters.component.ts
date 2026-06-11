@@ -16,7 +16,14 @@
  *
  */
 
-import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+    Component,
+    ElementRef,
+    inject,
+    OnDestroy,
+    OnInit,
+    ViewChild,
+} from '@angular/core';
 import {
     AdapterDescription,
     AdapterMonitoringService,
@@ -75,6 +82,7 @@ import { AdapterStatusLightComponent } from './adapter-status-light/adapter-stat
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatMenuItem } from '@angular/material/menu';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'sp-existing-adapters',
@@ -106,6 +114,7 @@ import { DatePipe } from '@angular/common';
         SpTableActionsDirective,
         MatMenuItem,
         DatePipe,
+        RouterLink,
         TranslatePipe,
     ],
 })
