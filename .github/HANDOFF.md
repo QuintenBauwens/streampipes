@@ -9,6 +9,129 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 3. Enrich datapoint streams with asset hierarchy metadata
 4. Dynamic MQTT topics derived from event fields
 5. Frontend UI for import/upload features
+6. Auto-deploy MQTT publisher pipeline per adapter (global config)
+
+---
+
+## Status
+
+| Feature | Status | Notes |
+|---|---|---|
+| Dynamic MQTT topic support | ✅ Done | Uses `getStaticPropertyByName` to correctly find nested `MappingPropertyUnary` |
+| Maximo asset import (service + REST) | ✅ Done | Backend compile-verified |
+| YAML adapter upload endpoint | ✅ Done | Backend compile-verified |
+| Asset hierarchy enrichment processor | ✅ Done | Backend compile-verified |
+| Platform-services API methods | ✅ Done | `importMaximoAssets()` + `uploadAdapterConfig()` |
+| Frontend: Maximo import button (assets) | ✅ Done | Angular build passes |
+| Frontend: YAML upload button (connect) | ✅ Done | Angular build passes |
+| **Angular build verification** | ✅ Done | Build passes — only pre-existing CommonJS warnings |
+| Adapter-to-asset topic mapping (backend) | ✅ Done | CouchDB `adapter-asset-mappings` db; enrichment + asset linking service |
+| Asset linking fix (null-safe traversal) | ✅ Done | NPE on null `additionalData` in nested `SpAsset` nodes no longer silently aborts linking |
+| Asset linking fix (direct JSON save) | ✅ Done | Angular `saveMapping()` now POSTs JSON (not CSV) to new `@PostMapping` on `AdapterAssetMappingResource` |
+| CSV header detection fix | ✅ Done | Backend also accepts `adaptername` header prefix in CSV upload |
+| Dynamic MQTT topic fix | ✅ Done | `getStaticPropertyByName` correctly recurses into `StaticPropertyAlternative` |
+| Adapter-to-asset mapping UI page | ✅ Done | `/assets/mappings` route; table + add form + CSV upload |
+| Upload error handling fix | ✅ Done | Separate catches for `JsonProcessingException` vs `WorkerAdapterException` |
+| Routing fix for mappings button | ✅ Done | Fixed absolute routerLink; added "Asset Mappings" button to connect page |
+| YAML upload with pre-defined schema | ✅ Done | Skip live device guessing when `schema` block is present in YAML |
+| **MQTT auto-publish pipeline** | ✅ Done | Global config stored in CouchDB; auto-creates MQTT pipeline per adapter on upload |
+| **MQTT settings page (UI)** | ✅ Done | Configuration > MQTT; admin-only form to enable/disable + configure broker |
+
+---
+
+## Status: All Features Complete ✅
+
+All features implemented, compile-verified (backend), build-verified (frontend), and deployed.
+Each feature has its own git commit on branch `copilot-cli`.
+
+## First Thing To Do Next Session
+
+- Push `copilot-cli` branch and open a pull request
+- Test the MQTT auto-publish pipeline creation end-to-end:
+  1. Go to Configuration → MQTT, enable auto-publish, enter broker URL
+  2. Upload a YAML adapter config
+  3. Verify a pipeline named `mqtt-<adapter>` appears and starts publishing
+- Also verify asset linking works by checking that the asset in the UI shows the adapter link after YAML upload
+
+---
+
+## All Modified/Created Files
+
+### Backend (Java/Maven)
+
+| File | Change |
+|---|---|
+| `streampipes-resource-management/src/main/java/.../maximo/MaximoLocation.java` | NEW |
+| `streampipes-resource-management/src/main/java/.../maximo/MaximoImportResult.java` | NEW |
+| `streampipes-resource-management/src/main/java/.../maximo/MaximoAssetImportService.java` | NEW |
+| `streampipes-rest/src/main/java/.../rest/impl/MaximoAssetImportResource.java` | NEW |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/CompactAdapterResource.java` | MODIFIED — YAML upload + MQTT auto-pipeline hook |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/AdapterAssetMappingResource.java` | MODIFIED — JSON `@PostMapping` + CSV header fix |
+| `streampipes-rest/src/main/java/.../rest/impl/admin/AutoMqttConfigResource.java` | NEW — `GET/PUT /api/v2/config/mqtt-auto-publish` |
+| `streampipes-model/src/main/java/.../model/configuration/MqttAutoPublishConfig.java` | NEW — singleton config model |
+| `streampipes-storage-api/src/main/java/.../storage/api/core/INoSqlStorage.java` | MODIFIED — added `getMqttAutoPublishConfigStorage()` |
+| `streampipes-storage-api/src/main/java/.../storage/api/system/IMqttAutoPublishConfigStorage.java` | NEW |
+| `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired new storage impl |
+| `streampipes-storage-couchdb/src/main/java/.../impl/system/MqttAutoPublishConfigStorageImpl.java` | NEW — CouchDB db `mqtt-auto-publish-config` |
+| `streampipes-connect-management/src/main/java/.../compact/MqttPublisherPipelineHandler.java` | NEW — builds CompactPipeline with dynamic topic |
+| `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — null-safe `findAssetByMqttTopic` |
+| `streampipes-extensions/.../sink/MqttPublisherSink.java` | MODIFIED — dynamic topic via `getStaticPropertyByName` |
+
+### Frontend (Angular)
+
+| File | Change |
+|---|---|
+| `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | MODIFIED — `saveMapping()` uses JSON POST |
+| `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | NEW — `getConfig()` / `updateConfig()` |
+| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports new service |
+| `ui/src/app/configuration/configuration-sections.providers.ts` | MODIFIED — added MQTT section |
+| `ui/src/app/configuration/mqtt-configuration/mqtt-configuration.component.ts` | NEW |
+| `ui/src/app/configuration/mqtt-configuration/mqtt-configuration.component.html` | NEW |
+
+---
+
+## Key Technical Decisions
+
+### MQTT Auto-Publish Pipeline
+- Global config stored as a singleton CouchDB document (`_id = "mqtt-auto-publish-config"`)
+- `MqttPublisherPipelineHandler` mirrors `PersistPipelineHandler` pattern, builds `CompactPipeline` directly without needing a template
+- If adapter schema has a `topic` field (added by `AdapterAssetEnrichmentService`), dynamic mode is used automatically with selector `"s0::topic"`
+- For `StaticPropertyAlternatives` config in `PipelineElementTemplateVisitor`: put the alternative ID AND nested property keys in the **same** config map (e.g., `Map.of(TOPIC_MODE, DYNAMIC_TOPIC_ALTERNATIVE, TOPIC_FIELD, "s0::topic")`)
+- Errors in auto-pipeline creation are caught and logged as warnings; the adapter creation itself still succeeds
+
+### Asset Linking
+- `findAssetByMqttTopic` now guards against `null` `additionalData` and `null` `assets` list — both can be null when CouchDB deserializes old documents via `UnsafeAllocator` (field initializers don't run)
+- Direct JSON POST to `/api/v2/connect/adapter-asset-mappings` is more reliable than CSV round-trip
+
+### Dynamic MQTT Topic Bug (fixed)
+- `mappingPropertyValue()` only iterates top-level static properties — misses `MappingPropertyUnary` inside `StaticPropertyAlternative`
+- `getStaticPropertyByName(internalName, MappingPropertyUnary.class)` recurses correctly
+
+---
+
+## Build Commands
+
+```powershell
+# Backend — build + install service-core
+mvn -pl streampipes-service-core -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+
+# Frontend — quick dev build (no i18n validation)
+cd ui && npm run build-dev
+
+# Redeploy
+docker compose build backend ui && docker compose up -d backend ui
+```
+
+
+> **Maintenance:** Update this file at the end of every session. The workflow is defined in `.github/copilot-instructions.md` under "Session Workflow".
+
+## Project Goal
+Extend Apache StreamPipes for Industrial IoT use cases with:
+1. Import asset hierarchies from Maximo JSON exports
+2. Upload adapter configs via YAML file
+3. Enrich datapoint streams with asset hierarchy metadata
+4. Dynamic MQTT topics derived from event fields
+5. Frontend UI for import/upload features
 
 ---
 
@@ -25,6 +148,8 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | Frontend: YAML upload button (connect) | ✅ Done | Angular build passes |
 | **Angular build verification** | ✅ Done | Build passes — only pre-existing CommonJS warnings |
 | Adapter-to-asset topic mapping (backend) | ✅ Done | CouchDB `adapter-asset-mappings` db; enrichment + asset linking service |
+| Asset linking fix | ✅ Done | `findAssetByPath` replaced with `findAssetByMqttTopic` matching on `additionalData["mqtt_topic"]` |
+| Dynamic MQTT topic fix | ✅ Done | Use `getStaticPropertyByName` instead of `mappingPropertyValue` to find nested `MappingPropertyUnary` |
 | Adapter-to-asset mapping UI page | ✅ Done | `/assets/mappings` route; table + add form + CSV upload |
 | Upload error handling fix | ✅ Done | Separate catches for `JsonProcessingException` vs `WorkerAdapterException` |
 | Routing fix for mappings button | ✅ Done | Fixed absolute routerLink; added "Asset Mappings" button to connect page |
@@ -100,7 +225,14 @@ Each feature has its own git commit on branch `copilot-cli`.
 - Use `SO.TEXT` (String constant from `org.apache.streampipes.vocabulary.SO`), NOT `XSD.STRING` (URI) in `EpProperties.stringEp()`
 - No storage access — all config is static text params set at pipeline design time
 
-### AdapterSchemaGenerator fix
+### Dynamic MQTT Topic Bug (fixed)
+- `mappingPropertyValue(internalName)` only iterates `sepaElement.getStaticProperties()` at the top level — it will **never** find a `MappingPropertyUnary` that lives inside a `StaticPropertyAlternative`
+- `getStaticPropertyByName(internalName)` already recurses into the selected alternative (the correct behaviour)
+- Fix: call `getStaticPropertyByName(TOPIC_FIELD, MappingPropertyUnary.class)` then call `getSelectedProperty()` on the result
+
+### Asset Linking Bug (fixed)
+- `findAssetByPath` matched by `assetName` (Maximo LOCATION code), but the mapping DB topic is derived from Maximo ROUTE — a completely different field
+- Fix: replaced with `findAssetByMqttTopic` that searches `additionalData["mqtt_topic"]` (set by `MaximoAssetImportService`) for an exact topic match
 
 - `AdapterSchemaGenerator.apply()` previously **always** called `getSampleData()` → required a live device connection
 - Now: if `compactAdapter.schema()` is non-null/non-empty, skip live-device calls and build `EventSchema` directly from schema keys
