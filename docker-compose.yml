@@ -20,6 +20,8 @@
 # provided on https://streampipes.apache.org/download
 #
 
+## for testing as second streampipes service: docker compose -p streampipes-fork up -d --build
+
 # global logging
 x-logging: &default-logging
   options:
@@ -53,7 +55,7 @@ services:
     environment:
       - SP_HTTP_SERVER_ADAPTER_ENDPOINT=extensions-all-iiot:8090
     ports:
-      - "80:8088"
+      - "81:8088" # change back to 8080:8088 for production
     depends_on:
       - couchdb
       - backend
