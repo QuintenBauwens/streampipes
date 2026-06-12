@@ -415,6 +415,16 @@ export class SpTableComponent<T>
         this.emitSelection();
     }
 
+    selectAllFilteredRows() {
+        const allRows = this.dataSource?.filteredData ?? [];
+        if (!allRows.length) {
+            return;
+        }
+
+        this.selection.select(...allRows);
+        this.emitSelection();
+    }
+
     clearSelection() {
         if (!this.selection.hasValue()) {
             return;

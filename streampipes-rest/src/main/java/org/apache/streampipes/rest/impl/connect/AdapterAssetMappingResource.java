@@ -76,8 +76,8 @@ public class AdapterAssetMappingResource extends AbstractAuthGuardedRestResource
     if (mapping.getTopic() == null || mapping.getTopic().isBlank()) {
       return badRequest("topic must not be blank");
     }
-    if (mapping.getTopic().contains(";")) {
-      return badRequest("Invalid asset location: use a slash-separated path like B/Zone1/Machine1 — semicolons are not allowed");
+    if (mapping.getTopic().contains(";") || !mapping.getTopic().matches("[A-Za-z0-9_\\-]+(/[A-Za-z0-9_\\-]+)*")) {
+      return badRequest("Invalid asset location: use a slash-separated path like B/Zone1/Machine1 (letters, digits, hyphens and underscores only)");
     }
     var storage = getStorage();
     var existing = storage.getElementById(mapping.getElementId());
@@ -137,8 +137,8 @@ public class AdapterAssetMappingResource extends AbstractAuthGuardedRestResource
         var adapterId = parts[0].strip();
         var topic = parts[1].strip();
 
-        if (topic.contains(";")) {
-          errors.add("Line " + lineNum + " (" + adapterId + "): invalid asset location — use slash-separated path like B/Zone1/Machine1, not semicolons");
+        if (topic.contains(";") || !topic.matches("[A-Za-z0-9_\\-]+(/[A-Za-z0-9_\\-]+)*")) {
+          errors.add("Line " + lineNum + " (" + adapterId + "): invalid asset location — use slash-separated path like B/Zone1/Machine1 (letters, digits, hyphens, underscores only)");
           continue;
         }
 

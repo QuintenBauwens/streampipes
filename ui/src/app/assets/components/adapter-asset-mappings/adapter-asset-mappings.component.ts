@@ -63,8 +63,10 @@ import {
     MatCellDef,
 } from '@angular/material/table';
 
-/** Regex for a valid slash-separated asset location path. Rejects semicolons. */
-const ASSET_LOCATION_PATTERN = /^[^;,\s]+(\/[^;,\s]+)*$/;
+/** Regex for a valid slash-separated asset location path.
+ * Allows only letters, digits, hyphens and underscores per segment.
+ * Rejects semicolons, colons, spaces and other separators. */
+const ASSET_LOCATION_PATTERN = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 
 @Component({
     selector: 'sp-adapter-asset-mappings',
@@ -103,6 +105,9 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
 
     @ViewChild('csvFileInput')
     csvFileInput: ElementRef<HTMLInputElement>;
+
+    @ViewChild(SpTableComponent)
+    spTable: SpTableComponent<AdapterAssetMapping>;
 
     dataSource = new MatTableDataSource<AdapterAssetMapping>();
     displayedColumns = ['adapterName', 'assetLocation', 'actions'];
@@ -152,6 +157,14 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
         this.selectedRows = rows;
     }
 
+    selectAll(): void {
+        this.spTable?.selectAllFilteredRows();
+    }
+
+    get totalFilteredCount(): number {
+        return this.dataSource.filteredData?.length ?? 0;
+    }
+
     validateAssetLocation(value: string): boolean {
         return ASSET_LOCATION_PATTERN.test(value.trim());
     }
@@ -162,7 +175,7 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
             !this.validateAssetLocation(this.newAssetLocation)
         ) {
             this.assetLocationError =
-                'Use a slash-separated path like B/Zone1/Machine1 — semicolons are not allowed.';
+                'Use a slash-separated path like B/Zone1/Machine1 — only letters, digits, hyphens and underscores are allowed per segment.';
         } else {
             this.assetLocationError = null;
         }
@@ -181,7 +194,7 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
         this.saveSuccess = false;
         if (!this.validateAssetLocation(this.newAssetLocation)) {
             this.assetLocationError =
-                'Use a slash-separated path like B/Zone1/Machine1 — semicolons are not allowed.';
+                'Use a slash-separated path like B/Zone1/Machine1 — only letters, digits, hyphens and underscores are allowed per segment.';
             return;
         }
         this.mappingService
