@@ -23,10 +23,10 @@ import org.apache.streampipes.manager.pipeline.PipelineManager;
 import org.apache.streampipes.manager.pipeline.compact.CompactPipelineManagement;
 import org.apache.streampipes.model.configuration.MqttAutoPublishConfig;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
+import org.apache.streampipes.model.connect.adapter.compact.CreateOptions;
 import org.apache.streampipes.model.pipeline.PipelineOperationStatus;
 import org.apache.streampipes.model.pipeline.compact.CompactPipeline;
 import org.apache.streampipes.model.pipeline.compact.CompactPipelineElement;
-import org.apache.streampipes.model.connect.adapter.compact.CreateOptions;
 
 import java.util.ArrayList;
 import java.util.List;

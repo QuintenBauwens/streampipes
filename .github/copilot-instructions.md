@@ -36,18 +36,9 @@ npm run build        # production build; output → ui/dist/streampipes/ui/brows
 ```
 
 ### Step 2 — Build the backend JARs
-Run both in parallel (separate terminals or background jobs):
 ```powershell
-# Core service
-mvn -pl streampipes-service-core -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
-
-# IIoT extensions
-mvn -pl streampipes-extensions/streampipes-extensions-all-iiot -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+mvn clean package -DskipTests
 ```
-> **Why `install` not `package`?** Spring Boot's repackage resolves dependencies from the local `.m2` repository. Using `install` ensures freshly compiled modules are written there before the fat jar is assembled.
->
-> **Why quoted `-D` flags?** PowerShell splits arguments at dots — `-Dfoo.bar=true` must be quoted as `"-Dfoo.bar=true"`.
->
 > **Reproducible build timestamps:** The fat jar and nested dependency jars always show a fixed historical date (from `project.build.outputTimestamp`). This is normal — to verify your code is inside, use `ZipFile` to inspect the nested jar, e.g. `BOOT-INF/lib/streampipes-rest-*.jar`.
 
 ### Step 3 — Build Docker images from local source
@@ -96,11 +87,11 @@ docker compose down -v       # also wipes all data volumes (clean slate)
 Only rebuild what changed:
 ```powershell
 # Backend change (e.g. new REST endpoint):
-mvn -pl streampipes-service-core -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+mvn clean package -DskipTests
 docker compose build backend && docker compose up -d backend
 
 # Extension change (e.g. new processor/sink):
-mvn -pl streampipes-extensions/streampipes-extensions-all-iiot -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+mvn clean package -DskipTests
 docker compose build extensions-all-iiot && docker compose up -d extensions-all-iiot
 
 # Frontend change:

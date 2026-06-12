@@ -120,8 +120,8 @@ Each feature has its own git commit on branch `copilot-cli`.
 ## Build Commands
 
 ```powershell
-# Backend — build + install service-core
-mvn -pl streampipes-service-core -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+# Backend — full build
+mvn clean package -DskipTests
 
 # Frontend — quick dev build (no i18n validation)
 cd ui && npm run build-dev

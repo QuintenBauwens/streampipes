@@ -28,12 +28,13 @@ import org.apache.streampipes.connect.management.management.AdapterUpdateManagem
 import org.apache.streampipes.connect.management.management.CompactAdapterManagement;
 import org.apache.streampipes.connect.management.management.GuessManagement;
 import org.apache.streampipes.connect.management.management.WorkerRestClient;
+import org.apache.streampipes.extensions.api.connect.exception.WorkerAdapterException;
 import org.apache.streampipes.manager.api.extensions.ExtensionServiceRequestManager;
 import org.apache.streampipes.manager.execution.endpoint.ExtensionsServiceEndpointGenerator;
 import org.apache.streampipes.manager.pipeline.compact.CompactPipelineManagement;
+import org.apache.streampipes.model.configuration.MqttAutoPublishConfig;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
-import org.apache.streampipes.model.configuration.MqttAutoPublishConfig;
 import org.apache.streampipes.model.message.Notifications;
 import org.apache.streampipes.resource.management.SpResourceManager;
 import org.apache.streampipes.resource.management.connect.AdapterAssetEnrichmentService;
@@ -41,8 +42,6 @@ import org.apache.streampipes.rest.shared.constants.SpMediaType;
 import org.apache.streampipes.rest.shared.exception.BadRequestException;
 import org.apache.streampipes.rest.shared.exception.SpMessageException;
 import org.apache.streampipes.storage.management.StorageDispatcher;
-
-import org.apache.streampipes.extensions.api.connect.exception.WorkerAdapterException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
