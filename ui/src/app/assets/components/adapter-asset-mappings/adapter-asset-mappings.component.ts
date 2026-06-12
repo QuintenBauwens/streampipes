@@ -23,6 +23,7 @@ import {
     OnInit,
     ViewChild,
 } from '@angular/core';
+import { SelectionModel } from '@angular/cdk/collections';
 import {
     AdapterAssetMapping,
     AdapterAssetMappingService,
@@ -39,7 +40,7 @@ import {
     LayoutAlignDirective,
     LayoutDirective,
 } from '@ngbracket/ngx-layout/flex';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -63,6 +64,7 @@ import {
     MatRowDef,
     MatTable,
 } from '@angular/material/table';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 @Component({
     selector: 'sp-adapter-asset-mappings',
@@ -73,6 +75,7 @@ import {
         LayoutAlignDirective,
         LayoutDirective,
         MatButton,
+        MatIconButton,
         MatIcon,
         MatTooltip,
         MatFormField,
@@ -93,6 +96,7 @@ import {
         MatHeaderRow,
         MatRowDef,
         MatRow,
+        MatCheckbox,
         FormsModule,
         TranslatePipe,
     ],
@@ -105,7 +109,11 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
     csvFileInput: ElementRef<HTMLInputElement>;
 
     mappings: AdapterAssetMapping[] = [];
-    displayedColumns = ['adapterName', 'assetLocation'];
+    filteredMappings: AdapterAssetMapping[] = [];
+    displayedColumns = ['select', 'adapterName', 'assetLocation', 'actions'];
+
+    searchText = '';
+    selection = new SelectionModel<AdapterAssetMapping>(true, []);
 
     newAdapterName = '';
     newAssetLocation = '';
@@ -123,9 +131,50 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
 
     loadMappings(): void {
         this.mappingService.getAllMappings().subscribe({
-            next: result => (this.mappings = result),
-            error: () => (this.mappings = []),
+            next: result => {
+                this.mappings = result;
+                this.applyFilter();
+                this.selection.clear();
+            },
+            error: () => {
+                this.mappings = [];
+                this.filteredMappings = [];
+            },
         });
+    }
+
+    applyFilter(): void {
+        const term = this.searchText.trim().toLowerCase();
+        this.filteredMappings = term
+            ? this.mappings.filter(
+                  m =>
+                      m.elementId.toLowerCase().includes(term) ||
+                      m.topic.toLowerCase().includes(term),
+              )
+            : [...this.mappings];
+        // Remove stale selections that no longer appear in filtered results
+        this.selection.selected
+            .filter(s => !this.filteredMappings.includes(s))
+            .forEach(s => this.selection.deselect(s));
+    }
+
+    onSearchChange(): void {
+        this.applyFilter();
+    }
+
+    isAllSelected(): boolean {
+        return (
+            this.filteredMappings.length > 0 &&
+            this.filteredMappings.every(row => this.selection.isSelected(row))
+        );
+    }
+
+    toggleSelectAll(): void {
+        if (this.isAllSelected()) {
+            this.filteredMappings.forEach(row => this.selection.deselect(row));
+        } else {
+            this.filteredMappings.forEach(row => this.selection.select(row));
+        }
     }
 
     addMapping(): void {
@@ -145,6 +194,50 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
                         err?.error?.message ?? 'Failed to save mapping.';
                 },
             });
+    }
+
+    deleteMapping(mapping: AdapterAssetMapping): void {
+        this.mappingService.deleteMapping(mapping.elementId).subscribe({
+            next: () => this.loadMappings(),
+            error: err => {
+                this.saveError =
+                    err?.error?.message ?? 'Failed to delete mapping.';
+            },
+        });
+    }
+
+    deleteSelected(): void {
+        const ids = this.selection.selected.map(m => m.elementId);
+        if (ids.length === 0) {
+            return;
+        }
+        this.mappingService.deleteMappings(ids).subscribe({
+            next: () => this.loadMappings(),
+            error: err => {
+                this.saveError =
+                    err?.error?.message ?? 'Failed to delete mappings.';
+            },
+        });
+    }
+
+    exportSelected(): void {
+        const rows = this.selection.selected;
+        if (rows.length === 0) {
+            return;
+        }
+        const csvLines = [
+            'adapterId,topic',
+            ...rows.map(r => `${r.elementId},${r.topic}`),
+        ];
+        const blob = new Blob([csvLines.join('\n')], {
+            type: 'text/csv;charset=utf-8;',
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'adapter-asset-mappings.csv';
+        anchor.click();
+        URL.revokeObjectURL(url);
     }
 
     triggerCsvUpload(): void {

@@ -127,7 +127,91 @@
                         </span>
                     </div>
                 }
-                <mat-table [dataSource]="mappings" class="w-100">
+
+                <!-- Search bar -->
+                <div fxLayout="row" fxLayoutAlign="start center" class="mb-10">
+                    <mat-form-field
+                        appearance="outline"
+                        fxFlex="40"
+                        class="no-bottom-padding"
+                    >
+                        <mat-label>{{ 'Search' | translate }}</mat-label>
+                        <mat-icon matPrefix>search</mat-icon>
+                        <input
+                            matInput
+                            [(ngModel)]="searchText"
+                            (ngModelChange)="onSearchChange()"
+                            placeholder="{{
+                                'Filter by adapter or location' | translate
+                            }}"
+                            data-cy="mapping-search-input"
+                        />
+                    </mat-form-field>
+                </div>
+
+                <!-- Bulk action toolbar (shown when rows are selected) -->
+                @if (selection.selected.length > 0) {
+                    <div
+                        fxLayout="row"
+                        fxLayoutAlign="start center"
+                        fxLayoutGap="8px"
+                        class="mb-10"
+                    >
+                        <span class="sp-subtitle-2">
+                            {{ selection.selected.length }}
+                            {{ 'selected' | translate }}
+                        </span>
+                        <button
+                            mat-flat-button
+                            color="warn"
+                            (click)="deleteSelected()"
+                            matTooltip="{{
+                                'Delete selected mappings' | translate
+                            }}"
+                            data-cy="delete-selected-button"
+                        >
+                            <mat-icon>delete</mat-icon>&nbsp;
+                            {{ 'Delete selected' | translate }}
+                        </button>
+                        <button
+                            mat-flat-button
+                            color="accent"
+                            (click)="exportSelected()"
+                            matTooltip="{{
+                                'Export selected mappings as CSV' | translate
+                            }}"
+                            data-cy="export-selected-button"
+                        >
+                            <mat-icon>download</mat-icon>&nbsp;
+                            {{ 'Export selected' | translate }}
+                        </button>
+                    </div>
+                }
+
+                <mat-table [dataSource]="filteredMappings" class="w-100">
+                    <!-- Select column -->
+                    <ng-container matColumnDef="select">
+                        <mat-header-cell *matHeaderCellDef>
+                            <mat-checkbox
+                                [checked]="isAllSelected()"
+                                [indeterminate]="
+                                    selection.selected.length > 0 &&
+                                    !isAllSelected()
+                                "
+                                (change)="toggleSelectAll()"
+                                matTooltip="{{ 'Select all' | translate }}"
+                                data-cy="select-all-checkbox"
+                            ></mat-checkbox>
+                        </mat-header-cell>
+                        <mat-cell *matCellDef="let row">
+                            <mat-checkbox
+                                [checked]="selection.isSelected(row)"
+                                (change)="selection.toggle(row)"
+                                data-cy="mapping-row-checkbox"
+                            ></mat-checkbox>
+                        </mat-cell>
+                    </ng-container>
+
                     <ng-container matColumnDef="adapterName">
                         <mat-header-cell *matHeaderCellDef>{{
                             'Adapter Name' | translate
@@ -146,6 +230,24 @@
                         }}</mat-cell>
                     </ng-container>
 
+                    <!-- Actions column -->
+                    <ng-container matColumnDef="actions">
+                        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+                        <mat-cell *matCellDef="let row">
+                            <button
+                                mat-icon-button
+                                color="warn"
+                                (click)="deleteMapping(row)"
+                                matTooltip="{{
+                                    'Remove this mapping' | translate
+                                }}"
+                                data-cy="delete-mapping-button"
+                            >
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </mat-cell>
+                    </ng-container>
+
                     <mat-header-row
                         *matHeaderRowDef="displayedColumns"
                     ></mat-header-row>
@@ -154,7 +256,20 @@
                     ></mat-row>
                 </mat-table>
 
-                @if (mappings.length === 0) {
+                @if (filteredMappings.length === 0 && searchText) {
+                    <div
+                        fxLayout="column"
+                        fxLayoutAlign="center center"
+                        class="mt-20 mb-20"
+                    >
+                        <mat-icon class="icon-xl color-disabled"
+                            >search_off</mat-icon
+                        >
+                        <p class="sp-subtitle-2 color-disabled">
+                            {{ 'No mappings match your search.' | translate }}
+                        </p>
+                    </div>
+                } @else if (mappings.length === 0) {
                     <div
                         fxLayout="column"
                         fxLayoutAlign="center center"

@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -149,6 +151,41 @@ public class AdapterAssetMappingResource extends AbstractAuthGuardedRestResource
     }
 
     return ok(Map.of("saved", saved, "savedCount", saved.size(), "errors", errors));
+  }
+
+  /**
+   * Deletes a single adapter-to-asset mapping by its element ID.
+   */
+  @DeleteMapping(path = "/{elementId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @PreAuthorize(AuthConstants.HAS_WRITE_ASSETS_PRIVILEGE)
+  public ResponseEntity<?> deleteMapping(@PathVariable String elementId) {
+    var storage = getStorage();
+    var existing = storage.getElementById(elementId);
+    if (existing == null) {
+      return notFound();
+    }
+    storage.deleteElement(existing);
+    return ok();
+  }
+
+  /**
+   * Deletes multiple adapter-to-asset mappings by their element IDs.
+   *
+   * <p>Element IDs not found in storage are silently skipped.
+   */
+  @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  @PreAuthorize(AuthConstants.HAS_WRITE_ASSETS_PRIVILEGE)
+  public ResponseEntity<?> deleteMappings(@RequestBody List<String> elementIds) {
+    var storage = getStorage();
+    var deleted = new ArrayList<String>();
+    for (var id : elementIds) {
+      var existing = storage.getElementById(id);
+      if (existing != null) {
+        storage.deleteElement(existing);
+        deleted.add(id);
+      }
+    }
+    return ok(Map.of("deletedCount", deleted.size(), "deleted", deleted));
   }
 
   private org.apache.streampipes.storage.api.connect.IAdapterAssetMappingStorage getStorage() {

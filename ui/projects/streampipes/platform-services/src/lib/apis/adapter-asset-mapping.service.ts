@@ -54,4 +54,19 @@ export class AdapterAssetMappingService {
         formData.append('file', file, file.name);
         return this.http.post(`${this.mappingPath}/upload`, formData);
     }
+
+    deleteMapping(elementId: string): Observable<void> {
+        return this.http.delete<void>(
+            `${this.mappingPath}/${encodeURIComponent(elementId)}`,
+        );
+    }
+
+    deleteMappings(
+        elementIds: string[],
+    ): Observable<{ deletedCount: number; deleted: string[] }> {
+        return this.http.delete<{ deletedCount: number; deleted: string[] }>(
+            this.mappingPath,
+            { body: elementIds },
+        );
+    }
 }
