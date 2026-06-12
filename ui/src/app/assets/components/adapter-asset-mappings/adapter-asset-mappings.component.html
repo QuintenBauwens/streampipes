@@ -16,23 +16,24 @@
 ~
 -->
 <sp-basic-view [showBackLink]="false" [padding]="true">
+    <!-- Nav bar buttons -->
     <div
         nav
         fxFlex="100"
         fxLayout="row"
         fxLayoutAlign="start center"
+        fxLayoutGap="10px"
         class="pl-10"
     >
         <button
+            mat-button
             mat-flat-button
             color="accent"
             (click)="triggerCsvUpload()"
-            matTooltip="{{
-                'Upload a CSV file (adapterName,assetLocation)' | translate
-            }}"
+            matTooltip="{{ 'Upload a CSV file (adapterId,topic)' | translate }}"
             data-cy="upload-mapping-csv-button"
         >
-            <mat-icon>upload_file</mat-icon>&nbsp;
+            <i class="material-icons">upload_file</i>&nbsp;
             {{ 'Upload CSV' | translate }}
         </button>
         <input
@@ -44,249 +45,175 @@
         />
     </div>
 
-    <div fxLayout="column" fxLayoutGap="20px">
-        <!-- Add single mapping form -->
-        <mat-card appearance="outlined">
-            <mat-card-header>
-                <mat-card-title>{{ 'Add Mapping' | translate }}</mat-card-title>
-                <mat-card-subtitle>{{
-                    'Map an adapter name to its asset hierarchy location'
-                        | translate
-                }}</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-                <div
-                    fxLayout="row"
-                    fxLayoutGap="16px"
-                    fxLayoutAlign="start center"
+    <div fxLayout="column" class="page-container-padding-inner">
+        <!-- Add mapping section -->
+        <sp-split-section
+            [title]="'Add Mapping' | translate"
+            [subtitle]="
+                'Map an adapter name to its asset hierarchy location'
+                    | translate
+            "
+        >
+            <div
+                fxLayout="row"
+                fxLayoutAlign="start start"
+                fxLayoutGap="10px"
+                section-actions
+            >
+                <button
+                    mat-button
+                    mat-flat-button
+                    color="accent"
+                    [disabled]="!canAdd"
+                    (click)="addMapping()"
+                    data-cy="add-mapping-button"
                 >
-                    <mat-form-field appearance="outline" fxFlex="35">
-                        <mat-label>{{ 'Adapter Name' | translate }}</mat-label>
-                        <input
-                            matInput
-                            [(ngModel)]="newAdapterName"
-                            placeholder="e.g. My MQTT Sensor"
-                            data-cy="mapping-adapter-name-input"
-                        />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" fxFlex="35">
-                        <mat-label>{{
-                            'Asset Location' | translate
-                        }}</mat-label>
-                        <input
-                            matInput
-                            [(ngModel)]="newAssetLocation"
-                            placeholder="e.g. B/Zone1/Machine1"
-                            data-cy="mapping-asset-location-input"
-                        />
-                    </mat-form-field>
-                    <button
-                        mat-flat-button
-                        color="accent"
-                        [disabled]="!newAdapterName || !newAssetLocation"
-                        (click)="addMapping()"
-                        data-cy="add-mapping-button"
-                    >
-                        <mat-icon>add</mat-icon>&nbsp;
-                        {{ 'Add' | translate }}
-                    </button>
-                </div>
-                @if (saveError) {
-                    <p class="color-warn sp-subtitle-2">{{ saveError }}</p>
-                }
-                @if (saveSuccess) {
-                    <p class="color-success sp-subtitle-2">
-                        {{ 'Mapping saved successfully.' | translate }}
-                    </p>
-                }
-            </mat-card-content>
-        </mat-card>
+                    <i class="material-icons">add</i>&nbsp;
+                    {{ 'Add' | translate }}
+                </button>
+            </div>
 
-        <!-- Mappings table -->
-        <mat-card appearance="outlined">
-            <mat-card-header>
-                <mat-card-title>{{
-                    'Existing Mappings' | translate
-                }}</mat-card-title>
-                <mat-card-subtitle>
-                    {{ mappings.length }}
-                    {{ 'mapping(s) configured' | translate }}
-                </mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-                @if (uploadResult) {
-                    <div class="mb-10">
-                        <span class="sp-subtitle-2">
-                            {{ uploadResult.savedCount }}
-                            {{ 'mapping(s) imported from CSV.' | translate }}
-                            @if (uploadResult.errors?.length > 0) {
-                                {{ uploadResult.errors.length }}
-                                {{ 'error(s):' | translate }}
-                                {{ uploadResult.errors.join(', ') }}
-                            }
-                        </span>
-                    </div>
-                }
+            <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="start start">
+                <mat-form-field appearance="outline" fxFlex="35">
+                    <mat-label>{{ 'Adapter Name' | translate }}</mat-label>
+                    <input
+                        matInput
+                        [(ngModel)]="newAdapterName"
+                        placeholder="e.g. My MQTT Sensor"
+                        data-cy="mapping-adapter-name-input"
+                    />
+                </mat-form-field>
+                <mat-form-field appearance="outline" fxFlex="35">
+                    <mat-label>{{ 'Asset Location' | translate }}</mat-label>
+                    <input
+                        matInput
+                        [(ngModel)]="newAssetLocation"
+                        (ngModelChange)="onAssetLocationChange()"
+                        placeholder="e.g. B/Zone1/Machine1"
+                        data-cy="mapping-asset-location-input"
+                    />
+                    @if (assetLocationError) {
+                        <mat-error>{{ assetLocationError }}</mat-error>
+                    }
+                </mat-form-field>
+            </div>
 
-                <!-- Search bar -->
-                <div fxLayout="row" fxLayoutAlign="start center" class="mb-10">
-                    <mat-form-field
-                        appearance="outline"
-                        fxFlex="40"
-                        class="no-bottom-padding"
-                    >
-                        <mat-label>{{ 'Search' | translate }}</mat-label>
-                        <mat-icon matPrefix>search</mat-icon>
-                        <input
-                            matInput
-                            [(ngModel)]="searchText"
-                            (ngModelChange)="onSearchChange()"
-                            placeholder="{{
-                                'Filter by adapter or location' | translate
-                            }}"
-                            data-cy="mapping-search-input"
-                        />
-                    </mat-form-field>
-                </div>
+            @if (saveError) {
+                <p class="color-warn sp-subtitle-2">{{ saveError }}</p>
+            }
+            @if (saveSuccess) {
+                <p class="color-success sp-subtitle-2">
+                    {{ 'Mapping saved successfully.' | translate }}
+                </p>
+            }
+        </sp-split-section>
 
-                <!-- Bulk action toolbar (shown when rows are selected) -->
-                @if (selection.selected.length > 0) {
-                    <div
-                        fxLayout="row"
-                        fxLayoutAlign="start center"
-                        fxLayoutGap="8px"
-                        class="mb-10"
-                    >
-                        <span class="sp-subtitle-2">
-                            {{ selection.selected.length }}
-                            {{ 'selected' | translate }}
-                        </span>
-                        <button
-                            mat-flat-button
-                            color="warn"
-                            (click)="deleteSelected()"
-                            matTooltip="{{
-                                'Delete selected mappings' | translate
-                            }}"
-                            data-cy="delete-selected-button"
-                        >
-                            <mat-icon>delete</mat-icon>&nbsp;
-                            {{ 'Delete selected' | translate }}
-                        </button>
-                        <button
-                            mat-flat-button
-                            color="accent"
-                            (click)="exportSelected()"
-                            matTooltip="{{
-                                'Export selected mappings as CSV' | translate
-                            }}"
-                            data-cy="export-selected-button"
-                        >
-                            <mat-icon>download</mat-icon>&nbsp;
-                            {{ 'Export selected' | translate }}
-                        </button>
-                    </div>
-                }
+        <!-- Existing mappings section -->
+        <sp-split-section
+            [title]="'Existing Mappings' | translate"
+            [subtitle]="
+                dataSource.data.length +
+                ' ' +
+                ('mapping(s) configured' | translate)
+            "
+        >
+            <div
+                fxLayout="row"
+                fxLayoutAlign="start center"
+                fxLayoutGap="10px"
+                section-actions
+            >
+                <mat-form-field appearance="outline" class="form-field-small">
+                    <mat-label>{{ 'Search' | translate }}</mat-label>
+                    <mat-icon matPrefix>search</mat-icon>
+                    <input
+                        matInput
+                        [(ngModel)]="searchText"
+                        (ngModelChange)="onSearchChange()"
+                        placeholder="{{
+                            'Filter by adapter or location' | translate
+                        }}"
+                        data-cy="mapping-search-input"
+                    />
+                </mat-form-field>
+            </div>
 
-                <mat-table [dataSource]="filteredMappings" class="w-100">
-                    <!-- Select column -->
-                    <ng-container matColumnDef="select">
-                        <mat-header-cell *matHeaderCellDef>
-                            <mat-checkbox
-                                [checked]="isAllSelected()"
-                                [indeterminate]="
-                                    selection.selected.length > 0 &&
-                                    !isAllSelected()
-                                "
-                                (change)="toggleSelectAll()"
-                                matTooltip="{{ 'Select all' | translate }}"
-                                data-cy="select-all-checkbox"
-                            ></mat-checkbox>
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let row">
-                            <mat-checkbox
-                                [checked]="selection.isSelected(row)"
-                                (change)="selection.toggle(row)"
-                                data-cy="mapping-row-checkbox"
-                            ></mat-checkbox>
-                        </mat-cell>
-                    </ng-container>
+            @if (uploadResult) {
+                <p class="sp-subtitle-2 mb-10">
+                    {{ uploadResult.savedCount }}
+                    {{ 'mapping(s) imported from CSV.' | translate }}
+                    @if (uploadResult.errors?.length > 0) {
+                        &nbsp;{{ uploadResult.errors.length }}
+                        {{ 'error(s):' | translate }}
+                        {{ uploadResult.errors.join(', ') }}
+                    }
+                </p>
+            }
 
-                    <ng-container matColumnDef="adapterName">
-                        <mat-header-cell *matHeaderCellDef>{{
-                            'Adapter Name' | translate
-                        }}</mat-header-cell>
-                        <mat-cell *matCellDef="let row">{{
-                            row.elementId
-                        }}</mat-cell>
-                    </ng-container>
+            <sp-table
+                [dataSource]="dataSource"
+                [columns]="displayedColumns"
+                [showSelectionCheckboxes]="true"
+                (selectionChanged)="onSelectionChanged($event)"
+            >
+                <ng-container matColumnDef="adapterName">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <b>{{ 'Adapter Name' | translate }}</b>
+                    </th>
+                    <td mat-cell *matCellDef="let row">{{ row.elementId }}</td>
+                </ng-container>
 
-                    <ng-container matColumnDef="assetLocation">
-                        <mat-header-cell *matHeaderCellDef>{{
-                            'Asset Location' | translate
-                        }}</mat-header-cell>
-                        <mat-cell *matCellDef="let row">{{
-                            row.topic
-                        }}</mat-cell>
-                    </ng-container>
+                <ng-container matColumnDef="assetLocation">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <b>{{ 'Asset Location' | translate }}</b>
+                    </th>
+                    <td mat-cell *matCellDef="let row">{{ row.topic }}</td>
+                </ng-container>
 
-                    <!-- Actions column -->
-                    <ng-container matColumnDef="actions">
-                        <mat-header-cell *matHeaderCellDef></mat-header-cell>
-                        <mat-cell *matCellDef="let row">
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let row">
+                        <div fxLayout="row" fxLayoutAlign="end center">
                             <button
                                 mat-icon-button
-                                color="warn"
-                                (click)="deleteMapping(row)"
-                                matTooltip="{{
-                                    'Remove this mapping' | translate
-                                }}"
+                                class="btn-warn"
+                                color="accent"
+                                [matTooltip]="'Remove mapping' | translate"
+                                (click)="deleteRow(row)"
                                 data-cy="delete-mapping-button"
                             >
                                 <mat-icon>delete</mat-icon>
                             </button>
-                        </mat-cell>
-                    </ng-container>
+                        </div>
+                    </td>
+                </ng-container>
 
-                    <mat-header-row
-                        *matHeaderRowDef="displayedColumns"
-                    ></mat-header-row>
-                    <mat-row
-                        *matRowDef="let row; columns: displayedColumns"
-                    ></mat-row>
-                </mat-table>
-
-                @if (filteredMappings.length === 0 && searchText) {
-                    <div
-                        fxLayout="column"
-                        fxLayoutAlign="center center"
-                        class="mt-20 mb-20"
+                <!-- Bulk actions toolbar (shown when rows are selected) -->
+                <ng-template spTableMultiActions let-rows="selectedRows">
+                    <button
+                        mat-flat-button
+                        class="btn-warn"
+                        [matTooltip]="'Delete selected mappings' | translate"
+                        (click)="deleteSelected(rows)"
+                        data-cy="delete-selected-button"
                     >
-                        <mat-icon class="icon-xl color-disabled"
-                            >search_off</mat-icon
-                        >
-                        <p class="sp-subtitle-2 color-disabled">
-                            {{ 'No mappings match your search.' | translate }}
-                        </p>
-                    </div>
-                } @else if (mappings.length === 0) {
-                    <div
-                        fxLayout="column"
-                        fxLayoutAlign="center center"
-                        class="mt-20 mb-20"
+                        <i class="material-icons">delete</i>&nbsp;
+                        {{ 'Delete' | translate }}
+                    </button>
+                    <button
+                        mat-flat-button
+                        class="mat-basic"
+                        [matTooltip]="
+                            'Export selected mappings as CSV' | translate
+                        "
+                        (click)="exportSelected(rows)"
+                        data-cy="export-selected-button"
                     >
-                        <mat-icon class="icon-xl color-disabled"
-                            >link_off</mat-icon
-                        >
-                        <p class="sp-subtitle-2 color-disabled">
-                            {{
-                                'No mappings yet. Add one above or upload a CSV.'
-                                    | translate
-                            }}
-                        </p>
-                    </div>
-                }
-            </mat-card-content>
-        </mat-card>
+                        <i class="material-icons">download</i>&nbsp;
+                        {{ 'Export CSV' | translate }}
+                    </button>
+                </ng-template>
+            </sp-table>
+        </sp-split-section>
     </div>
 </sp-basic-view>

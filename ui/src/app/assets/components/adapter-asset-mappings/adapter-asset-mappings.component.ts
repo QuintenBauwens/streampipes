@@ -23,7 +23,7 @@ import {
     OnInit,
     ViewChild,
 } from '@angular/core';
-import { SelectionModel } from '@angular/cdk/collections';
+import { MatTableDataSource } from '@angular/material/table';
 import {
     AdapterAssetMapping,
     AdapterAssetMappingService,
@@ -31,6 +31,10 @@ import {
 import {
     SpBasicViewComponent,
     SpBreadcrumbService,
+    SpTableActionsDirective,
+    SpTableMultiActionsDirective,
+    SpTableComponent,
+    SplitSectionComponent,
 } from '@streampipes/shared-ui';
 import { SpAssetRoutes } from '../../assets.breadcrumb';
 import { FormsModule } from '@angular/forms';
@@ -43,34 +47,34 @@ import {
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import {
+    MatFormField,
+    MatLabel,
+    MatError,
+    MatPrefix,
+} from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
+import { MatMenuItem } from '@angular/material/menu';
 import {
-    MatCard,
-    MatCardContent,
-    MatCardHeader,
-    MatCardSubtitle,
-    MatCardTitle,
-} from '@angular/material/card';
-import {
-    MatCell,
-    MatCellDef,
     MatColumnDef,
     MatHeaderCell,
     MatHeaderCellDef,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatRow,
-    MatRowDef,
-    MatTable,
+    MatCell,
+    MatCellDef,
 } from '@angular/material/table';
-import { MatCheckbox } from '@angular/material/checkbox';
+
+/** Regex for a valid slash-separated asset location path. Rejects semicolons. */
+const ASSET_LOCATION_PATTERN = /^[^;,\s]+(\/[^;,\s]+)*$/;
 
 @Component({
     selector: 'sp-adapter-asset-mappings',
     templateUrl: './adapter-asset-mappings.component.html',
     imports: [
         SpBasicViewComponent,
+        SplitSectionComponent,
+        SpTableComponent,
+        SpTableActionsDirective,
+        SpTableMultiActionsDirective,
         FlexDirective,
         LayoutAlignDirective,
         LayoutDirective,
@@ -80,23 +84,15 @@ import { MatCheckbox } from '@angular/material/checkbox';
         MatTooltip,
         MatFormField,
         MatLabel,
+        MatError,
+        MatPrefix,
         MatInput,
-        MatCard,
-        MatCardHeader,
-        MatCardTitle,
-        MatCardSubtitle,
-        MatCardContent,
-        MatTable,
+        MatMenuItem,
         MatColumnDef,
         MatHeaderCellDef,
         MatHeaderCell,
         MatCellDef,
         MatCell,
-        MatHeaderRowDef,
-        MatHeaderRow,
-        MatRowDef,
-        MatRow,
-        MatCheckbox,
         FormsModule,
         TranslatePipe,
     ],
@@ -108,15 +104,15 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
     @ViewChild('csvFileInput')
     csvFileInput: ElementRef<HTMLInputElement>;
 
-    mappings: AdapterAssetMapping[] = [];
-    filteredMappings: AdapterAssetMapping[] = [];
-    displayedColumns = ['select', 'adapterName', 'assetLocation', 'actions'];
+    dataSource = new MatTableDataSource<AdapterAssetMapping>();
+    displayedColumns = ['adapterName', 'assetLocation', 'actions'];
 
     searchText = '';
-    selection = new SelectionModel<AdapterAssetMapping>(true, []);
+    selectedRows: AdapterAssetMapping[] = [];
 
     newAdapterName = '';
     newAssetLocation = '';
+    assetLocationError: string | null = null;
 
     saveError: string | null = null;
     saveSuccess = false;
@@ -126,60 +122,68 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
         this.breadcrumbService.updateBreadcrumb(
             this.breadcrumbService.getRootLink(SpAssetRoutes.BASE),
         );
+        this.dataSource.filterPredicate = (row, filter) => {
+            const term = filter.toLowerCase();
+            return (
+                row.elementId.toLowerCase().includes(term) ||
+                row.topic.toLowerCase().includes(term)
+            );
+        };
         this.loadMappings();
     }
 
     loadMappings(): void {
         this.mappingService.getAllMappings().subscribe({
             next: result => {
-                this.mappings = result;
-                this.applyFilter();
-                this.selection.clear();
+                this.dataSource.data = result;
+                this.selectedRows = [];
             },
             error: () => {
-                this.mappings = [];
-                this.filteredMappings = [];
+                this.dataSource.data = [];
             },
         });
     }
 
-    applyFilter(): void {
-        const term = this.searchText.trim().toLowerCase();
-        this.filteredMappings = term
-            ? this.mappings.filter(
-                  m =>
-                      m.elementId.toLowerCase().includes(term) ||
-                      m.topic.toLowerCase().includes(term),
-              )
-            : [...this.mappings];
-        // Remove stale selections that no longer appear in filtered results
-        this.selection.selected
-            .filter(s => !this.filteredMappings.includes(s))
-            .forEach(s => this.selection.deselect(s));
-    }
-
     onSearchChange(): void {
-        this.applyFilter();
+        this.dataSource.filter = this.searchText.trim();
     }
 
-    isAllSelected(): boolean {
-        return (
-            this.filteredMappings.length > 0 &&
-            this.filteredMappings.every(row => this.selection.isSelected(row))
-        );
+    onSelectionChanged(rows: AdapterAssetMapping[]): void {
+        this.selectedRows = rows;
     }
 
-    toggleSelectAll(): void {
-        if (this.isAllSelected()) {
-            this.filteredMappings.forEach(row => this.selection.deselect(row));
+    validateAssetLocation(value: string): boolean {
+        return ASSET_LOCATION_PATTERN.test(value.trim());
+    }
+
+    onAssetLocationChange(): void {
+        if (
+            this.newAssetLocation &&
+            !this.validateAssetLocation(this.newAssetLocation)
+        ) {
+            this.assetLocationError =
+                'Use a slash-separated path like B/Zone1/Machine1 — semicolons are not allowed.';
         } else {
-            this.filteredMappings.forEach(row => this.selection.select(row));
+            this.assetLocationError = null;
         }
+    }
+
+    get canAdd(): boolean {
+        return (
+            !!this.newAdapterName &&
+            !!this.newAssetLocation &&
+            this.assetLocationError === null
+        );
     }
 
     addMapping(): void {
         this.saveError = null;
         this.saveSuccess = false;
+        if (!this.validateAssetLocation(this.newAssetLocation)) {
+            this.assetLocationError =
+                'Use a slash-separated path like B/Zone1/Machine1 — semicolons are not allowed.';
+            return;
+        }
         this.mappingService
             .saveMapping(this.newAdapterName, this.newAssetLocation)
             .subscribe({
@@ -187,6 +191,7 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
                     this.saveSuccess = true;
                     this.newAdapterName = '';
                     this.newAssetLocation = '';
+                    this.assetLocationError = null;
                     this.loadMappings();
                 },
                 error: err => {
@@ -196,7 +201,8 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
             });
     }
 
-    deleteMapping(mapping: AdapterAssetMapping): void {
+    deleteRow(mapping: AdapterAssetMapping): void {
+        this.saveError = null;
         this.mappingService.deleteMapping(mapping.elementId).subscribe({
             next: () => this.loadMappings(),
             error: err => {
@@ -206,30 +212,31 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
         });
     }
 
-    deleteSelected(): void {
-        const ids = this.selection.selected.map(m => m.elementId);
-        if (ids.length === 0) {
-            return;
-        }
-        this.mappingService.deleteMappings(ids).subscribe({
-            next: () => this.loadMappings(),
-            error: err => {
-                this.saveError =
-                    err?.error?.message ?? 'Failed to delete mappings.';
-            },
-        });
-    }
-
-    exportSelected(): void {
-        const rows = this.selection.selected;
+    deleteSelected(rows: AdapterAssetMapping[]): void {
         if (rows.length === 0) {
             return;
         }
-        const csvLines = [
+        this.saveError = null;
+        this.mappingService
+            .deleteMappings(rows.map(r => r.elementId))
+            .subscribe({
+                next: () => this.loadMappings(),
+                error: err => {
+                    this.saveError =
+                        err?.error?.message ?? 'Failed to delete mappings.';
+                },
+            });
+    }
+
+    exportSelected(rows: AdapterAssetMapping[]): void {
+        if (rows.length === 0) {
+            return;
+        }
+        const lines = [
             'adapterId,topic',
             ...rows.map(r => `${r.elementId},${r.topic}`),
         ];
-        const blob = new Blob([csvLines.join('\n')], {
+        const blob = new Blob([lines.join('\n')], {
             type: 'text/csv;charset=utf-8;',
         });
         const url = URL.createObjectURL(blob);
@@ -251,6 +258,7 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
             return;
         }
         this.uploadResult = null;
+        this.saveError = null;
         this.mappingService.uploadMappingCsv(input.files[0]).subscribe({
             next: result => {
                 this.uploadResult = result;
