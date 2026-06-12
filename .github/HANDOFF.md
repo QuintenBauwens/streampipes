@@ -92,6 +92,14 @@ Each feature has its own git commit on branch `copilot-cli`.
 
 ## Key Technical Decisions
 
+### Checkstyle: Import Order Rule (IMPORTANT — always check when adding imports)
+- Checkstyle enforces **strict alphabetical order** within each import group.
+- Groups: `org.apache.streampipes` → `*` → `jakarta` → `javax` → `java` → `scala`, then static imports at the bottom.
+- Within each package prefix sub-group (e.g. `org.apache.streampipes.storage.api.system.*`), imports must also be alphabetical by the simple class name.
+- **Gotcha**: when adding a new import to a file, it must be inserted at the correct alphabetical position — appending it at the end of its group is wrong and will fail Checkstyle.
+- Example: `IMqttAutoPublishConfigStorage` (M) must come before `ISpCoreConfigurationStorage` (S), not after `ITransformationScriptTemplateStorage`.
+- Quick verification: `mvn -pl <module> checkstyle:check` — exit 0 means clean.
+
 ### MQTT Auto-Publish Pipeline
 - Global config stored as a singleton CouchDB document (`_id = "mqtt-auto-publish-config"`)
 - `MqttPublisherPipelineHandler` mirrors `PersistPipelineHandler` pattern, builds `CompactPipeline` directly without needing a template

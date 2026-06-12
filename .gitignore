@@ -101,6 +101,7 @@ ui/out-tsc
 
 # dependencies
 ui/node_modules/
+ui/.eslintcache
 
 # IDEs and editors
 .project

@@ -1,71 +1,17 @@
-# Architecture Apache Streampipes
+1. When uploading adapter the topic gets enriched correctly but make sure the route is with suffix '/' so mqqt can handle it in its hierarchy example input: B; B-3; B-31; B-315; B-3151; B-31512; B-3151200; B-3151200CR01"
+2. When uploading adapter add timestamp field because this is needed to assign the adapter to data lake sink, do this through transformation like you do with the topic enrichment
+3. Add settings:
 
-I am very interested in using Apache Streampipes as a base for retrieving Industrial 4.0 Data such as OPC UA drivers and PLC4x plcs. 
-But some aspects about it are limited, like:
+    - now we have settings to auto deploy mqtt sink so the parameters have to be defined once
+    - add setting to enable auto pipeline deployments (deploys pipelines automatically for each adapter that gets made)
+    - call the settings header pipeline settings
+    - add option to enable data lake sink (is enabled when mqqt sink is not enabled)
+    - if auto deploy pipeline is enabled, atleast one sink has to be enabled
+    - make the settings page layout better
 
-## Requirements
+4. when creating/importing adapter, the adapter is still not being linked to the according asset if its found in the adapter,asset mapping FIX THIS PLS
+5. mapping page:
 
-- [ ] create assets with a .json data input from maximo
-
-    ```json
-    [
-      {
-
-        "LOCATION": "B-41662",
-
-        "PARENT": "B-4166",
-
-        "SYSTEMID": "PRODMID",
-
-        "CHILDREN": 0,
-
-        "SITEID": "VCG",
-
-        "ORGID": "VCCBE",
-
-        "LOCHIERARCHYID": 428060,
-
-        "ROUTE": "B; B-4; B-41; B-416; B-4166; B-41662",
-
-        "DESCRIPTION": "topcoat/preparation/feathers/ventilation/line-2"
-      },
-      {
-
-        "LOCATION": "B-41661",
-
-        "PARENT": "B-4166",
-
-        "SYSTEMID": "PRODMID",
-
-        "CHILDREN": 0,
-
-        "SITEID": "VCG",
-
-        "ORGID": "VCCBE",
-
-        "LOCHIERARCHYID": 428059,
-
-        "ROUTE": "B; B-4; B-41; B-416; B-4166; B-41661",
-
-        "DESCRIPTION": "topcoat/preparation/feathers/ventilation/line-1"
-
-      },
-        ]
-    ```
-
-- [ ] import Adapters directly with .yaml file and assign the adapter/datapoint to the corresponding datapoint-asset (for this their has to be a mapping file between the datapoint and the asset because their is no other way to retrieve this from the adapter nor the maximo asset )
-- [ ] The Asset hierarchy of the datapoint has to be enriched in the datapoint datastream
-- [ ] The parent asset of an end-point device's assets is the zone to which the device belongs to. The zone can contain multiple datapoints. The zone has to perform as a pipeline within streampipes with all the datastreams of the corresponding adapters/datapoints.
-- [ ] The pipeline output has to be sent to MQTT broker but since each datapoint datastream is enriched with it hierarchical asset location, use this as the MQTT-topic
-
-## backend
-
-- [ ] The MQTT sink doesnt support dynamic topics
-- [ ] MQTT doesnt accept more then one Datastream
-- [ ] Pipelines cant contain more then 2 datastreams
-- [ ] implement feature to upload .yaml configs directly for certain adapters (PLC4x, PLC4x.Modbus, OPCUA)
-
-## frontend
-
-- [ ] implement ui options to upload file config files directly
-- [ ] implement ui options to upload file to import assets directly with maximo format
+    - make it possible to remove certain mapping entries
+    - make it possible to select everything at once, and remove or export
+    - make it possible to search through the mapping entries
