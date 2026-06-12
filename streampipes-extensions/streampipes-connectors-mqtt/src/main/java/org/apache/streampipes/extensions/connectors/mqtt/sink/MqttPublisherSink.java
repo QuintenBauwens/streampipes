@@ -27,6 +27,7 @@ import org.apache.streampipes.extensions.connectors.mqtt.shared.MqttPublisher;
 import org.apache.streampipes.model.DataSinkType;
 import org.apache.streampipes.model.extensions.ExtensionAssetType;
 import org.apache.streampipes.model.runtime.Event;
+import org.apache.streampipes.model.staticproperty.MappingPropertyUnary;
 import org.apache.streampipes.sdk.builder.DataSinkBuilder;
 import org.apache.streampipes.sdk.builder.StreamRequirementsBuilder;
 import org.apache.streampipes.sdk.builder.sink.DataSinkConfiguration;
@@ -90,7 +91,11 @@ public class MqttPublisherSink implements IStreamPipesDataSink {
         String topicMode = params.extractor().selectedAlternativeInternalId(MqttConnectUtils.TOPIC_MODE);
         this.dynamicTopicEnabled = MqttConnectUtils.DYNAMIC_TOPIC_ALTERNATIVE.equals(topicMode);
         if (this.dynamicTopicEnabled) {
-            this.topicFieldSelector = params.extractor().mappingPropertyValue(MqttConnectUtils.TOPIC_FIELD);
+            // mappingPropertyValue() only scans top-level properties and misses nested alternatives;
+            // getStaticPropertyByName() recurses into the selected alternative, so use it directly.
+            var mp = params.extractor()
+                           .getStaticPropertyByName(MqttConnectUtils.TOPIC_FIELD, MappingPropertyUnary.class);
+            this.topicFieldSelector = mp != null ? mp.getSelectedProperty() : null;
         }
         this.mqttClient = new MqttPublisher(params);
         this.mqttClient.connect();

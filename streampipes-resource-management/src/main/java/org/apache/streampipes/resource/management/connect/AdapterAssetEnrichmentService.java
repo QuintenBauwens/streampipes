@@ -100,15 +100,14 @@ public class AdapterAssetEnrichmentService {
   }
 
   private void linkToAsset(AdapterDescription adapter, String topic) {
-    var segments = topic.split("/");
-    if (segments.length == 0) {
+    if (topic == null || topic.isBlank()) {
       return;
     }
 
     try {
       var assetStorage = StorageDispatcher.INSTANCE.getNoSqlStore().getAssetStorage();
       for (SpAssetModel assetModel : assetStorage.findAll()) {
-        var target = findAssetByPath(assetModel, segments, 0);
+        var target = findAssetByMqttTopic(assetModel, topic);
         if (target != null) {
           var link = AssetLinkBuilder.create()
               .withResourceId(adapter.getElementId())
@@ -124,25 +123,27 @@ public class AdapterAssetEnrichmentService {
           return;
         }
       }
-      LOG.info("No asset found for topic path '{}' - skipping asset link", topic);
+      LOG.info("No asset found matching mqtt_topic '{}' - skipping asset link", topic);
     } catch (Exception e) {
       LOG.warn("Failed to link adapter '{}' to asset: {}", adapter.getName(), e.getMessage());
     }
   }
 
   /**
-   * Recursively traverses the asset tree matching path segments depth-first.
-   * Returns the matching {@link SpAsset} node, or {@code null} if not found.
+   * Recursively searches the asset tree for a node whose {@code additionalData["mqtt_topic"]}
+   * exactly matches the given topic.  Assets imported from Maximo have this field set by
+   * {@code MaximoAssetImportService} — it is the authoritative way to correlate a topic path
+   * to an asset node without relying on location-code naming conventions.
+   *
+   * @return the matching {@link SpAsset}, or {@code null} if not found
    */
-  private SpAsset findAssetByPath(SpAsset node, String[] segments, int depth) {
-    if (node.getAssetName() == null || !node.getAssetName().equals(segments[depth])) {
-      return null;
-    }
-    if (depth == segments.length - 1) {
+  private SpAsset findAssetByMqttTopic(SpAsset node, String topic) {
+    var storedTopic = node.getAdditionalData().get("mqtt_topic");
+    if (topic.equals(storedTopic)) {
       return node;
     }
     for (SpAsset child : node.getAssets()) {
-      var found = findAssetByPath(child, segments, depth + 1);
+      var found = findAssetByMqttTopic(child, topic);
       if (found != null) {
         return found;
       }
