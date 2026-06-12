@@ -111,6 +111,16 @@ const CORE_CONFIGURATION_SECTIONS: SpConfigurationSection[] = [
             ),
         order: 1000,
     },
+    {
+        itemId: 'mqtt',
+        itemTitle: 'MQTT',
+        roles: ['ROLE_ADMIN'],
+        loadComponent: () =>
+            import('./mqtt-configuration/mqtt-configuration.component').then(
+                m => m.MqttConfigurationComponent,
+            ),
+        order: 1100,
+    },
 ];
 
 export const CONFIGURATION_SECTION_PROVIDERS: Provider[] =

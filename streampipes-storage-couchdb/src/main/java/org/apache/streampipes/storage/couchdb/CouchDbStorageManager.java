@@ -21,6 +21,7 @@ import org.apache.streampipes.model.datalake.DataLakeMeasure;
 import org.apache.streampipes.storage.api.connect.IAdapterAssetMappingStorage;
 import org.apache.streampipes.storage.api.connect.IAdapterStorage;
 import org.apache.streampipes.storage.api.core.INoSqlStorage;
+import org.apache.streampipes.storage.api.system.IMqttAutoPublishConfigStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerDashboardStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerWidgetStorage;
 import org.apache.streampipes.storage.api.explorer.IDataLakeMeasureStorage;
@@ -77,6 +78,7 @@ import org.apache.streampipes.storage.couchdb.impl.user.PermissionStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.user.PrivilegeStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.user.RefreshTokenStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.user.RoleStorageImpl;
+import org.apache.streampipes.storage.couchdb.impl.system.MqttAutoPublishConfigStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.user.UserActivationTokenStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.user.UserGroupStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.user.UserStorage;
@@ -240,5 +242,10 @@ public class CouchDbStorageManager implements INoSqlStorage {
   @Override
   public IAdapterAssetMappingStorage getAdapterAssetMappingStorage() {
     return new AdapterAssetMappingStorageImpl();
+  }
+
+  @Override
+  public IMqttAutoPublishConfigStorage getMqttAutoPublishConfigStorage() {
+    return new MqttAutoPublishConfigStorageImpl();
   }
 }

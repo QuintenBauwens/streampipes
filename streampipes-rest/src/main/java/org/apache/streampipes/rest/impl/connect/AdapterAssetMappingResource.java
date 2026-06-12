@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,6 +59,27 @@ public class AdapterAssetMappingResource extends AbstractAuthGuardedRestResource
   @PreAuthorize(AuthConstants.HAS_READ_ASSETS_PRIVILEGE)
   public ResponseEntity<?> getAllMappings() {
     return ok(getStorage().findAll());
+  }
+
+  /**
+   * Saves or updates a single adapter-to-asset mapping via JSON body.
+   * This is the preferred endpoint over CSV upload for programmatic use.
+   */
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  @PreAuthorize(AuthConstants.HAS_WRITE_ASSETS_PRIVILEGE)
+  public ResponseEntity<?> saveMapping(@RequestBody AdapterAssetMapping mapping) {
+    if (mapping == null || mapping.getElementId() == null || mapping.getElementId().isBlank()) {
+      return badRequest("adapterId must not be blank");
+    }
+    var storage = getStorage();
+    var existing = storage.getElementById(mapping.getElementId());
+    if (existing != null) {
+      existing.setTopic(mapping.getTopic());
+      storage.updateElement(existing);
+    } else {
+      storage.persist(mapping);
+    }
+    return ok(mapping);
   }
 
   /**
@@ -92,8 +114,9 @@ public class AdapterAssetMappingResource extends AbstractAuthGuardedRestResource
         if (line.isEmpty()) {
           continue;
         }
-        // Skip a header line that starts with "adapterId" (case-insensitive)
-        if (lineNum == 1 && line.toLowerCase().startsWith("adapterid")) {
+        // Skip a header line that starts with "adapterId" or "adapterName" (case-insensitive)
+        if (lineNum == 1 && (line.toLowerCase().startsWith("adapterid")
+            || line.toLowerCase().startsWith("adaptername"))) {
           continue;
         }
 

@@ -138,14 +138,20 @@ public class AdapterAssetEnrichmentService {
    * @return the matching {@link SpAsset}, or {@code null} if not found
    */
   private SpAsset findAssetByMqttTopic(SpAsset node, String topic) {
-    var storedTopic = node.getAdditionalData().get("mqtt_topic");
-    if (topic.equals(storedTopic)) {
-      return node;
+    var additionalData = node.getAdditionalData();
+    if (additionalData != null) {
+      var storedTopic = additionalData.get("mqtt_topic");
+      if (topic.equals(storedTopic)) {
+        return node;
+      }
     }
-    for (SpAsset child : node.getAssets()) {
-      var found = findAssetByMqttTopic(child, topic);
-      if (found != null) {
-        return found;
+    var children = node.getAssets();
+    if (children != null) {
+      for (SpAsset child : children) {
+        var found = findAssetByMqttTopic(child, topic);
+        if (found != null) {
+          return found;
+        }
       }
     }
     return null;

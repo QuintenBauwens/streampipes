@@ -42,11 +42,11 @@ export class AdapterAssetMappingService {
     }
 
     saveMapping(adapterName: string, assetLocation: string): Observable<any> {
-        const formData = new FormData();
-        const csv = `adapterName,topic\n${adapterName},${assetLocation}`;
-        const blob = new Blob([csv], { type: 'text/csv' });
-        formData.append('file', blob, 'mapping.csv');
-        return this.http.post(`${this.mappingPath}/upload`, formData);
+        const mapping: AdapterAssetMapping = {
+            elementId: adapterName,
+            topic: assetLocation,
+        };
+        return this.http.post(this.mappingPath, mapping);
     }
 
     uploadMappingCsv(file: File): Observable<any> {

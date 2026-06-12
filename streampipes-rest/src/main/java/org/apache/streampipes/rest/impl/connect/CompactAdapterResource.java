@@ -21,6 +21,7 @@ package org.apache.streampipes.rest.impl.connect;
 import org.apache.streampipes.commons.exceptions.connect.AdapterException;
 import org.apache.streampipes.commons.prometheus.adapter.AdapterMetricsManager;
 import org.apache.streampipes.connect.management.compact.AdapterGenerationSteps;
+import org.apache.streampipes.connect.management.compact.MqttPublisherPipelineHandler;
 import org.apache.streampipes.connect.management.compact.PersistPipelineHandler;
 import org.apache.streampipes.connect.management.management.AdapterMasterManagement;
 import org.apache.streampipes.connect.management.management.AdapterUpdateManagement;
@@ -32,6 +33,7 @@ import org.apache.streampipes.manager.execution.endpoint.ExtensionsServiceEndpoi
 import org.apache.streampipes.manager.pipeline.compact.CompactPipelineManagement;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
+import org.apache.streampipes.model.configuration.MqttAutoPublishConfig;
 import org.apache.streampipes.model.message.Notifications;
 import org.apache.streampipes.resource.management.SpResourceManager;
 import org.apache.streampipes.resource.management.connect.AdapterAssetEnrichmentService;
@@ -176,6 +178,8 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
                           .start()) {
           managementService.startStreamAdapter(adapterId);
         }
+        // Auto-create MQTT publisher pipeline if global config is enabled
+        tryCreateMqttPublisherPipeline(managementService.getAdapter(adapterId), requestManager);
       }
       return ok(Notifications.success(adapterId));
     } catch (AdapterException e) {
@@ -240,6 +244,30 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
       return compactAdapterManagement.convertToAdapterDescription(compactAdapter, existingAdapter, principalSid);
     } catch (AdapterException e) {
       throw new SpMessageException(HttpStatus.BAD_REQUEST, Notifications.error(e.getMessage()));
+    }
+  }
+
+  private void tryCreateMqttPublisherPipeline(AdapterDescription adapter,
+                                              ExtensionServiceRequestManager requestManager) {
+    try {
+      var mqttConfig = StorageDispatcher.INSTANCE.getNoSqlStore()
+                                                  .getMqttAutoPublishConfigStorage()
+                                                  .getElementById(MqttAutoPublishConfig.FIXED_ID);
+      if (mqttConfig == null || !mqttConfig.isEnabled()
+          || mqttConfig.getBrokerUrl() == null || mqttConfig.getBrokerUrl().isBlank()) {
+        return;
+      }
+      new MqttPublisherPipelineHandler(
+          new CompactPipelineManagement(
+              getNoSqlStorage().getPipelineElementDescriptionStorage(),
+              requestManager
+          ),
+          getAuthenticatedUserSid()
+      ).createAndStartMqttPipeline(adapter, mqttConfig, requestManager);
+      LOG.info("Auto-created MQTT publisher pipeline for adapter '{}'", adapter.getName());
+    } catch (Exception e) {
+      LOG.warn("Could not auto-create MQTT publisher pipeline for adapter '{}': {}",
+          adapter.getName(), e.getMessage());
     }
   }
 }

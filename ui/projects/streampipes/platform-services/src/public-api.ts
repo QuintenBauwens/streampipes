@@ -40,6 +40,7 @@ export * from './lib/apis/generic-storage.service';
 export * from './lib/apis/labels.service';
 export * from './lib/apis/location-config.service';
 export * from './lib/apis/mail-config.service';
+export * from './lib/apis/mqtt-auto-publish-config.service';
 export * from './lib/apis/measurement-units.service';
 export * from './lib/apis/permissions.service';
 export * from './lib/apis/pipeline.service';

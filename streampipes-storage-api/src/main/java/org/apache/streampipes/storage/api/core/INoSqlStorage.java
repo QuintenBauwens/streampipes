@@ -39,6 +39,7 @@ import org.apache.streampipes.storage.api.system.IGenericStorage;
 import org.apache.streampipes.storage.api.system.IImageStorage;
 import org.apache.streampipes.storage.api.system.ISpCoreConfigurationStorage;
 import org.apache.streampipes.storage.api.system.ITransformationScriptTemplateStorage;
+import org.apache.streampipes.storage.api.system.IMqttAutoPublishConfigStorage;
 import org.apache.streampipes.storage.api.user.IPasswordRecoveryTokenStorage;
 import org.apache.streampipes.storage.api.user.IPermissionStorage;
 import org.apache.streampipes.storage.api.user.IPrivilegeStorage;
@@ -111,4 +112,6 @@ public interface INoSqlStorage {
   ITransformationScriptTemplateStorage getTransformationScriptTemplateStorage();
 
   IAdapterAssetMappingStorage getAdapterAssetMappingStorage();
+
+  IMqttAutoPublishConfigStorage getMqttAutoPublishConfigStorage();
 }
