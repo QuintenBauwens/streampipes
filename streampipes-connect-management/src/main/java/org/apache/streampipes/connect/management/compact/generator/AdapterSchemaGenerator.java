@@ -28,6 +28,9 @@ import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
 import org.apache.streampipes.model.connect.adapter.compact.CompactEventProperty;
 import org.apache.streampipes.model.schema.EventPropertyPrimitive;
 import org.apache.streampipes.model.schema.EventSchema;
+import org.apache.streampipes.model.schema.PropertyScope;
+import org.apache.streampipes.vocabulary.SO;
+import org.apache.streampipes.vocabulary.XSD;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +39,7 @@ import java.util.Map;
 public class AdapterSchemaGenerator implements AdapterModelGenerator {
 
   private static final String XSD_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
+  private static final String TIMESTAMP_RUNTIME_NAME = "timestamp";
 
   private final SchemaMetadataEnricher enricher;
   private final GuessManagement guessManagement;
@@ -70,8 +74,9 @@ public class AdapterSchemaGenerator implements AdapterModelGenerator {
 
     if (schemaDef != null && !schemaDef.isEmpty()) {
       // Schema is pre-defined in the YAML — build directly without connecting to the live device
-      adapterDescription.getDataStream()
-                        .setEventSchema(buildSchemaFromDefinition(schemaDef));
+      var schema = buildSchemaFromDefinition(schemaDef);
+      addTimestampProperty(schema);
+      adapterDescription.getDataStream().setEventSchema(schema);
     } else {
       // No pre-defined schema — auto-guess by connecting to the live device
       var sampleData = guessManagement.getSampleData(adapterDescription);
@@ -82,8 +87,8 @@ public class AdapterSchemaGenerator implements AdapterModelGenerator {
 
       var eventSchema = guessManagement.guessSchema(adapterDescription);
       if (eventSchema != null) {
-        adapterDescription.getDataStream()
-                          .setEventSchema(eventSchema);
+        addTimestampProperty(eventSchema);
+        adapterDescription.getDataStream().setEventSchema(eventSchema);
       }
     }
   }
@@ -100,6 +105,26 @@ public class AdapterSchemaGenerator implements AdapterModelGenerator {
     return new EventSchema(new ArrayList<>(properties));
   }
 
+  /**
+   * Adds a static {@code timestamp} property (XSD long, schema.org/DateTime, HEADER scope) to the
+   * schema if one is not already present.  This ensures every adapter schema contains the timestamp
+   * field that StreamPipes pipelines (e.g. Data Lake persist) require.
+   */
+  private void addTimestampProperty(EventSchema schema) {
+    boolean alreadyPresent = schema.getEventProperties()
+        .stream()
+        .anyMatch(ep -> TIMESTAMP_RUNTIME_NAME.equals(ep.getRuntimeName()));
+    if (alreadyPresent) {
+      return;
+    }
+    var ep = new EventPropertyPrimitive(XSD.LONG.toString(), TIMESTAMP_RUNTIME_NAME, "", "");
+    ep.setLabel("Timestamp");
+    ep.setDescription("Event timestamp (epoch milliseconds)");
+    ep.setSemanticType(SO.DATE_TIME);
+    ep.setPropertyScope(PropertyScope.HEADER_PROPERTY.name());
+    schema.getEventProperties().add(0, ep);
+  }
+
   private void setDefaultScriptIfNotSet(AdapterDescription adapterDescription) {
     if (adapterDescription.getTransformationConfig()
                           .getScript() == null
@@ -110,8 +135,9 @@ public class AdapterSchemaGenerator implements AdapterModelGenerator {
       adapterDescription.getTransformationConfig()
                         .setScript("""
                                    function transform(event, out, ctx) {
-                                      out.collect(event);
-                                    }
+                                    event.timestamp = Date.now();
+                                    out.collect(event);
+                                   }
                                    """);
 
     }
