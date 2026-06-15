@@ -120,9 +120,46 @@
 
         <mat-accordion>
             @for (device of devices; track device.elementId) {
-                <mat-expansion-panel>
+                <mat-expansion-panel (opened)="onPanelOpened(device)">
                     <mat-expansion-panel-header>
-                        <mat-panel-title>{{ device.name }}</mat-panel-title>
+                        <mat-panel-title>
+                            <span
+                                fxLayout="row"
+                                fxLayoutAlign="start center"
+                                fxLayoutGap="8px"
+                            >
+                                <mat-icon
+                                    [ngClass]="{
+                                        'sp-color-accent':
+                                            reachabilityMap[
+                                                device.elementId
+                                            ] === true,
+                                        'sp-color-warn':
+                                            reachabilityMap[
+                                                device.elementId
+                                            ] === false,
+                                    }"
+                                    style="
+                                        font-size: 12px;
+                                        height: 12px;
+                                        width: 12px;
+                                        line-height: 12px;
+                                    "
+                                    [matTooltip]="
+                                        reachabilityMap[device.elementId] ===
+                                        true
+                                            ? ('Reachable' | translate)
+                                            : reachabilityMap[
+                                                    device.elementId
+                                                ] === false
+                                              ? ('Unreachable' | translate)
+                                              : ('Checking...' | translate)
+                                    "
+                                    >fiber_manual_record</mat-icon
+                                >
+                                {{ device.name }}
+                            </span>
+                        </mat-panel-title>
                         <mat-panel-description>
                             {{ device.host }}&nbsp;·&nbsp;{{
                                 device.pollingIntervalMs
@@ -134,7 +171,7 @@
                     </mat-expansion-panel-header>
 
                     @if (editingId === device.elementId && editingDevice) {
-                        <div fxLayout="column" fxLayoutGap="12px">
+                        <div fxLayout="column" fxLayoutGap="12px" class="p-md">
                             <div
                                 fxLayout="row"
                                 fxLayoutGap="16px"
@@ -211,8 +248,12 @@
                             </div>
                         </div>
                     } @else {
-                        <div fxLayout="column" fxLayoutGap="8px">
-                            <div fxLayout="row" fxLayoutGap="24px">
+                        <div fxLayout="column" fxLayoutGap="12px" class="p-md">
+                            <div
+                                fxLayout="row"
+                                fxLayoutGap="24px"
+                                class="pb-xs"
+                            >
                                 <div fxLayout="column">
                                     <span class="text-sm">{{
                                         'IP Address' | translate
@@ -243,7 +284,6 @@
                                 fxLayout="row"
                                 fxLayoutGap="8px"
                                 fxLayoutAlign="start center"
-                                class="mt-sm"
                             >
                                 <button
                                     mat-flat-button

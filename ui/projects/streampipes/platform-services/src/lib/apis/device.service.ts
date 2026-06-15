@@ -86,6 +86,12 @@ export class DeviceService {
             );
     }
 
+    checkReachable(id: string): Observable<{ reachable: boolean }> {
+        return this.http.get<{ reachable: boolean }>(
+            `${this.basePath}/${id}/reachable`,
+        );
+    }
+
     emptyDevice(): SpDevice {
         return {
             name: '',

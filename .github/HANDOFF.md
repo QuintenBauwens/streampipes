@@ -40,6 +40,7 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | **Automation config section (UI)** | ✅ Done | `/configuration/automation`; Pipelines tab + Adapters tab (topic enrichment toggle); settings shortcuts on pipelines + connect pages |
 | **PLC device registry** | ✅ Done | Full-stack device CRUD + adapter prefill endpoint/UI; build-verified this session |
 | **Device registry UX overhaul** | ✅ Done | Accordion replacing table; back nav fixed; rich Add Adapter dialog (desc, PLC code block, script, dedup, rate); adapter creation gap fixed via two-step POST chain |
+| **Device registry UX polish** | ✅ Done | Padding/spacing in expanded panels; reachability status icon (TCP port 102 check); adapter creation error fixed (code block → auto schema, WorkerAdapterException caught); action log auto-dismiss + single-message-at-a-time |
 
 ---
 
@@ -51,7 +52,8 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 
 No outstanding work. If continuing:
 - `docker compose build && docker compose up -d` to smoke-test the full flow end-to-end
-- Verify `/connect/devices` CRUD, device accordion expand/collapse, Add Adapter dialog creates a real adapter
+- Verify `/connect/devices`: expand a panel → reachability dot updates; Add Adapter with PLC code block → adapter creates without live device needed
+- Reachability check uses TCP port 102 (S7 default); host `10.x.x.x:port` format also supported
 
 ---
 

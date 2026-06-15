@@ -50,6 +50,7 @@ import {
     MatExpansionPanelTitle,
 } from '@angular/material/expansion';
 import { MatDialog } from '@angular/material/dialog';
+import { NgClass } from '@angular/common';
 import { SpConnectRoutes } from '../../connect.breadcrumb';
 import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dialog.component';
 
@@ -79,6 +80,7 @@ import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dial
         FormsModule,
         SpBasicHeaderTitleComponent,
         TranslatePipe,
+        NgClass,
     ],
 })
 export class DeviceRegistryComponent implements OnInit {
@@ -106,6 +108,10 @@ export class DeviceRegistryComponent implements OnInit {
     successMessage = '';
     errorMessage = '';
 
+    reachabilityMap: Record<string, boolean | null> = {};
+
+    private msgTimer: ReturnType<typeof setTimeout> | null = null;
+
     ngOnInit(): void {
         this.breadcrumbService.updateBreadcrumb([
             SpConnectRoutes.BASE,
@@ -115,10 +121,9 @@ export class DeviceRegistryComponent implements OnInit {
     }
 
     loadDevices(): void {
-        this.errorMessage = '';
         this.deviceService.getAll().subscribe({
             next: devices => (this.devices = devices),
-            error: () => (this.errorMessage = 'Could not load devices'),
+            error: () => this.showError('Could not load devices'),
         });
     }
 
@@ -127,19 +132,17 @@ export class DeviceRegistryComponent implements OnInit {
         this.newDevice = this.deviceService.emptyDevice();
         this.editingId = null;
         this.editingDevice = null;
-        this.successMessage = '';
-        this.errorMessage = '';
+        this.clearMessages();
     }
 
     saveNewDevice(): void {
         this.deviceService.create(this.newDevice).subscribe({
             next: () => {
                 this.isAddingDevice = false;
-                this.successMessage = 'Device added';
-                this.errorMessage = '';
+                this.showSuccess('Device added');
                 this.loadDevices();
             },
-            error: () => (this.errorMessage = 'Could not add device'),
+            error: () => this.showError('Could not add device'),
         });
     }
 
@@ -151,8 +154,7 @@ export class DeviceRegistryComponent implements OnInit {
     startEdit(device: SpDevice): void {
         this.editingId = device.elementId ?? null;
         this.editingDevice = { ...device };
-        this.successMessage = '';
-        this.errorMessage = '';
+        this.clearMessages();
     }
 
     saveEdit(): void {
@@ -166,11 +168,10 @@ export class DeviceRegistryComponent implements OnInit {
                 next: () => {
                     this.editingId = null;
                     this.editingDevice = null;
-                    this.successMessage = 'Device updated';
-                    this.errorMessage = '';
+                    this.showSuccess('Device updated');
                     this.loadDevices();
                 },
-                error: () => (this.errorMessage = 'Could not update device'),
+                error: () => this.showError('Could not update device'),
             });
     }
 
@@ -186,11 +187,22 @@ export class DeviceRegistryComponent implements OnInit {
 
         this.deviceService.delete(device.elementId).subscribe({
             next: () => {
-                this.successMessage = 'Device deleted';
-                this.errorMessage = '';
+                this.showSuccess('Device deleted');
                 this.loadDevices();
             },
-            error: () => (this.errorMessage = 'Could not delete device'),
+            error: () => this.showError('Could not delete device'),
+        });
+    }
+
+    onPanelOpened(device: SpDevice): void {
+        if (!device.elementId) {
+            return;
+        }
+        this.reachabilityMap[device.elementId] = null;
+        this.deviceService.checkReachable(device.elementId).subscribe({
+            next: res =>
+                (this.reachabilityMap[device.elementId!] = res.reachable),
+            error: () => (this.reachabilityMap[device.elementId!] = false),
         });
     }
 
@@ -207,12 +219,17 @@ export class DeviceRegistryComponent implements OnInit {
                         .createAdapter(device.elementId, result)
                         .subscribe({
                             next: () => {
-                                this.successMessage = `Adapter '${result.adapterName}' created`;
-                                this.errorMessage = '';
+                                this.showSuccess(
+                                    `Adapter '${result.adapterName}' created`,
+                                );
                             },
-                            error: () =>
-                                (this.errorMessage =
-                                    'Could not create adapter'),
+                            error: err => {
+                                const msg =
+                                    err?.error?.title ||
+                                    err?.error?.message ||
+                                    'Could not create adapter';
+                                this.showError(msg);
+                            },
                         });
                 }
             },
@@ -224,5 +241,34 @@ export class DeviceRegistryComponent implements OnInit {
             this.adapterTypeOptions.find(o => o.value === adapterType)?.label ??
             adapterType
         );
+    }
+
+    private showSuccess(msg: string): void {
+        this.clearMessages();
+        this.successMessage = msg;
+        this.msgTimer = setTimeout(() => {
+            if (this.successMessage === msg) {
+                this.successMessage = '';
+            }
+        }, 5000);
+    }
+
+    private showError(msg: string): void {
+        this.clearMessages();
+        this.errorMessage = msg;
+        this.msgTimer = setTimeout(() => {
+            if (this.errorMessage === msg) {
+                this.errorMessage = '';
+            }
+        }, 5000);
+    }
+
+    private clearMessages(): void {
+        if (this.msgTimer !== null) {
+            clearTimeout(this.msgTimer);
+            this.msgTimer = null;
+        }
+        this.successMessage = '';
+        this.errorMessage = '';
     }
 }

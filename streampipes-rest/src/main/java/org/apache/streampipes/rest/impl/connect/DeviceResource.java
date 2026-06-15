@@ -42,7 +42,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -103,8 +106,35 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
     return ok(Notifications.success(id));
   }
 
+  @GetMapping(path = "{id}/reachable", produces = MediaType.APPLICATION_JSON_VALUE)
+  @PreAuthorize("this.hasReadAuthority()")
+  public ResponseEntity<?> checkReachable(@PathVariable("id") String deviceId) {
+    var device = getStorage().getElementById(deviceId);
+    if (device == null) {
+      return badRequest("Device not found: " + deviceId);
+    }
+    try {
+      String host = device.getHost();
+      int port = 102;
+      if (host != null && host.contains(":")) {
+        var parts = host.split(":", 2);
+        host = parts[0];
+        try {
+          port = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException ignored) {
+          // keep default S7 port
+        }
+      }
+      try (var socket = new Socket()) {
+        socket.connect(new InetSocketAddress(host, port), 2000);
+        return ok(Map.of("reachable", true));
+      }
+    } catch (Exception e) {
+      return ok(Map.of("reachable", false));
+    }
+  }
+
   @PostMapping(
-      path = "{id}/adapters",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE
   )
@@ -135,6 +165,12 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
       config.add(Map.of(PLC_CODE_BLOCK, request.plcCodeBlock()));
     }
 
+    // Prefer explicit schema; fall back to auto-parsed code block so schema guessing
+    // (which requires a live device) is skipped when a code block is provided.
+    var schema = request.schema() != null
+        ? request.schema()
+        : buildSchemaFromCodeBlock(request.plcCodeBlock());
+
     return new CompactAdapter(
         null,
         request.adapterName(),
@@ -142,10 +178,32 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
         device.getAdapterType(),
         config,
         buildTransformationConfig(request),
-        request.schema(),
+        schema,
         new CreateOptions(false, true),
         null
     );
+  }
+
+  /**
+   * Parses a PLC code block into a minimal schema map (property name → null).
+   * Lines starting with {@code //} and blank lines are skipped.
+   * Each remaining line is expected in {@code propertyName=...} format.
+   */
+  private Map<String, CompactEventProperty> buildSchemaFromCodeBlock(String codeBlock) {
+    if (codeBlock == null || codeBlock.isBlank()) {
+      return null;
+    }
+    var schema = new LinkedHashMap<String, CompactEventProperty>();
+    codeBlock.lines()
+             .map(String::trim)
+             .filter(line -> !line.isBlank() && !line.startsWith("//"))
+             .forEach(line -> {
+               int eq = line.indexOf('=');
+               if (eq > 0) {
+                 schema.put(line.substring(0, eq).trim(), null);
+               }
+             });
+    return schema.isEmpty() ? null : schema;
   }
 
   private TransformationConfig buildTransformationConfig(DeviceAdapterRequest request) {

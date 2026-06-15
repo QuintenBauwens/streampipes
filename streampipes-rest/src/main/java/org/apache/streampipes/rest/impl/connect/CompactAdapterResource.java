@@ -18,6 +18,7 @@
 
 package org.apache.streampipes.rest.impl.connect;
 
+import org.apache.streampipes.commons.exceptions.NoServiceEndpointsAvailableException;
 import org.apache.streampipes.commons.exceptions.connect.AdapterException;
 import org.apache.streampipes.commons.prometheus.adapter.AdapterMetricsManager;
 import org.apache.streampipes.connect.management.compact.AdapterGenerationSteps;
@@ -231,6 +232,15 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
       return compactAdapterManagement.convertToAdapterDescription(compactAdapter, principalSid);
     } catch (AdapterException e) {
       throw new SpMessageException(HttpStatus.BAD_REQUEST, Notifications.error(e.getMessage()));
+    } catch (WorkerAdapterException e) {
+      throw new SpMessageException(HttpStatus.BAD_REQUEST, Notifications.error(
+          "Device is unreachable for schema detection. "
+              + "Provide a PLC code block or ensure the device is online: " + e.getMessage()
+      ));
+    } catch (NoServiceEndpointsAvailableException e) {
+      throw new SpMessageException(HttpStatus.SERVICE_UNAVAILABLE, Notifications.error(
+          "No extensions service available. Ensure the extensions service is running."
+      ));
     }
   }
 
