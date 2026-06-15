@@ -18,6 +18,9 @@
 
 package org.apache.streampipes.rest.impl.connect;
 
+import org.apache.streampipes.model.connect.ReduceEventRateRule;
+import org.apache.streampipes.model.connect.RemoveDuplicateRule;
+import org.apache.streampipes.model.connect.TransformationConfig;
 import org.apache.streampipes.model.connect.adapter.SpDevice;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
 import org.apache.streampipes.model.connect.adapter.compact.CompactEventProperty;
@@ -39,7 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
@@ -49,6 +52,9 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
 
   private static final String PLC_IP = "plc_ip";
   private static final String PLC_POLLING_INTERVAL = "plc_polling_interval";
+  private static final String PLC_NODE_INPUT_ALTERNATIVES = "plc_node_input_alternatives";
+  private static final String PLC_NODE_INPUT_CODE_BLOCK_ALTIVE = "plc_node_input_code_block_altive";
+  private static final String PLC_CODE_BLOCK = "plc_code_block";
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("this.hasReadAuthority()")
@@ -120,22 +126,50 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   }
 
   private CompactAdapter buildCompactAdapter(SpDevice device, DeviceAdapterRequest request) {
-    var config = List.of(
-        Map.<String, Object>of(PLC_IP, device.getHost()),
-        Map.<String, Object>of(PLC_POLLING_INTERVAL, device.getPollingIntervalMs())
-    );
+    var config = new ArrayList<Map<String, Object>>();
+    config.add(Map.of(PLC_IP, device.getHost()));
+    config.add(Map.of(PLC_POLLING_INTERVAL, device.getPollingIntervalMs()));
+
+    if (request.plcCodeBlock() != null && !request.plcCodeBlock().isBlank()) {
+      config.add(Map.of(PLC_NODE_INPUT_ALTERNATIVES, PLC_NODE_INPUT_CODE_BLOCK_ALTIVE));
+      config.add(Map.of(PLC_CODE_BLOCK, request.plcCodeBlock()));
+    }
 
     return new CompactAdapter(
         null,
         request.adapterName(),
-        "",
+        request.description() != null ? request.description() : "",
         device.getAdapterType(),
         config,
-        null,
+        buildTransformationConfig(request),
         request.schema(),
         new CreateOptions(false, true),
         null
     );
+  }
+
+  private TransformationConfig buildTransformationConfig(DeviceAdapterRequest request) {
+    boolean hasScript = request.transformationScript() != null && !request.transformationScript().isBlank();
+    boolean hasDuplicates = request.removeDuplicatesMs() != null;
+    boolean hasRateReduction = request.reduceEventRateMs() != null;
+
+    if (!hasScript && !hasDuplicates && !hasRateReduction) {
+      return null;
+    }
+
+    var config = new TransformationConfig();
+    if (hasScript) {
+      config.setScriptActive(true);
+      config.setLanguage("javascript");
+      config.setScript(request.transformationScript());
+    }
+    if (hasDuplicates) {
+      config.setRemoveDuplicateRule(new RemoveDuplicateRule(String.valueOf(request.removeDuplicatesMs())));
+    }
+    if (hasRateReduction) {
+      config.setReduceEventRateRule(new ReduceEventRateRule(request.reduceEventRateMs(), "none"));
+    }
+    return config;
   }
 
   private ISpDeviceStorage getStorage() {
@@ -145,6 +179,11 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   @JsonIgnoreProperties(ignoreUnknown = true)
   public record DeviceAdapterRequest(
       String adapterName,
+      String description,
+      String plcCodeBlock,
+      String transformationScript,
+      Long removeDuplicatesMs,
+      Long reduceEventRateMs,
       Map<String, CompactEventProperty> schema
   ) {
   }

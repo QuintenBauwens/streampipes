@@ -35,23 +35,20 @@ import {
     LayoutDirective,
     LayoutGapDirective,
 } from '@ngbracket/ngx-layout/flex';
-import {
-    MatCell,
-    MatCellDef,
-    MatColumnDef,
-    MatHeaderCell,
-    MatHeaderCellDef,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatRow,
-    MatRowDef,
-    MatTable,
-} from '@angular/material/table';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/core';
+import {
+    MatAccordion,
+    MatExpansionPanel,
+    MatExpansionPanelDescription,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+} from '@angular/material/expansion';
 import { MatDialog } from '@angular/material/dialog';
 import { SpConnectRoutes } from '../../connect.breadcrumb';
 import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dialog.component';
@@ -69,19 +66,16 @@ import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dial
         MatIconButton,
         MatIcon,
         MatTooltip,
-        MatTable,
-        MatColumnDef,
-        MatHeaderCell,
-        MatHeaderCellDef,
-        MatCell,
-        MatCellDef,
-        MatHeaderRow,
-        MatHeaderRowDef,
-        MatRow,
-        MatRowDef,
         MatFormField,
         MatLabel,
         MatInput,
+        MatSelect,
+        MatOption,
+        MatAccordion,
+        MatExpansionPanel,
+        MatExpansionPanelHeader,
+        MatExpansionPanelTitle,
+        MatExpansionPanelDescription,
         FormsModule,
         SpBasicHeaderTitleComponent,
         TranslatePipe,
@@ -92,8 +86,16 @@ export class DeviceRegistryComponent implements OnInit {
     private breadcrumbService = inject(SpBreadcrumbService);
     private dialog = inject(MatDialog);
 
+    readonly backLink = ['/connect'];
+
+    readonly adapterTypeOptions = [
+        {
+            label: 'PLC4x S7',
+            value: 'org.apache.streampipes.connect.iiot.adapters.plc4x.s7',
+        },
+    ];
+
     devices: SpDevice[] = [];
-    displayedColumns = ['name', 'host', 'pollingIntervalMs', 'actions'];
 
     editingDevice: SpDevice | null = null;
     editingId: string | null = null;
@@ -194,7 +196,7 @@ export class DeviceRegistryComponent implements OnInit {
 
     openAddAdapterDialog(device: SpDevice): void {
         const ref = this.dialog.open(AddAdapterDialogComponent, {
-            width: '500px',
+            width: '640px',
             data: { device },
         });
 
@@ -214,6 +216,13 @@ export class DeviceRegistryComponent implements OnInit {
                         });
                 }
             },
+        );
+    }
+
+    getAdapterTypeLabel(adapterType: string): string {
+        return (
+            this.adapterTypeOptions.find(o => o.value === adapterType)?.label ??
+            adapterType
         );
     }
 }

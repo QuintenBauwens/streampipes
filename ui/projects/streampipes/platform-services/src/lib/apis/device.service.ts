@@ -19,6 +19,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { PlatformServicesCommons } from './commons.service';
 
 export interface SpDevice {
@@ -31,6 +32,11 @@ export interface SpDevice {
 
 export interface DeviceAdapterRequest {
     adapterName: string;
+    description?: string;
+    plcCodeBlock?: string;
+    transformationScript?: string;
+    removeDuplicatesMs?: number;
+    reduceEventRateMs?: number;
     schema?: Record<
         string,
         { label?: string; description?: string; semanticType?: string }
@@ -68,7 +74,16 @@ export class DeviceService {
         deviceId: string,
         request: DeviceAdapterRequest,
     ): Observable<unknown> {
-        return this.http.post(`${this.basePath}/${deviceId}/adapters`, request);
+        return this.http
+            .post(`${this.basePath}/${deviceId}/adapters`, request)
+            .pipe(
+                switchMap(compactAdapter =>
+                    this.http.post(
+                        `${this.platformServicesCommons.apiBasePath}/connect/compact-adapters`,
+                        compactAdapter,
+                    ),
+                ),
+            );
     }
 
     emptyDevice(): SpDevice {
