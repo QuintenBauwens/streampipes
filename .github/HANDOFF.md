@@ -38,22 +38,20 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | **Timestamp field on adapter create/import** | ✅ Done | `addTimestampProperty()` in `AdapterSchemaGenerator`; default script includes `event.timestamp = Date.now()` |
 | **Null-safe propertyScope in PersistPipelineHandler** | ✅ Done | Flipped equalsIgnoreCase receiver to avoid NPE on null scope |
 | **Automation config section (UI)** | ✅ Done | `/configuration/automation`; Pipelines tab + Adapters tab (topic enrichment toggle); settings shortcuts on pipelines + connect pages |
-| **PLC device registry** | ✅ Done | Full-stack device CRUD + adapter prefill endpoint/UI added; no build/test run this session |
+| **PLC device registry** | ✅ Done | Full-stack device CRUD + adapter prefill endpoint/UI; build-verified this session |
+| **Device registry UX overhaul** | ✅ Done | Accordion replacing table; back nav fixed; rich Add Adapter dialog (desc, PLC code block, script, dedup, rate); adapter creation gap fixed via two-step POST chain |
 
 ---
 
 ## Status: All Features Complete ✅
 
-All previously delivered features remain complete, compile-verified (backend), build-verified (frontend), and deployed.
-The new PLC device registry feature was implemented this session but not build/test verified per session constraints.
-Each feature has its own git commit on branch `copilot-cli`.
+All features compile-verified (backend) and build-verified (Angular dev build). Branch: `copilot-cli`.
 
 ## First Thing To Do Next Session
 
-- Run targeted validation for the PLC device registry feature:
-  1. `mvn -pl streampipes-rest,streampipes-storage-couchdb,streampipes-resource-management,streampipes-connect-management -am test`
-  2. `cd ui && npm run build`
-  3. Manually verify `/connect/devices` CRUD flow and adapter prefill response
+No outstanding work. If continuing:
+- `docker compose build && docker compose up -d` to smoke-test the full flow end-to-end
+- Verify `/connect/devices` CRUD, device accordion expand/collapse, Add Adapter dialog creates a real adapter
 
 ---
 
