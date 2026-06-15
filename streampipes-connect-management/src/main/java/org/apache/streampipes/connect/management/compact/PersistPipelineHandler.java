@@ -105,7 +105,7 @@ public class PersistPipelineHandler {
   private List<String> getDimensions(AdapterDescription adapterDescription) {
     return adapterDescription.getEventSchema().getEventProperties()
         .stream()
-        .filter(ep -> ep.getPropertyScope().equalsIgnoreCase(PropertyScope.DIMENSION_PROPERTY.name()))
+        .filter(ep -> PropertyScope.DIMENSION_PROPERTY.name().equalsIgnoreCase(ep.getPropertyScope()))
         .map(EventProperty::getRuntimeName)
         .toList();
   }
