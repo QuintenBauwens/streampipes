@@ -42,6 +42,14 @@
         <button
             mat-icon-button
             color="accent"
+            [routerLink]="['/configuration/automation']"
+            [matTooltip]="'Automation settings' | translate"
+        >
+            <i class="material-icons">settings</i>
+        </button>
+        <button
+            mat-icon-button
+            color="accent"
             (click)="startPipelineTour()"
             [matTooltip]="'Tutorial'"
             [disabled]="tutorialActive"

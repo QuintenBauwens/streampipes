@@ -34,7 +34,7 @@ import {
     SpBreadcrumbService,
 } from '@streampipes/shared-ui';
 import { StartAllPipelinesDialogComponent } from './dialog/start-all-pipelines/start-all-pipelines-dialog.component';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { UserPrivilege } from '../core/auth/user-privilege.enum';
 import { SpPipelineRoutes } from './pipelines.breadcrumb';
@@ -69,6 +69,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         SpBasicHeaderTitleComponent,
         PipelineOverviewComponent,
         FunctionsOverviewComponent,
+        RouterLink,
         TranslatePipe,
     ],
 })

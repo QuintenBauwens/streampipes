@@ -112,8 +112,8 @@ const CORE_CONFIGURATION_SECTIONS: SpConfigurationSection[] = [
         order: 1000,
     },
     {
-        itemId: 'pipeline-setup',
-        itemTitle: 'Pipeline Setup',
+        itemId: 'automation',
+        itemTitle: 'Automation',
         roles: ['ROLE_ADMIN'],
         loadComponent: () =>
             import('./pipeline-setup-configuration/pipeline-setup-configuration.component').then(

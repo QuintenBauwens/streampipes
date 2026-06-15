@@ -24,6 +24,11 @@ import { PlatformServicesCommons } from './commons.service';
 export interface MqttAutoPublishConfig {
     /** Master switch: auto-deploy a pipeline when an adapter is created. */
     autoDeploy: boolean;
+    /**
+     * When true (default), adapter creation enriches the event schema and
+     * transform script with a static `topic` field from the adapter-asset mapping DB.
+     */
+    topicEnrichmentEnabled: boolean;
     /** MQTT sink enabled. Mutually exclusive with dataLakeSinkEnabled. */
     enabled: boolean;
     /** Data Lake sink enabled. Mutually exclusive with enabled. */
@@ -69,6 +74,7 @@ export class MqttAutoPublishConfigService {
     defaultConfig(): MqttAutoPublishConfig {
         return {
             autoDeploy: false,
+            topicEnrichmentEnabled: true,
             enabled: false,
             dataLakeSinkEnabled: false,
             brokerUrl: '',

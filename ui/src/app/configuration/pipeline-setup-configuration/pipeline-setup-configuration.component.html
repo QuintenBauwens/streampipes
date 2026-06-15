@@ -16,7 +16,7 @@
 ~
 -->
 
-<sp-basic-nav-tabs [spNavigationItems]="tabs" [activeLink]="'pipeline-setup'">
+<sp-basic-nav-tabs [spNavigationItems]="tabs" [activeLink]="'automation'">
     <div fxLayout="column" class="page-container-padding-inner">
         @if (isLoading) {
             <div fxLayoutAlign="center center" class="pt-2xl">
@@ -27,253 +27,370 @@
                 ></mat-progress-spinner>
             </div>
         } @else {
-            <div fxFlex="100" fxLayout="column" fxLayoutAlign="start start">
-                @if (saved) {
-                    <sp-alert-banner
-                        [type]="'success'"
-                        [title]="'Configuration saved' | translate"
-                    ></sp-alert-banner>
-                }
-                @if (error) {
-                    <sp-alert-banner
-                        [type]="'error'"
-                        [title]="errorMessage | translate"
-                    ></sp-alert-banner>
-                }
-
-                <!-- ── Auto Pipeline Deployment ─────────────────────── -->
-                <sp-split-section
-                    [title]="'Pipeline Setup' | translate"
-                    [subtitle]="
-                        'Automatically deploy a data pipeline for every adapter that is created'
-                            | translate
-                    "
-                >
-                    <mat-slide-toggle
-                        [(ngModel)]="config.autoDeploy"
-                        color="accent"
-                        (ngModelChange)="onAutoDeployChange()"
+            <mat-tab-group
+                color="accent"
+                [(selectedIndex)]="selectedTabIndex"
+                animationDuration="0"
+            >
+                <!-- ══════════════════════════════════════════════════════ -->
+                <!-- TAB 1: Pipelines                                       -->
+                <!-- ══════════════════════════════════════════════════════ -->
+                <mat-tab [label]="'Pipelines' | translate">
+                    <div
+                        fxFlex="100"
+                        fxLayout="column"
+                        fxLayoutAlign="start start"
+                        class="pt-lg"
                     >
-                        {{ 'Enable auto pipeline deployment' | translate }}
-                    </mat-slide-toggle>
-                </sp-split-section>
+                        @if (saved) {
+                            <sp-alert-banner
+                                [type]="'success'"
+                                [title]="'Configuration saved' | translate"
+                            ></sp-alert-banner>
+                        }
+                        @if (error) {
+                            <sp-alert-banner
+                                [type]="'error'"
+                                [title]="errorMessage | translate"
+                            ></sp-alert-banner>
+                        }
 
-                @if (config.autoDeploy) {
-                    @if (!sinksValid) {
-                        <sp-alert-banner
-                            [type]="'warning'"
-                            [title]="
-                                'At least one sink must be enabled when auto pipeline deployment is active.'
+                        <!-- ── Auto Pipeline Deployment ─────────────────── -->
+                        <sp-split-section
+                            [title]="'Pipeline Setup' | translate"
+                            [subtitle]="
+                                'Automatically deploy a data pipeline for every adapter that is created'
                                     | translate
                             "
-                        ></sp-alert-banner>
-                    }
-
-                    <!-- ── MQTT Sink ───────────────────────────────────── -->
-                    <sp-split-section
-                        [title]="'MQTT Sink' | translate"
-                        [subtitle]="
-                            'Publish adapter events to an MQTT broker. Mutually exclusive with the Data Lake sink.'
-                                | translate
-                        "
-                    >
-                        <div fxLayout="column" fxFlex="100" fxLayoutGap="16px">
-                            <mat-slide-toggle
-                                [(ngModel)]="config.enabled"
-                                color="accent"
-                                (ngModelChange)="onMqttSinkToggle()"
-                            >
-                                {{ 'Enable MQTT sink' | translate }}
-                            </mat-slide-toggle>
-
-                            @if (config.enabled) {
-                                <mat-divider></mat-divider>
-
-                                <mat-form-field color="accent">
-                                    <mat-label>{{
-                                        'Broker URL' | translate
-                                    }}</mat-label>
-                                    <input
-                                        matInput
-                                        [(ngModel)]="config.brokerUrl"
-                                        placeholder="tcp://broker.example.com:1883"
-                                    />
-                                </mat-form-field>
-
-                                <mat-form-field color="accent">
-                                    <mat-label>{{
-                                        'Access Mode' | translate
-                                    }}</mat-label>
-                                    <mat-select [(ngModel)]="config.accessMode">
-                                        <mat-option
-                                            value="anonymous-alternative"
-                                        >
-                                            {{ 'Anonymous' | translate }}
-                                        </mat-option>
-                                        <mat-option
-                                            value="username-alternative"
-                                        >
-                                            {{
-                                                'Username / Password'
-                                                    | translate
-                                            }}
-                                        </mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-
-                                @if (usesUsernameAccess) {
-                                    <mat-form-field color="accent">
-                                        <mat-label>{{
-                                            'Username' | translate
-                                        }}</mat-label>
-                                        <input
-                                            matInput
-                                            [(ngModel)]="config.username"
-                                        />
-                                    </mat-form-field>
-                                    <mat-form-field color="accent">
-                                        <mat-label>{{
-                                            'Password' | translate
-                                        }}</mat-label>
-                                        <input
-                                            matInput
-                                            type="password"
-                                            [(ngModel)]="config.password"
-                                        />
-                                    </mat-form-field>
-                                }
-
-                                <div fxLayout="row" fxLayoutGap="16px">
-                                    <mat-form-field color="accent" fxFlex="50">
-                                        <mat-label>{{
-                                            'QoS Level' | translate
-                                        }}</mat-label>
-                                        <mat-select
-                                            [(ngModel)]="config.qosLevel"
-                                        >
-                                            <mat-option
-                                                value="0 - at-most-once"
-                                            >
-                                                0 – At most once
-                                            </mat-option>
-                                            <mat-option
-                                                value="1 - at-least-once"
-                                            >
-                                                1 – At least once
-                                            </mat-option>
-                                            <mat-option
-                                                value="2 - exactly-once"
-                                            >
-                                                2 – Exactly once
-                                            </mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-
-                                    <mat-form-field color="accent" fxFlex="50">
-                                        <mat-label>{{
-                                            'Retain' | translate
-                                        }}</mat-label>
-                                        <mat-select [(ngModel)]="config.retain">
-                                            <mat-option value="Yes">{{
-                                                'Yes' | translate
-                                            }}</mat-option>
-                                            <mat-option value="No">{{
-                                                'No' | translate
-                                            }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-                                </div>
-
-                                <div fxLayout="row" fxLayoutGap="16px">
-                                    <mat-form-field color="accent" fxFlex="50">
-                                        <mat-label>{{
-                                            'Clean Session' | translate
-                                        }}</mat-label>
-                                        <mat-select
-                                            [(ngModel)]="config.cleanSession"
-                                        >
-                                            <mat-option value="Yes">{{
-                                                'Yes' | translate
-                                            }}</mat-option>
-                                            <mat-option value="No">{{
-                                                'No' | translate
-                                            }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-
-                                    <mat-form-field color="accent" fxFlex="50">
-                                        <mat-label>{{
-                                            'MQTT 3.1.1 Compliant' | translate
-                                        }}</mat-label>
-                                        <mat-select
-                                            [(ngModel)]="config.mqttCompliant"
-                                        >
-                                            <mat-option value="Yes">{{
-                                                'Yes' | translate
-                                            }}</mat-option>
-                                            <mat-option value="No">{{
-                                                'No' | translate
-                                            }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-                                </div>
-
-                                <div fxLayout="row" fxLayoutGap="16px">
-                                    <mat-form-field color="accent" fxFlex="50">
-                                        <mat-label>{{
-                                            'Reconnect Period (s)' | translate
-                                        }}</mat-label>
-                                        <input
-                                            matInput
-                                            type="number"
-                                            [(ngModel)]="
-                                                config.reconnectPeriodInSec
-                                            "
-                                        />
-                                    </mat-form-field>
-
-                                    <mat-form-field color="accent" fxFlex="50">
-                                        <mat-label>{{
-                                            'Keep-Alive Interval (s)'
-                                                | translate
-                                        }}</mat-label>
-                                        <input
-                                            matInput
-                                            type="number"
-                                            [(ngModel)]="config.keepAliveInSec"
-                                        />
-                                    </mat-form-field>
-                                </div>
-                            }
-                        </div>
-                    </sp-split-section>
-
-                    <!-- ── Data Lake Sink ──────────────────────────────── -->
-                    <sp-split-section
-                        [title]="'Data Lake Sink' | translate"
-                        [subtitle]="
-                            'Persist adapter events in the StreamPipes data lake. Mutually exclusive with the MQTT sink.'
-                                | translate
-                        "
-                    >
-                        <mat-slide-toggle
-                            [(ngModel)]="config.dataLakeSinkEnabled"
-                            color="accent"
-                            (ngModelChange)="onDataLakeSinkToggle()"
                         >
-                            {{ 'Enable data lake sink' | translate }}
-                        </mat-slide-toggle>
-                    </sp-split-section>
-                }
+                            <mat-slide-toggle
+                                [(ngModel)]="config.autoDeploy"
+                                color="accent"
+                                (ngModelChange)="onAutoDeployChange()"
+                            >
+                                {{
+                                    'Enable auto pipeline deployment'
+                                        | translate
+                                }}
+                            </mat-slide-toggle>
+                        </sp-split-section>
 
-                <!-- ── Save ───────────────────────────────────────────── -->
-                <div fxLayoutAlign="start center" class="mt-lg">
-                    <button mat-flat-button color="accent" (click)="save()">
-                        {{ 'Save' | translate }}
-                    </button>
-                </div>
-            </div>
+                        @if (config.autoDeploy) {
+                            @if (!sinksValid) {
+                                <sp-alert-banner
+                                    [type]="'warning'"
+                                    [title]="
+                                        'At least one sink must be enabled when auto pipeline deployment is active.'
+                                            | translate
+                                    "
+                                ></sp-alert-banner>
+                            }
+
+                            <!-- ── MQTT Sink ──────────────────────────────── -->
+                            <sp-split-section
+                                [title]="'MQTT Sink' | translate"
+                                [subtitle]="
+                                    'Publish adapter events to an MQTT broker. Mutually exclusive with the Data Lake sink.'
+                                        | translate
+                                "
+                            >
+                                <div
+                                    fxLayout="column"
+                                    fxFlex="100"
+                                    fxLayoutGap="16px"
+                                >
+                                    <mat-slide-toggle
+                                        [(ngModel)]="config.enabled"
+                                        color="accent"
+                                        (ngModelChange)="onMqttSinkToggle()"
+                                    >
+                                        {{ 'Enable MQTT sink' | translate }}
+                                    </mat-slide-toggle>
+
+                                    @if (config.enabled) {
+                                        <mat-divider></mat-divider>
+
+                                        <mat-form-field color="accent">
+                                            <mat-label>{{
+                                                'Broker URL' | translate
+                                            }}</mat-label>
+                                            <input
+                                                matInput
+                                                [(ngModel)]="config.brokerUrl"
+                                                placeholder="tcp://broker.example.com:1883"
+                                            />
+                                        </mat-form-field>
+
+                                        <mat-form-field color="accent">
+                                            <mat-label>{{
+                                                'Access Mode' | translate
+                                            }}</mat-label>
+                                            <mat-select
+                                                [(ngModel)]="config.accessMode"
+                                            >
+                                                <mat-option
+                                                    value="anonymous-alternative"
+                                                >
+                                                    {{
+                                                        'Anonymous' | translate
+                                                    }}
+                                                </mat-option>
+                                                <mat-option
+                                                    value="username-alternative"
+                                                >
+                                                    {{
+                                                        'Username / Password'
+                                                            | translate
+                                                    }}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+
+                                        @if (usesUsernameAccess) {
+                                            <mat-form-field color="accent">
+                                                <mat-label>{{
+                                                    'Username' | translate
+                                                }}</mat-label>
+                                                <input
+                                                    matInput
+                                                    [(ngModel)]="
+                                                        config.username
+                                                    "
+                                                />
+                                            </mat-form-field>
+                                            <mat-form-field color="accent">
+                                                <mat-label>{{
+                                                    'Password' | translate
+                                                }}</mat-label>
+                                                <input
+                                                    matInput
+                                                    type="password"
+                                                    [(ngModel)]="
+                                                        config.password
+                                                    "
+                                                />
+                                            </mat-form-field>
+                                        }
+
+                                        <div fxLayout="row" fxLayoutGap="16px">
+                                            <mat-form-field
+                                                color="accent"
+                                                fxFlex="50"
+                                            >
+                                                <mat-label>{{
+                                                    'QoS Level' | translate
+                                                }}</mat-label>
+                                                <mat-select
+                                                    [(ngModel)]="
+                                                        config.qosLevel
+                                                    "
+                                                >
+                                                    <mat-option
+                                                        value="0 - at-most-once"
+                                                    >
+                                                        0 – At most once
+                                                    </mat-option>
+                                                    <mat-option
+                                                        value="1 - at-least-once"
+                                                    >
+                                                        1 – At least once
+                                                    </mat-option>
+                                                    <mat-option
+                                                        value="2 - exactly-once"
+                                                    >
+                                                        2 – Exactly once
+                                                    </mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+
+                                            <mat-form-field
+                                                color="accent"
+                                                fxFlex="50"
+                                            >
+                                                <mat-label>{{
+                                                    'Retain' | translate
+                                                }}</mat-label>
+                                                <mat-select
+                                                    [(ngModel)]="config.retain"
+                                                >
+                                                    <mat-option value="Yes">{{
+                                                        'Yes' | translate
+                                                    }}</mat-option>
+                                                    <mat-option value="No">{{
+                                                        'No' | translate
+                                                    }}</mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+                                        </div>
+
+                                        <div fxLayout="row" fxLayoutGap="16px">
+                                            <mat-form-field
+                                                color="accent"
+                                                fxFlex="50"
+                                            >
+                                                <mat-label>{{
+                                                    'Clean Session' | translate
+                                                }}</mat-label>
+                                                <mat-select
+                                                    [(ngModel)]="
+                                                        config.cleanSession
+                                                    "
+                                                >
+                                                    <mat-option value="Yes">{{
+                                                        'Yes' | translate
+                                                    }}</mat-option>
+                                                    <mat-option value="No">{{
+                                                        'No' | translate
+                                                    }}</mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+
+                                            <mat-form-field
+                                                color="accent"
+                                                fxFlex="50"
+                                            >
+                                                <mat-label>{{
+                                                    'MQTT 3.1.1 Compliant'
+                                                        | translate
+                                                }}</mat-label>
+                                                <mat-select
+                                                    [(ngModel)]="
+                                                        config.mqttCompliant
+                                                    "
+                                                >
+                                                    <mat-option value="Yes">{{
+                                                        'Yes' | translate
+                                                    }}</mat-option>
+                                                    <mat-option value="No">{{
+                                                        'No' | translate
+                                                    }}</mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+                                        </div>
+
+                                        <div fxLayout="row" fxLayoutGap="16px">
+                                            <mat-form-field
+                                                color="accent"
+                                                fxFlex="50"
+                                            >
+                                                <mat-label>{{
+                                                    'Reconnect Period (s)'
+                                                        | translate
+                                                }}</mat-label>
+                                                <input
+                                                    matInput
+                                                    type="number"
+                                                    [(ngModel)]="
+                                                        config.reconnectPeriodInSec
+                                                    "
+                                                />
+                                            </mat-form-field>
+
+                                            <mat-form-field
+                                                color="accent"
+                                                fxFlex="50"
+                                            >
+                                                <mat-label>{{
+                                                    'Keep-Alive Interval (s)'
+                                                        | translate
+                                                }}</mat-label>
+                                                <input
+                                                    matInput
+                                                    type="number"
+                                                    [(ngModel)]="
+                                                        config.keepAliveInSec
+                                                    "
+                                                />
+                                            </mat-form-field>
+                                        </div>
+                                    }
+                                </div>
+                            </sp-split-section>
+
+                            <!-- ── Data Lake Sink ─────────────────────────── -->
+                            <sp-split-section
+                                [title]="'Data Lake Sink' | translate"
+                                [subtitle]="
+                                    'Persist adapter events in the StreamPipes data lake. Mutually exclusive with the MQTT sink.'
+                                        | translate
+                                "
+                            >
+                                <mat-slide-toggle
+                                    [(ngModel)]="config.dataLakeSinkEnabled"
+                                    color="accent"
+                                    (ngModelChange)="onDataLakeSinkToggle()"
+                                >
+                                    {{ 'Enable data lake sink' | translate }}
+                                </mat-slide-toggle>
+                            </sp-split-section>
+                        }
+
+                        <!-- ── Save ──────────────────────────────────────── -->
+                        <div fxLayoutAlign="start center" class="mt-lg">
+                            <button
+                                mat-flat-button
+                                color="accent"
+                                (click)="save()"
+                            >
+                                {{ 'Save' | translate }}
+                            </button>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- ══════════════════════════════════════════════════════ -->
+                <!-- TAB 2: Adapters                                        -->
+                <!-- ══════════════════════════════════════════════════════ -->
+                <mat-tab [label]="'Adapters' | translate">
+                    <div
+                        fxFlex="100"
+                        fxLayout="column"
+                        fxLayoutAlign="start start"
+                        class="pt-lg"
+                    >
+                        @if (saved) {
+                            <sp-alert-banner
+                                [type]="'success'"
+                                [title]="'Configuration saved' | translate"
+                            ></sp-alert-banner>
+                        }
+                        @if (error) {
+                            <sp-alert-banner
+                                [type]="'error'"
+                                [title]="errorMessage | translate"
+                            ></sp-alert-banner>
+                        }
+
+                        <!-- ── Topic Enrichment ───────────────────────────── -->
+                        <sp-split-section
+                            [title]="'Topic Enrichment' | translate"
+                            [subtitle]="
+                                'When enabled, adapter creation injects a static topic field into the event schema and transform script based on the adapter-to-asset mapping.'
+                                    | translate
+                            "
+                        >
+                            <mat-slide-toggle
+                                [(ngModel)]="config.topicEnrichmentEnabled"
+                                color="accent"
+                                (ngModelChange)="clearStatus()"
+                            >
+                                {{ 'Enable MQTT topic enrichment' | translate }}
+                            </mat-slide-toggle>
+                        </sp-split-section>
+
+                        <!-- ── Save ──────────────────────────────────────── -->
+                        <div fxLayoutAlign="start center" class="mt-lg">
+                            <button
+                                mat-flat-button
+                                color="accent"
+                                (click)="save()"
+                            >
+                                {{ 'Save' | translate }}
+                            </button>
+                        </div>
+                    </div>
+                </mat-tab>
+            </mat-tab-group>
         }
-        <!-- end @else (isLoading) -->
     </div>
 </sp-basic-nav-tabs>

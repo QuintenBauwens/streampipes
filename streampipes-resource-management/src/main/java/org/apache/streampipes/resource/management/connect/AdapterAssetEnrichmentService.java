@@ -21,6 +21,7 @@ package org.apache.streampipes.resource.management.connect;
 import org.apache.streampipes.model.assets.AssetLinkBuilder;
 import org.apache.streampipes.model.assets.SpAsset;
 import org.apache.streampipes.model.assets.SpAssetModel;
+import org.apache.streampipes.model.configuration.MqttAutoPublishConfig;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.schema.EventPropertyPrimitive;
 import org.apache.streampipes.storage.management.StorageDispatcher;
@@ -51,6 +52,14 @@ public class AdapterAssetEnrichmentService {
    * Safe to call even when no mapping exists — it will silently do nothing.
    */
   public void enrichAndLink(AdapterDescription adapter) {
+    var config = StorageDispatcher.INSTANCE.getNoSqlStore()
+                                           .getMqttAutoPublishConfigStorage()
+                                           .getElementById(MqttAutoPublishConfig.FIXED_ID);
+    if (config != null && !config.isTopicEnrichmentEnabled()) {
+      LOG.debug("Topic enrichment disabled via config — skipping adapter '{}'", adapter.getName());
+      return;
+    }
+
     var storage = StorageDispatcher.INSTANCE.getNoSqlStore().getAdapterAssetMappingStorage();
     var mapping = storage.getElementById(adapter.getName());
     if (mapping == null || mapping.getTopic() == null || mapping.getTopic().isBlank()) {

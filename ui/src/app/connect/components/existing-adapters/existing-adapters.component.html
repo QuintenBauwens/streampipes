@@ -80,6 +80,15 @@
                 <button
                     mat-icon-button
                     color="accent"
+                    [routerLink]="['/configuration/automation']"
+                    [queryParams]="{ tab: 'adapters' }"
+                    [matTooltip]="'Automation settings' | translate"
+                >
+                    <i class="material-icons">settings</i>
+                </button>
+                <button
+                    mat-icon-button
+                    color="accent"
                     id="startAdapterTutorial3"
                     (click)="startAdapterTutorial()"
                     matTooltip="Tutorial: Generic Adapter"

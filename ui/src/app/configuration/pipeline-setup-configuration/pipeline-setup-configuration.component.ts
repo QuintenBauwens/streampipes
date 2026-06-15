@@ -17,6 +17,7 @@
  */
 
 import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
     MqttAutoPublishConfig,
@@ -46,6 +47,7 @@ import { MatOption } from '@angular/material/core';
 import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
 
 @Component({
     selector: 'sp-pipeline-setup-configuration',
@@ -67,6 +69,8 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
         MatDivider,
         MatIcon,
         MatProgressSpinner,
+        MatTabGroup,
+        MatTab,
         SplitSectionComponent,
         SpAlertBannerComponent,
         TranslatePipe,
@@ -77,6 +81,7 @@ export class PipelineSetupConfigurationComponent implements OnInit {
     private configService = inject(MqttAutoPublishConfigService);
     private breadcrumbService = inject(SpBreadcrumbService);
     private tabsService = inject(SpConfigurationTabsService);
+    private route = inject(ActivatedRoute);
 
     tabs = this.tabsService.getTabs();
     config: MqttAutoPublishConfig = this.configService.defaultConfig();
@@ -84,12 +89,16 @@ export class PipelineSetupConfigurationComponent implements OnInit {
     saved = false;
     error = false;
     errorMessage = '';
+    selectedTabIndex = 0;
 
     ngOnInit(): void {
         this.breadcrumbService.updateBreadcrumb([
             SpConfigurationRoutes.BASE,
-            { label: this.tabsService.getTabTitle('pipeline-setup') },
+            { label: this.tabsService.getTabTitle('automation') },
         ]);
+        this.route.queryParams.subscribe(params => {
+            this.selectedTabIndex = params['tab'] === 'adapters' ? 1 : 0;
+        });
         this.configService.getConfig().subscribe({
             next: cfg => {
                 this.config = cfg;
@@ -152,7 +161,7 @@ export class PipelineSetupConfigurationComponent implements OnInit {
         });
     }
 
-    private clearStatus(): void {
+    clearStatus(): void {
         this.saved = false;
         this.error = false;
     }

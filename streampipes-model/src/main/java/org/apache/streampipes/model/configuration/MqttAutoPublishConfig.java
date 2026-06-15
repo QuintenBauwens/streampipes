@@ -51,6 +51,11 @@ public class MqttAutoPublishConfig implements Storable {
 
   /** Master switch: automatically deploy a pipeline for each new adapter when {@code true}. */
   private boolean autoDeploy = false;
+  /**
+   * When {@code true} (default), adapter creation enriches the event schema and transform script
+   * with a static {@code topic} field sourced from the adapter-asset mapping DB.
+   */
+  private boolean topicEnrichmentEnabled = true;
   /** MQTT sink: publish adapter events to an MQTT broker. Mutually exclusive with dataLakeSinkEnabled. */
   private boolean enabled = false;
   /** Data Lake sink: persist adapter events in the StreamPipes data lake. Mutually exclusive with enabled. */
@@ -100,6 +105,14 @@ public class MqttAutoPublishConfig implements Storable {
 
   public void setAutoDeploy(boolean autoDeploy) {
     this.autoDeploy = autoDeploy;
+  }
+
+  public boolean isTopicEnrichmentEnabled() {
+    return topicEnrichmentEnabled;
+  }
+
+  public void setTopicEnrichmentEnabled(boolean topicEnrichmentEnabled) {
+    this.topicEnrichmentEnabled = topicEnrichmentEnabled;
   }
 
   public boolean isEnabled() {
