@@ -1,0 +1,191 @@
+<!--
+~ Licensed to the Apache Software Foundation (ASF) under one or more
+~ contributor license agreements.  See the NOTICE file distributed with
+~ this work for additional information regarding copyright ownership.
+~ The ASF licenses this file to You under the Apache License, Version 2.0
+~ (the "License"); you may not use this file except in compliance with
+~ the License.  You may obtain a copy of the License at
+~
+~    http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+~
+-->
+
+<sp-basic-view [showBackLink]="true" [padding]="true">
+    <div
+        nav
+        fxFlex="100"
+        fxLayoutAlign="start center"
+        fxLayout="row"
+        fxLayoutGap="10px"
+        class="pl-10"
+    >
+        <button mat-flat-button color="accent" (click)="startAddDevice()">
+            <i class="material-icons">add</i>&nbsp;{{
+                'Add Device' | translate
+            }}
+        </button>
+        <span fxFlex></span>
+    </div>
+
+    <div fxFlex="100" fxLayout="column">
+        <sp-basic-header-title-component
+            [title]="'Device Registry' | translate"
+        ></sp-basic-header-title-component>
+
+        @if (successMessage) {
+            <div class="mb-sm">{{ successMessage | translate }}</div>
+        }
+        @if (errorMessage) {
+            <div class="mb-sm">{{ errorMessage | translate }}</div>
+        }
+
+        @if (isAddingDevice) {
+            <div
+                fxLayout="row"
+                fxLayoutGap="16px"
+                fxLayoutAlign="start center"
+                class="mb-md"
+            >
+                <mat-form-field color="accent">
+                    <mat-label>{{ 'Device Name' | translate }}</mat-label>
+                    <input matInput [(ngModel)]="newDevice.name" />
+                </mat-form-field>
+                <mat-form-field color="accent">
+                    <mat-label>{{ 'PLC IP Address' | translate }}</mat-label>
+                    <input matInput [(ngModel)]="newDevice.host" />
+                </mat-form-field>
+                <mat-form-field color="accent">
+                    <mat-label>{{
+                        'Polling Interval (ms)' | translate
+                    }}</mat-label>
+                    <input
+                        matInput
+                        type="number"
+                        [(ngModel)]="newDevice.pollingIntervalMs"
+                    />
+                </mat-form-field>
+                <button
+                    mat-flat-button
+                    color="accent"
+                    (click)="saveNewDevice()"
+                >
+                    {{ 'Save' | translate }}
+                </button>
+                <button mat-button (click)="cancelAdd()">
+                    {{ 'Cancel' | translate }}
+                </button>
+            </div>
+        }
+
+        <table mat-table [dataSource]="devices" fxFlex="100">
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>
+                    {{ 'Name' | translate }}
+                </th>
+                <td mat-cell *matCellDef="let device">
+                    @if (editingId === device.elementId && editingDevice) {
+                        <mat-form-field color="accent">
+                            <input matInput [(ngModel)]="editingDevice.name" />
+                        </mat-form-field>
+                    } @else {
+                        {{ device.name }}
+                    }
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="host">
+                <th mat-header-cell *matHeaderCellDef>
+                    {{ 'PLC IP' | translate }}
+                </th>
+                <td mat-cell *matCellDef="let device">
+                    @if (editingId === device.elementId && editingDevice) {
+                        <mat-form-field color="accent">
+                            <input matInput [(ngModel)]="editingDevice.host" />
+                        </mat-form-field>
+                    } @else {
+                        {{ device.host }}
+                    }
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pollingIntervalMs">
+                <th mat-header-cell *matHeaderCellDef>
+                    {{ 'Polling (ms)' | translate }}
+                </th>
+                <td mat-cell *matCellDef="let device">
+                    @if (editingId === device.elementId && editingDevice) {
+                        <mat-form-field color="accent">
+                            <input
+                                matInput
+                                type="number"
+                                [(ngModel)]="editingDevice.pollingIntervalMs"
+                            />
+                        </mat-form-field>
+                    } @else {
+                        {{ device.pollingIntervalMs }}
+                    }
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let device">
+                    @if (editingId === device.elementId) {
+                        <button
+                            mat-icon-button
+                            color="accent"
+                            (click)="saveEdit()"
+                            [matTooltip]="'Save' | translate"
+                        >
+                            <mat-icon>check</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            (click)="cancelEdit()"
+                            [matTooltip]="'Cancel' | translate"
+                        >
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    } @else {
+                        <button
+                            mat-flat-button
+                            color="accent"
+                            (click)="openAddAdapterDialog(device)"
+                            [matTooltip]="
+                                'Add adapter for this device' | translate
+                            "
+                        >
+                            <mat-icon>add</mat-icon>&nbsp;{{
+                                'Add Adapter' | translate
+                            }}
+                        </button>
+                        <button
+                            mat-icon-button
+                            (click)="startEdit(device)"
+                            [matTooltip]="'Edit' | translate"
+                        >
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            color="warn"
+                            (click)="deleteDevice(device)"
+                            [matTooltip]="'Delete' | translate"
+                        >
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    }
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+    </div>
+</sp-basic-view>

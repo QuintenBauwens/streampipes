@@ -20,6 +20,7 @@ package org.apache.streampipes.storage.couchdb;
 import org.apache.streampipes.model.datalake.DataLakeMeasure;
 import org.apache.streampipes.storage.api.connect.IAdapterAssetMappingStorage;
 import org.apache.streampipes.storage.api.connect.IAdapterStorage;
+import org.apache.streampipes.storage.api.connect.ISpDeviceStorage;
 import org.apache.streampipes.storage.api.core.INoSqlStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerDashboardStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerWidgetStorage;
@@ -53,6 +54,7 @@ import org.apache.streampipes.storage.api.user.IUserStorage;
 import org.apache.streampipes.storage.couchdb.impl.connect.AdapterAssetMappingStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.connect.AdapterDescriptionStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.connect.AdapterInstanceStorageImpl;
+import org.apache.streampipes.storage.couchdb.impl.connect.SpDeviceStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.explorer.DataExplorerDashboardStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.explorer.DataExplorerWidgetStorageImpl;
 import org.apache.streampipes.storage.couchdb.impl.explorer.DataLakeMeasureStorage;
@@ -177,6 +179,11 @@ public class CouchDbStorageManager implements INoSqlStorage {
   @Override
   public IDataStreamStorage getDataStreamStorage() {
     return new DataStreamStorageImpl();
+  }
+
+  @Override
+  public ISpDeviceStorage getDeviceStorage() {
+    return new SpDeviceStorageImpl();
   }
 
   @Override

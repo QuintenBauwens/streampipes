@@ -36,22 +36,24 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | YAML upload with pre-defined schema | ✅ Done | Skip live device guessing when `schema` block is present in YAML |
 | **MQTT auto-publish pipeline** | ✅ Done | Global config stored in CouchDB; auto-creates MQTT pipeline per adapter on upload |
 | **Timestamp field on adapter create/import** | ✅ Done | `addTimestampProperty()` in `AdapterSchemaGenerator`; default script includes `event.timestamp = Date.now()` |
+| **Null-safe propertyScope in PersistPipelineHandler** | ✅ Done | Flipped equalsIgnoreCase receiver to avoid NPE on null scope |
+| **Automation config section (UI)** | ✅ Done | `/configuration/automation`; Pipelines tab + Adapters tab (topic enrichment toggle); settings shortcuts on pipelines + connect pages |
+| **PLC device registry** | ✅ Done | Full-stack device CRUD + adapter prefill endpoint/UI added; no build/test run this session |
 
 ---
 
 ## Status: All Features Complete ✅
 
-All features implemented, compile-verified (backend), build-verified (frontend), and deployed.
+All previously delivered features remain complete, compile-verified (backend), build-verified (frontend), and deployed.
+The new PLC device registry feature was implemented this session but not build/test verified per session constraints.
 Each feature has its own git commit on branch `copilot-cli`.
 
 ## First Thing To Do Next Session
 
-- Push `copilot-cli` branch and open a pull request
-- Test the MQTT auto-publish pipeline creation end-to-end:
-  1. Go to Configuration → MQTT, enable auto-publish, enter broker URL
-  2. Upload a YAML adapter config
-  3. Verify a pipeline named `mqtt-<adapter>` appears and starts publishing
-- Also verify asset linking works by checking that the asset in the UI shows the adapter link after YAML upload
+- Run targeted validation for the PLC device registry feature:
+  1. `mvn -pl streampipes-rest,streampipes-storage-couchdb,streampipes-resource-management,streampipes-connect-management -am test`
+  2. `cd ui && npm run build`
+  3. Manually verify `/connect/devices` CRUD flow and adapter prefill response
 
 ---
 
@@ -76,6 +78,14 @@ Each feature has its own git commit on branch `copilot-cli`.
 | `streampipes-connect-management/src/main/java/.../compact/MqttPublisherPipelineHandler.java` | NEW — builds CompactPipeline with dynamic topic |
 | `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — null-safe `findAssetByMqttTopic` |
 | `streampipes-extensions/.../sink/MqttPublisherSink.java` | MODIFIED — dynamic topic via `getStaticPropertyByName` |
+| `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | NEW — reusable PLC device registry model |
+| `streampipes-storage-api/src/main/java/.../storage/api/connect/ISpDeviceStorage.java` | NEW — storage contract for PLC devices |
+| `streampipes-storage-api/src/main/java/.../storage/api/core/INoSqlStorage.java` | MODIFIED — added `getDeviceStorage()` |
+| `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW — CouchDB db `devices` |
+| `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired device storage |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices` + adapter prefill endpoint |
+| `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — default transform now uses `utils.addTimestamp(event)` |
+| `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — fallback transform now uses `utils.addTimestamp(event)` |
 
 ### Frontend (Angular)
 
@@ -87,6 +97,14 @@ Each feature has its own git commit on branch `copilot-cli`.
 | `ui/src/app/configuration/configuration-sections.providers.ts` | MODIFIED — added MQTT section |
 | `ui/src/app/configuration/mqtt-configuration/mqtt-configuration.component.ts` | NEW |
 | `ui/src/app/configuration/mqtt-configuration/mqtt-configuration.component.html` | NEW |
+| `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | NEW — device registry API client |
+| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports `device.service` |
+| `ui/src/app/connect/components/device-registry/device-registry.component.ts` | NEW — device registry page |
+| `ui/src/app/connect/components/device-registry/device-registry.component.html` | NEW — device registry template |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.ts` | NEW — adapter-prefill dialog |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | NEW — adapter-prefill dialog template |
+| `ui/src/app/connect/connect.routes.ts` | MODIFIED — added `/connect/devices` route |
+| `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — added Device Registry navigation button |
 
 ---
 
@@ -114,6 +132,11 @@ Each feature has its own git commit on branch `copilot-cli`.
 ### Dynamic MQTT Topic Bug (fixed)
 - `mappingPropertyValue()` only iterates top-level static properties — misses `MappingPropertyUnary` inside `StaticPropertyAlternative`
 - `getStaticPropertyByName(internalName, MappingPropertyUnary.class)` recurses correctly
+
+### PLC Device Registry
+- `DeviceResource` must extend `AbstractAdapterResource` (not `AbstractAuthGuardedRestResource`) because the latter does not expose `hasReadAuthority()` / `hasWriteAuthority()` for `@PreAuthorize`
+- `CRUDStorage` exposes `persist`, `updateElement`, and `deleteElement` — there is no generic `createElement` method on the API contract
+- Default/fallback transform scripts now call `utils.addTimestamp(event)` so timestamp logic stays centralized in the registered GraalJS helper
 
 ---
 

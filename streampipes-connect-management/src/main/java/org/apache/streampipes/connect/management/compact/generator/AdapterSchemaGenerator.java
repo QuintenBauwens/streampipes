@@ -135,7 +135,7 @@ public class AdapterSchemaGenerator implements AdapterModelGenerator {
       adapterDescription.getTransformationConfig()
                         .setScript("""
                                    function transform(event, out, ctx) {
-                                    event.timestamp = Date.now();
+                                    utils.addTimestamp(event);
                                     out.collect(event);
                                    }
                                    """);

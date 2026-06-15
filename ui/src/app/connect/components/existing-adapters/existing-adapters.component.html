@@ -57,6 +57,17 @@
         &nbsp;
         <button
             mat-flat-button
+            data-cy="connect-device-registry-button"
+            [routerLink]="['/connect/devices']"
+            [matTooltip]="'Manage PLC device registry' | translate"
+        >
+            <i class="material-icons">developer_board</i>&nbsp;{{
+                'Devices' | translate
+            }}
+        </button>
+        &nbsp;
+        <button
+            mat-flat-button
             data-cy="connect-asset-mappings-button"
             [routerLink]="['/assets/mappings']"
             [matTooltip]="'Manage adapter-to-asset mappings' | translate"

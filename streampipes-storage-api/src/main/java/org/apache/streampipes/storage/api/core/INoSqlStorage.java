@@ -19,6 +19,7 @@ package org.apache.streampipes.storage.api.core;
 
 import org.apache.streampipes.storage.api.connect.IAdapterAssetMappingStorage;
 import org.apache.streampipes.storage.api.connect.IAdapterStorage;
+import org.apache.streampipes.storage.api.connect.ISpDeviceStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerDashboardStorage;
 import org.apache.streampipes.storage.api.explorer.IDataExplorerWidgetStorage;
 import org.apache.streampipes.storage.api.explorer.IDataLakeMeasureStorage;
@@ -86,6 +87,8 @@ public interface INoSqlStorage {
   IDataSinkStorage getDataSinkStorage();
 
   IDataStreamStorage getDataStreamStorage();
+
+  ISpDeviceStorage getDeviceStorage();
 
   IPasswordRecoveryTokenStorage getPasswordRecoveryTokenStorage();
 

@@ -91,7 +91,7 @@ public class AdapterAssetEnrichmentService {
     var script = config.getScript();
 
     if (script == null || script.isBlank()) {
-      script = "function transform(event, out, ctx) {\n  event.timestamp = Date.now();\n  out.collect(event);\n}";
+      script = "function transform(event, out, ctx) {\n  utils.addTimestamp(event);\n  out.collect(event);\n}";
     }
 
     var escaped = topic.replace("\\", "\\\\").replace("\"", "\\\"");

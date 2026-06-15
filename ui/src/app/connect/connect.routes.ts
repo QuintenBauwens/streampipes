@@ -20,6 +20,7 @@ import { Routes } from '@angular/router';
 import { ExistingAdaptersComponent } from './components/existing-adapters/existing-adapters.component';
 import { AdapterCatalogComponent } from './components/adapter-catalog/adapter-catalog.component';
 import { CreateAdapterComponent } from './components/create-adapter/create-adapter.component';
+import { DeviceRegistryComponent } from './components/device-registry/device-registry.component';
 import { EditAdapterComponent } from './components/edit-adapter/edit-adapter.component';
 import { AdapterDetailsDataComponent } from './components/adapter-details/adapter-details-data/adapter-details-data.component';
 import { SpAdapterDetailsMetricsComponent } from './components/adapter-details/adapter-details-metrics/adapter-details-metrics.component';
@@ -42,6 +43,10 @@ export const CONNECT_ROUTES: Routes = [
             {
                 path: 'create/:appId',
                 component: CreateAdapterComponent,
+            },
+            {
+                path: 'devices',
+                component: DeviceRegistryComponent,
             },
             {
                 path: 'edit/:elementId',
