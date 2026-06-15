@@ -16,13 +16,11 @@
  *
  */
 
-import { DialogRef } from '@angular/cdk/dialog';
-import { FormsModule } from '@angular/forms';
 import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DeviceAdapterRequest, SpDevice } from '@streampipes/platform-services';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
-    FlexDirective,
     LayoutAlignDirective,
     LayoutDirective,
     LayoutGapDirective,
@@ -32,6 +30,7 @@ import {
     MAT_DIALOG_DATA,
     MatDialogActions,
     MatDialogContent,
+    MatDialogRef,
     MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -41,7 +40,6 @@ import { MatInput } from '@angular/material/input';
     selector: 'sp-add-adapter-dialog',
     templateUrl: './add-adapter-dialog.component.html',
     imports: [
-        FlexDirective,
         LayoutAlignDirective,
         LayoutDirective,
         LayoutGapDirective,
@@ -58,7 +56,13 @@ import { MatInput } from '@angular/material/input';
     ],
 })
 export class AddAdapterDialogComponent {
-    private dialogRef = inject<DialogRef<AddAdapterDialogComponent>>(DialogRef);
+    private dialogRef =
+        inject<
+            MatDialogRef<
+                AddAdapterDialogComponent,
+                DeviceAdapterRequest | undefined
+            >
+        >(MatDialogRef);
     data: { device: SpDevice } = inject(MAT_DIALOG_DATA);
 
     adapterName = '';
