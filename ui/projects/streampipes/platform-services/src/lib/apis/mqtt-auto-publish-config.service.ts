@@ -22,7 +22,12 @@ import { Observable } from 'rxjs';
 import { PlatformServicesCommons } from './commons.service';
 
 export interface MqttAutoPublishConfig {
+    /** Master switch: auto-deploy a pipeline when an adapter is created. */
+    autoDeploy: boolean;
+    /** MQTT sink enabled. Mutually exclusive with dataLakeSinkEnabled. */
     enabled: boolean;
+    /** Data Lake sink enabled. Mutually exclusive with enabled. */
+    dataLakeSinkEnabled: boolean;
     brokerUrl: string;
     /** 'anonymous-alternative' | 'username-alternative' */
     accessMode: string;
@@ -48,7 +53,7 @@ export class MqttAutoPublishConfigService {
     private platformServicesCommons = inject(PlatformServicesCommons);
 
     get configPath(): string {
-        return `${this.platformServicesCommons.apiBasePath}/config/mqtt-auto-publish`;
+        return `${this.platformServicesCommons.apiBasePath}/config/pipeline-setup`;
     }
 
     getConfig(): Observable<MqttAutoPublishConfig> {
@@ -63,7 +68,9 @@ export class MqttAutoPublishConfigService {
 
     defaultConfig(): MqttAutoPublishConfig {
         return {
+            autoDeploy: false,
             enabled: false,
+            dataLakeSinkEnabled: false,
             brokerUrl: '',
             accessMode: 'anonymous-alternative',
             username: '',

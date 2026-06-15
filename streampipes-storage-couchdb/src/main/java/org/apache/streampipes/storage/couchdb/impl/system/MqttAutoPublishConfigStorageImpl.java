@@ -29,7 +29,7 @@ public class MqttAutoPublishConfigStorageImpl
 
   public MqttAutoPublishConfigStorageImpl() {
     super(
-        () -> Utils.getCouchDbGsonClient("mqtt-auto-publish-config"),
+        () -> Utils.getCouchDbGsonClient("pipeline-setup-config"),
         MqttAutoPublishConfig.class
     );
   }

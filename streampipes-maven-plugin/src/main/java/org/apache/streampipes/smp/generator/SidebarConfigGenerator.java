@@ -54,7 +54,17 @@ public class SidebarConfigGenerator {
     log.info("Downloading existing sidebar from Git repo");
     var existingSidebar = loadExistingSidebar();
     log.info("Sidebar download successful");
-    var existingSidebarJson = JsonParser.parseString(existingSidebar);
+    var existingSidebarElement = JsonParser.parseString(existingSidebar);
+
+    JsonObject existingSidebarJson;
+    if (existingSidebarElement.isJsonObject()) {
+      existingSidebarJson = existingSidebarElement.getAsJsonObject();
+    } else {
+      log.warn("Remote sidebar is not a JSON object (got "
+          + existingSidebarElement.getClass().getSimpleName()
+          + "), starting with empty sidebar");
+      existingSidebarJson = new JsonObject();
+    }
 
     JsonArray pipelineElements = new JsonArray();
 
@@ -62,8 +72,11 @@ public class SidebarConfigGenerator {
     pipelineElements.add(makeItems(PeType.PROCESSOR, "Data Processors"));
     pipelineElements.add(makeItems(PeType.SINK, "Data Sinks"));
 
+    if (!existingSidebarJson.has(DocumentationSection)) {
+      existingSidebarJson.add(DocumentationSection, new JsonObject());
+    }
+
     var section = existingSidebarJson
-        .getAsJsonObject()
         .get(DocumentationSection)
         .getAsJsonObject();
 

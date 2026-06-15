@@ -37,7 +37,14 @@ npm run build        # production build; output → ui/dist/streampipes/ui/brows
 
 ### Step 2 — Build the backend JARs
 ```powershell
+# Full build (skips tests for speed)
 mvn clean package -DskipTests
+
+# Core service only (fastest for code changes in REST endpoints, management logic, or storage):
+mvn -pl streampipes-service-core -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+
+# IIoT extensions only (fastest for code changes in adapters, processors, or sinks):
+mvn -pl streampipes-extensions/streampipes-extensions-all-iiot -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
 ```
 > **Reproducible build timestamps:** The fat jar and nested dependency jars always show a fixed historical date (from `project.build.outputTimestamp`). This is normal — to verify your code is inside, use `ZipFile` to inspect the nested jar, e.g. `BOOT-INF/lib/streampipes-rest-*.jar`.
 

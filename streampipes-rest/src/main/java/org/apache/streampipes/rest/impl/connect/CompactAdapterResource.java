@@ -177,8 +177,8 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
                           .start()) {
           managementService.startStreamAdapter(adapterId);
         }
-        // Auto-create MQTT publisher pipeline if global config is enabled
-        tryCreateMqttPublisherPipeline(managementService.getAdapter(adapterId), requestManager);
+        // Auto-deploy pipeline if global config requests it
+        tryAutoDeployPipeline(managementService.getAdapter(adapterId), requestManager);
       }
       return ok(Notifications.success(adapterId));
     } catch (AdapterException e) {
@@ -246,27 +246,37 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
     }
   }
 
-  private void tryCreateMqttPublisherPipeline(AdapterDescription adapter,
-                                              ExtensionServiceRequestManager requestManager) {
+  private void tryAutoDeployPipeline(AdapterDescription adapter,
+                                     ExtensionServiceRequestManager requestManager) {
     try {
-      var mqttConfig = StorageDispatcher.INSTANCE.getNoSqlStore()
-                                                  .getMqttAutoPublishConfigStorage()
-                                                  .getElementById(MqttAutoPublishConfig.FIXED_ID);
-      if (mqttConfig == null || !mqttConfig.isEnabled()
-          || mqttConfig.getBrokerUrl() == null || mqttConfig.getBrokerUrl().isBlank()) {
+      var config = StorageDispatcher.INSTANCE.getNoSqlStore()
+                                              .getMqttAutoPublishConfigStorage()
+                                              .getElementById(MqttAutoPublishConfig.FIXED_ID);
+      if (config == null || !config.isAutoDeploy()) {
         return;
       }
-      new MqttPublisherPipelineHandler(
-          new CompactPipelineManagement(
-              getNoSqlStorage().getPipelineElementDescriptionStorage(),
-              requestManager
-          ),
-          getAuthenticatedUserSid()
-      ).createAndStartMqttPipeline(adapter, mqttConfig, requestManager);
-      LOG.info("Auto-created MQTT publisher pipeline for adapter '{}'", adapter.getName());
+      if (config.isEnabled() && config.getBrokerUrl() != null && !config.getBrokerUrl().isBlank()) {
+        new MqttPublisherPipelineHandler(
+            new CompactPipelineManagement(
+                getNoSqlStorage().getPipelineElementDescriptionStorage(),
+                requestManager
+            ),
+            getAuthenticatedUserSid()
+        ).createAndStartMqttPipeline(adapter, config, requestManager);
+        LOG.info("Auto-deployed MQTT publisher pipeline for adapter '{}'", adapter.getName());
+      } else if (config.isDataLakeSinkEnabled()) {
+        new PersistPipelineHandler(
+            getNoSqlStorage().getPipelineTemplateStorage(),
+            new CompactPipelineManagement(
+                getNoSqlStorage().getPipelineElementDescriptionStorage(),
+                requestManager
+            ),
+            getAuthenticatedUserSid()
+        ).createAndStartPersistPipeline(adapter, requestManager);
+        LOG.info("Auto-deployed data lake pipeline for adapter '{}'", adapter.getName());
+      }
     } catch (Exception e) {
-      LOG.warn("Could not auto-create MQTT publisher pipeline for adapter '{}': {}",
-          adapter.getName(), e.getMessage());
+      LOG.warn("Could not auto-deploy pipeline for adapter '{}': {}", adapter.getName(), e.getMessage());
     }
   }
 }

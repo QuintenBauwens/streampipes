@@ -35,7 +35,7 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | Routing fix for mappings button | ✅ Done | Fixed absolute routerLink; added "Asset Mappings" button to connect page |
 | YAML upload with pre-defined schema | ✅ Done | Skip live device guessing when `schema` block is present in YAML |
 | **MQTT auto-publish pipeline** | ✅ Done | Global config stored in CouchDB; auto-creates MQTT pipeline per adapter on upload |
-| **MQTT settings page (UI)** | ✅ Done | Configuration > MQTT; admin-only form to enable/disable + configure broker |
+| **Timestamp field on adapter create/import** | ✅ Done | `addTimestampProperty()` in `AdapterSchemaGenerator`; default script includes `event.timestamp = Date.now()` |
 
 ---
 

@@ -24,18 +24,22 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Singleton configuration that controls automatic MQTT publisher pipeline creation.
+ * Singleton configuration for automatic pipeline deployment on adapter creation.
  *
- * <p>When {@code enabled} is {@code true} and a compact adapter is uploaded, the backend
- * automatically creates and starts a pipeline that forwards all events from the adapter to the
- * configured MQTT broker. If the adapter's event schema contains a {@code topic} field, dynamic
- * topic mode is used automatically.
+ * <p>When {@code autoDeploy} is {@code true} and a compact adapter is uploaded, the backend
+ * automatically creates and starts a pipeline using the configured sink. Exactly one sink must be
+ * enabled when {@code autoDeploy} is active:
+ * <ul>
+ *   <li>MQTT sink ({@code enabled=true}): publishes events to the configured MQTT broker.</li>
+ *   <li>Data Lake sink ({@code dataLakeSinkEnabled=true}): persists events in the StreamPipes
+ *       data lake.</li>
+ * </ul>
  *
- * <p>Stored as a single CouchDB document with {@code _id = "mqtt-auto-publish-config"}.
+ * <p>Stored as a single CouchDB document with {@code _id = "pipeline-setup-config"}.
  */
 public class MqttAutoPublishConfig implements Storable {
 
-  public static final String FIXED_ID = "mqtt-auto-publish-config";
+  public static final String FIXED_ID = "pipeline-setup-config";
 
   @JsonAlias("_id")
   @SerializedName("_id")
@@ -45,7 +49,12 @@ public class MqttAutoPublishConfig implements Storable {
   @SerializedName("_rev")
   private String rev;
 
+  /** Master switch: automatically deploy a pipeline for each new adapter when {@code true}. */
+  private boolean autoDeploy = false;
+  /** MQTT sink: publish adapter events to an MQTT broker. Mutually exclusive with dataLakeSinkEnabled. */
   private boolean enabled = false;
+  /** Data Lake sink: persist adapter events in the StreamPipes data lake. Mutually exclusive with enabled. */
+  private boolean dataLakeSinkEnabled = false;
   private String brokerUrl = "";
   /** "anonymous-alternative" or "username-alternative" */
   private String accessMode = "anonymous-alternative";
@@ -85,12 +94,28 @@ public class MqttAutoPublishConfig implements Storable {
     this.rev = rev;
   }
 
+  public boolean isAutoDeploy() {
+    return autoDeploy;
+  }
+
+  public void setAutoDeploy(boolean autoDeploy) {
+    this.autoDeploy = autoDeploy;
+  }
+
   public boolean isEnabled() {
     return enabled;
   }
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public boolean isDataLakeSinkEnabled() {
+    return dataLakeSinkEnabled;
+  }
+
+  public void setDataLakeSinkEnabled(boolean dataLakeSinkEnabled) {
+    this.dataLakeSinkEnabled = dataLakeSinkEnabled;
   }
 
   public String getBrokerUrl() {

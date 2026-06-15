@@ -112,12 +112,12 @@ const CORE_CONFIGURATION_SECTIONS: SpConfigurationSection[] = [
         order: 1000,
     },
     {
-        itemId: 'mqtt',
-        itemTitle: 'MQTT',
+        itemId: 'pipeline-setup',
+        itemTitle: 'Pipeline Setup',
         roles: ['ROLE_ADMIN'],
         loadComponent: () =>
-            import('./mqtt-configuration/mqtt-configuration.component').then(
-                m => m.MqttConfigurationComponent,
+            import('./pipeline-setup-configuration/pipeline-setup-configuration.component').then(
+                m => m.PipelineSetupConfigurationComponent,
             ),
         order: 1100,
     },

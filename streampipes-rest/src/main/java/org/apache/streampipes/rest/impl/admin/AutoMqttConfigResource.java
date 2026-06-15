@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  * event schema contains a {@code topic} field, the pipeline uses dynamic topic mode automatically.
  */
 @RestController
-@RequestMapping("/api/v2/config/mqtt-auto-publish")
+@RequestMapping("/api/v2/config/pipeline-setup")
 public class AutoMqttConfigResource extends AbstractAuthGuardedRestResource {
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -58,11 +58,11 @@ public class AutoMqttConfigResource extends AbstractAuthGuardedRestResource {
     var existing = storage.getElementById(MqttAutoPublishConfig.FIXED_ID);
     if (existing != null) {
       config.setRev(existing.getRev());
-      storage.updateElement(config);
+      return ok(storage.updateElement(config));
     } else {
       storage.persist(config);
+      return ok(loadOrDefault());
     }
-    return ok(config);
   }
 
   private MqttAutoPublishConfig loadOrDefault() {
