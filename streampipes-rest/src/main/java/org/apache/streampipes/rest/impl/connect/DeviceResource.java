@@ -135,6 +135,7 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   }
 
   @PostMapping(
+      path = "{id}/adapter",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE
   )
