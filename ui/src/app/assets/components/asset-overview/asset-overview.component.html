@@ -21,6 +21,7 @@
         fxFlex="100"
         fxLayoutAlign="start center"
         fxLayout="row"
+        fxLayoutGap="10px"
         class="pl-10"
     >
         @if (hasWritePrivilege) {
@@ -34,7 +35,6 @@
                 <i class="material-icons">add</i>&nbsp;
                 {{ 'New asset' | translate }}
             </button>
-            &nbsp;
             <button
                 mat-button
                 mat-flat-button
@@ -56,7 +56,6 @@
                 (change)="onMaximoFileSelected($event)"
             />
         }
-        &nbsp;
         <button
             mat-button
             mat-flat-button

@@ -64,6 +64,14 @@ import {
     MatExpansionPanelHeader,
     MatExpansionPanelTitle,
 } from '@angular/material/expansion';
+import { FormsModule } from '@angular/forms';
+import {
+    MatFormField,
+    MatLabel,
+    MatPrefix,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatDivider } from '@angular/material/divider';
 import { SpConnectRoutes } from '../../connect.breadcrumb';
 import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dialog.component';
 import { AddDeviceComponent } from './add-device/add-device.component';
@@ -88,6 +96,12 @@ import { AddDeviceComponent } from './add-device/add-device.component';
         MatExpansionPanelTitle,
         MatExpansionPanelDescription,
         SpBasicHeaderTitleComponent,
+        FormsModule,
+        MatFormField,
+        MatLabel,
+        MatPrefix,
+        MatInput,
+        MatDivider,
         TranslatePipe,
     ],
 })
@@ -100,6 +114,7 @@ export class DeviceRegistryComponent implements OnInit {
     readonly backLink = ['/connect'];
 
     devices: SpDevice[] = [];
+    searchTerm = '';
 
     successMessage = '';
     errorMessage = '';
@@ -108,6 +123,18 @@ export class DeviceRegistryComponent implements OnInit {
     reachabilityMap: Record<string, boolean | null> = {};
 
     private msgTimer: ReturnType<typeof setTimeout> | null = null;
+
+    get filteredDevices(): SpDevice[] {
+        const term = this.searchTerm.toLowerCase().trim();
+        if (!term) {
+            return this.devices;
+        }
+        return this.devices.filter(
+            d =>
+                d.name?.toLowerCase().includes(term) ||
+                d.host?.toLowerCase().includes(term),
+        );
+    }
 
     ngOnInit(): void {
         this.breadcrumbService.updateBreadcrumb([

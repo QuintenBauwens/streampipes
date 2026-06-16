@@ -51,8 +51,29 @@
             </div>
         }
 
+        <!-- Search -->
+        <mat-form-field
+            appearance="outline"
+            color="accent"
+            class="mb-sm device-search-field"
+        >
+            <mat-label>{{ 'Search devices' | translate }}</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+                matInput
+                [(ngModel)]="searchTerm"
+                [placeholder]="'Name or IP address...' | translate"
+            />
+        </mat-form-field>
+
+        @if (filteredDevices.length === 0 && devices.length > 0) {
+            <div class="mt-md text-sm sp-color-accent">
+                {{ 'No devices match your search.' | translate }}
+            </div>
+        }
+
         <mat-accordion>
-            @for (device of devices; track device.elementId) {
+            @for (device of filteredDevices; track device.elementId) {
                 <mat-expansion-panel (opened)="onPanelOpened(device)">
                     <mat-expansion-panel-header>
                         <mat-panel-title>
@@ -120,27 +141,52 @@
                         </mat-panel-description>
                     </mat-expansion-panel-header>
 
-                    <div fxLayout="column" fxLayoutGap="12px" class="p-md">
-                        <div fxLayout="row" fxLayoutGap="24px" class="pb-xs">
-                            <div fxLayout="column">
-                                <span class="text-sm">{{
-                                    'IP Address' | translate
-                                }}</span>
-                                <span class="text-md">{{ device.host }}</span>
-                            </div>
-                            <div fxLayout="column">
-                                <span class="text-sm">{{
-                                    'Polling Interval' | translate
-                                }}</span>
-                                <span class="text-md"
-                                    >{{ device.pollingIntervalMs }}ms</span
+                    <!-- Expanded content -->
+                    <div
+                        fxLayout="column"
+                        fxLayoutGap="0"
+                        class="device-panel-body"
+                    >
+                        <!-- Metadata grid -->
+                        <div class="device-meta-grid">
+                            <div class="device-meta-item">
+                                <mat-icon class="device-meta-item__icon"
+                                    >router</mat-icon
                                 >
+                                <div fxLayout="column">
+                                    <span class="device-meta-item__label">{{
+                                        'IP Address' | translate
+                                    }}</span>
+                                    <span class="device-meta-item__value">{{
+                                        device.host
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="device-meta-item">
+                                <mat-icon class="device-meta-item__icon"
+                                    >timer</mat-icon
+                                >
+                                <div fxLayout="column">
+                                    <span class="device-meta-item__label">{{
+                                        'Polling Interval' | translate
+                                    }}</span>
+                                    <span class="device-meta-item__value"
+                                        >{{
+                                            device.pollingIntervalMs
+                                        }}&thinsp;ms</span
+                                    >
+                                </div>
                             </div>
                         </div>
+
+                        <mat-divider></mat-divider>
+
+                        <!-- Actions -->
                         <div
                             fxLayout="row"
                             fxLayoutGap="8px"
                             fxLayoutAlign="start center"
+                            class="device-panel-actions"
                         >
                             <button
                                 mat-flat-button

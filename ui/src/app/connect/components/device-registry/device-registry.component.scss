@@ -16,6 +16,12 @@
  *
  */
 
+// Search field — full width but capped so it doesn't stretch too wide
+.device-search-field {
+    width: 100%;
+    max-width: 400px;
+}
+
 // Connectivity status badge shown in expansion panel headers.
 // Three states: checking (muted), online (success green), offline (warn red).
 .device-status {
@@ -45,4 +51,49 @@
     &--offline {
         color: var(--color-warn);
     }
+}
+
+// Expanded panel body: no extra padding — sections handle their own spacing
+.device-panel-body {
+    margin: 0 -24px; // bleed to panel edges to make divider full-width
+}
+
+// Metadata grid — icon + label/value pairs in a horizontal row
+.device-meta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 16px 24px;
+}
+
+.device-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-right: 40px;
+
+    &__icon {
+        font-size: 20px;
+        height: 20px;
+        width: 20px;
+        color: var(--fg-muted);
+        flex-shrink: 0;
+    }
+
+    &__label {
+        font-size: var(--font-size-xs);
+        color: var(--fg-muted);
+        line-height: 1.2;
+    }
+
+    &__value {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        line-height: 1.4;
+    }
+}
+
+// Action bar below the divider
+.device-panel-actions {
+    padding: 12px 24px;
 }
