@@ -41,6 +41,8 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | **PLC device registry** | ✅ Done | Full-stack device CRUD + adapter prefill endpoint/UI; build-verified this session |
 | **Device registry UX overhaul** | ✅ Done | Accordion replacing table; back nav fixed; rich Add Adapter dialog (desc, PLC code block, script, dedup, rate); adapter creation gap fixed via two-step POST chain |
 | **Device registry UX polish** | ✅ Done | Padding/spacing in expanded panels; reachability status icon (TCP port 102 check); adapter creation error fixed (code block → auto schema, WorkerAdapterException caught); action log auto-dismiss + single-message-at-a-time |
+| **Device registry slide-in panels + status** | ✅ Done | Add/Edit Device + Add Adapter now use SLIDE_IN_PANEL (matches Export Provider pattern); adapterType moved from device to adapter request; Online/Offline/Checking status badge; startup crash (duplicate POST mapping) fixed |
+| **Device registry adapter creation fix** | ✅ Done | `plc_code_block` and `plc_node_input_alternatives` merged into single map entry so `PipelineElementTemplateVisitor` can find the code block when recursing into the selected alternative |
 
 ---
 
@@ -51,9 +53,12 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 ## First Thing To Do Next Session
 
 No outstanding work. If continuing:
-- `docker compose build && docker compose up -d` to smoke-test the full flow end-to-end
-- Verify `/connect/devices`: expand a panel → reachability dot updates; Add Adapter with PLC code block → adapter creates without live device needed
-- Reachability check uses TCP port 102 (S7 default); host `10.x.x.x:port` format also supported
+- `docker compose build && docker compose up -d` to smoke-test end-to-end
+- Verify `/connect/devices`:
+  - "Add Device" → opens right-side slide-in panel (no adapter type field)
+  - Expand a device → Online/Offline/Checking badge updates
+  - "Add Adapter" → slide-in panel with Protocol selector first; PLC4x code block section appears conditionally
+- API path fixed: `POST /api/v2/devices/{id}/adapter` (singular) — matches backend and frontend
 
 ---
 
