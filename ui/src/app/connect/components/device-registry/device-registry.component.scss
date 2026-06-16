@@ -53,9 +53,9 @@
     }
 }
 
-// Expanded panel body: no extra padding — sections handle their own spacing
+// Expanded panel body
 .device-panel-body {
-    margin: 0 -24px; // bleed to panel edges to make divider full-width
+    margin-top: 0;
 }
 
 // Metadata grid — icon + label/value pairs in a horizontal row
@@ -63,7 +63,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0;
-    padding: 16px 24px;
+    padding: 4px 0 16px;
 }
 
 .device-meta-item {
@@ -95,5 +95,5 @@
 
 // Action bar below the divider
 .device-panel-actions {
-    padding: 12px 24px;
+    padding: 12px 0 0;
 }
