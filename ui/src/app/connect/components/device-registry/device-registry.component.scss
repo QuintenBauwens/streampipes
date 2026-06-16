@@ -54,16 +54,14 @@
 }
 
 // Expanded panel body
-.device-panel-body {
-    margin-top: 0;
-}
+// Uses class="p-10" (10px padding) which is the project standard for
+// expansion panel body content (see pipeline-details-expansion-panel).
 
 // Metadata grid — icon + label/value pairs in a horizontal row
 .device-meta-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 0;
-    padding: 4px 0 16px;
+    padding-bottom: 12px;
 }
 
 .device-meta-item {
@@ -91,9 +89,4 @@
         font-weight: 500;
         line-height: 1.4;
     }
-}
-
-// Action bar below the divider
-.device-panel-actions {
-    padding: 12px 0 0;
 }
