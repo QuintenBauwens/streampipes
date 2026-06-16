@@ -29,6 +29,8 @@ export interface SpDevice {
     pollingIntervalMs: number;
     /** @deprecated adapterType is now specified per-adapter in DeviceAdapterRequest */
     adapterType?: string;
+    /** ElementIds of adapters created from this device via the device registry. */
+    adapterIds?: string[];
 }
 
 export interface DeviceAdapterRequest {

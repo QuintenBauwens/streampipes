@@ -173,6 +173,19 @@
                                     >
                                 </div>
                             </div>
+                            <div class="device-meta-item">
+                                <mat-icon class="device-meta-item__icon"
+                                    >cable</mat-icon
+                                >
+                                <div fxLayout="column">
+                                    <span class="device-meta-item__label">{{
+                                        'Adapters' | translate
+                                    }}</span>
+                                    <span class="device-meta-item__value">{{
+                                        device.adapterIds?.length || 0
+                                    }}</span>
+                                </div>
+                            </div>
                         </div>
 
                         <mat-divider></mat-divider>

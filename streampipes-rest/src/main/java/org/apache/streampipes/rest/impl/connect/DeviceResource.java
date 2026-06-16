@@ -47,6 +47,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -153,11 +154,21 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
       return badRequest("Adapter name must not be blank");
     }
 
-    var compact = buildCompactAdapter(device, request);
+    var adapterId = UUID.randomUUID().toString();
+    var compact = buildCompactAdapter(device, request, adapterId);
+
+    // Track adapter ID on the device so the registry can show an adapter count
+    var adapterIds = new ArrayList<>(
+        device.getAdapterIds() != null ? device.getAdapterIds() : List.of()
+    );
+    adapterIds.add(adapterId);
+    device.setAdapterIds(adapterIds);
+    getStorage().updateElement(device);
+
     return ok(compact);
   }
 
-  private CompactAdapter buildCompactAdapter(SpDevice device, DeviceAdapterRequest request) {
+  private CompactAdapter buildCompactAdapter(SpDevice device, DeviceAdapterRequest request, String adapterId) {
     var config = new ArrayList<Map<String, Object>>();
     config.add(Map.of(PLC_IP, device.getHost()));
     config.add(Map.of(PLC_POLLING_INTERVAL, device.getPollingIntervalMs()));
@@ -180,7 +191,7 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
         : buildSchemaFromCodeBlock(request.plcCodeBlock());
 
     return new CompactAdapter(
-        null,
+        adapterId,
         request.adapterName(),
         request.description() != null ? request.description() : "",
         request.adapterType() != null ? request.adapterType() : device.getAdapterType(),

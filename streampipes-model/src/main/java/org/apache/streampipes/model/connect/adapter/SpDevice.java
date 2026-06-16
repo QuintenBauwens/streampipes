@@ -23,6 +23,9 @@ import org.apache.streampipes.model.shared.api.Storable;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a physical PLC/sensor device whose connection parameters can be reused
  * to quickly create multiple adapters (datapoints) without re-entering the same details.
@@ -51,6 +54,9 @@ public class SpDevice implements Storable {
 
   /** The adapter app ID this device is used with. Defaults to PLC4x S7. */
   private String adapterType = "org.apache.streampipes.connect.iiot.adapters.plc4x.s7";
+
+  /** ElementIds of adapters created from this device via the device registry. */
+  private List<String> adapterIds = new ArrayList<>();
 
   public SpDevice() {
   }
@@ -105,5 +111,13 @@ public class SpDevice implements Storable {
 
   public void setAdapterType(String adapterType) {
     this.adapterType = adapterType;
+  }
+
+  public List<String> getAdapterIds() {
+    return adapterIds;
+  }
+
+  public void setAdapterIds(List<String> adapterIds) {
+    this.adapterIds = adapterIds;
   }
 }

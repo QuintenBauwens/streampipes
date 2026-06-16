@@ -223,10 +223,12 @@ export class DeviceRegistryComponent implements OnInit {
                     this.deviceService
                         .createAdapter(device.elementId, result)
                         .subscribe({
-                            next: () =>
+                            next: () => {
                                 this.showSuccess(
                                     `Adapter '${result.adapterName}' created`,
-                                ),
+                                );
+                                this.loadDevices();
+                            },
                             error: err => {
                                 const msg =
                                     err?.error?.title ||
