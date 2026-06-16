@@ -16,7 +16,24 @@
  *
  */
 
-import { FormsModule } from '@angular/forms';
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 import { Component, inject, OnInit } from '@angular/core';
 import {
     DeviceAdapterRequest,
@@ -24,11 +41,13 @@ import {
     SpDevice,
 } from '@streampipes/platform-services';
 import {
+    DialogService,
+    PanelType,
     SpBasicHeaderTitleComponent,
     SpBasicViewComponent,
     SpBreadcrumbService,
 } from '@streampipes/shared-ui';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
     FlexDirective,
     LayoutAlignDirective,
@@ -38,10 +57,6 @@ import {
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { MatSelect } from '@angular/material/select';
-import { MatOption } from '@angular/material/core';
 import {
     MatAccordion,
     MatExpansionPanel,
@@ -49,14 +64,14 @@ import {
     MatExpansionPanelHeader,
     MatExpansionPanelTitle,
 } from '@angular/material/expansion';
-import { MatDialog } from '@angular/material/dialog';
-import { NgClass } from '@angular/common';
 import { SpConnectRoutes } from '../../connect.breadcrumb';
 import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dialog.component';
+import { AddDeviceComponent } from './add-device/add-device.component';
 
 @Component({
     selector: 'sp-device-registry',
     templateUrl: './device-registry.component.html',
+    styleUrls: ['./device-registry.component.scss'],
     imports: [
         SpBasicViewComponent,
         FlexDirective,
@@ -67,47 +82,29 @@ import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dial
         MatIconButton,
         MatIcon,
         MatTooltip,
-        MatFormField,
-        MatLabel,
-        MatInput,
-        MatSelect,
-        MatOption,
         MatAccordion,
         MatExpansionPanel,
         MatExpansionPanelHeader,
         MatExpansionPanelTitle,
         MatExpansionPanelDescription,
-        FormsModule,
         SpBasicHeaderTitleComponent,
         TranslatePipe,
-        NgClass,
     ],
 })
 export class DeviceRegistryComponent implements OnInit {
     private deviceService = inject(DeviceService);
     private breadcrumbService = inject(SpBreadcrumbService);
-    private dialog = inject(MatDialog);
+    private dialogService = inject(DialogService);
+    private translateService = inject(TranslateService);
 
     readonly backLink = ['/connect'];
 
-    readonly adapterTypeOptions = [
-        {
-            label: 'PLC4x S7',
-            value: 'org.apache.streampipes.connect.iiot.adapters.plc4x.s7',
-        },
-    ];
-
     devices: SpDevice[] = [];
-
-    editingDevice: SpDevice | null = null;
-    editingId: string | null = null;
-
-    isAddingDevice = false;
-    newDevice: SpDevice = this.deviceService.emptyDevice();
 
     successMessage = '';
     errorMessage = '';
 
+    /** null = checking, true = reachable, false = unreachable */
     reachabilityMap: Record<string, boolean | null> = {};
 
     private msgTimer: ReturnType<typeof setTimeout> | null = null;
@@ -127,64 +124,40 @@ export class DeviceRegistryComponent implements OnInit {
         });
     }
 
-    startAddDevice(): void {
-        this.isAddingDevice = true;
-        this.newDevice = this.deviceService.emptyDevice();
-        this.editingId = null;
-        this.editingDevice = null;
-        this.clearMessages();
-    }
-
-    saveNewDevice(): void {
-        this.deviceService.create(this.newDevice).subscribe({
-            next: () => {
-                this.isAddingDevice = false;
+    openAddDevicePanel(): void {
+        const ref = this.dialogService.open(AddDeviceComponent, {
+            panelType: PanelType.SLIDE_IN_PANEL,
+            title: this.translateService.instant('New Device'),
+            width: '50vw',
+            data: { device: undefined },
+        });
+        ref.afterClosed().subscribe(saved => {
+            if (saved) {
                 this.showSuccess('Device added');
                 this.loadDevices();
-            },
-            error: () => this.showError('Could not add device'),
+            }
         });
     }
 
-    cancelAdd(): void {
-        this.isAddingDevice = false;
-        this.newDevice = this.deviceService.emptyDevice();
-    }
-
-    startEdit(device: SpDevice): void {
-        this.editingId = device.elementId ?? null;
-        this.editingDevice = { ...device };
-        this.clearMessages();
-    }
-
-    saveEdit(): void {
-        if (!this.editingId || !this.editingDevice) {
-            return;
-        }
-
-        this.deviceService
-            .update(this.editingId, this.editingDevice)
-            .subscribe({
-                next: () => {
-                    this.editingId = null;
-                    this.editingDevice = null;
-                    this.showSuccess('Device updated');
-                    this.loadDevices();
-                },
-                error: () => this.showError('Could not update device'),
-            });
-    }
-
-    cancelEdit(): void {
-        this.editingId = null;
-        this.editingDevice = null;
+    openEditDevicePanel(device: SpDevice): void {
+        const ref = this.dialogService.open(AddDeviceComponent, {
+            panelType: PanelType.SLIDE_IN_PANEL,
+            title: this.translateService.instant('Edit Device'),
+            width: '50vw',
+            data: { device },
+        });
+        ref.afterClosed().subscribe(saved => {
+            if (saved) {
+                this.showSuccess('Device updated');
+                this.loadDevices();
+            }
+        });
     }
 
     deleteDevice(device: SpDevice): void {
         if (!device.elementId) {
             return;
         }
-
         this.deviceService.delete(device.elementId).subscribe({
             next: () => {
                 this.showSuccess('Device deleted');
@@ -206,9 +179,14 @@ export class DeviceRegistryComponent implements OnInit {
         });
     }
 
-    openAddAdapterDialog(device: SpDevice): void {
-        const ref = this.dialog.open(AddAdapterDialogComponent, {
-            width: '640px',
+    openAddAdapterPanel(device: SpDevice): void {
+        const ref = this.dialogService.open(AddAdapterDialogComponent, {
+            panelType: PanelType.SLIDE_IN_PANEL,
+            title:
+                this.translateService.instant('Add Adapter') +
+                ' — ' +
+                device.name,
+            width: '50vw',
             data: { device },
         });
 
@@ -218,11 +196,10 @@ export class DeviceRegistryComponent implements OnInit {
                     this.deviceService
                         .createAdapter(device.elementId, result)
                         .subscribe({
-                            next: () => {
+                            next: () =>
                                 this.showSuccess(
                                     `Adapter '${result.adapterName}' created`,
-                                );
-                            },
+                                ),
                             error: err => {
                                 const msg =
                                     err?.error?.title ||
@@ -233,13 +210,6 @@ export class DeviceRegistryComponent implements OnInit {
                         });
                 }
             },
-        );
-    }
-
-    getAdapterTypeLabel(adapterType: string): string {
-        return (
-            this.adapterTypeOptions.find(o => o.value === adapterType)?.label ??
-            adapterType
         );
     }
 

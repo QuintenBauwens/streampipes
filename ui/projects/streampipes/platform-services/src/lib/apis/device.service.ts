@@ -27,11 +27,14 @@ export interface SpDevice {
     name: string;
     host: string;
     pollingIntervalMs: number;
-    adapterType: string;
+    /** @deprecated adapterType is now specified per-adapter in DeviceAdapterRequest */
+    adapterType?: string;
 }
 
 export interface DeviceAdapterRequest {
     adapterName: string;
+    /** Adapter type (e.g. 'org.apache.streampipes.connect.iiot.adapters.plc4x.s7') */
+    adapterType: string;
     description?: string;
     plcCodeBlock?: string;
     transformationScript?: string;
@@ -75,7 +78,7 @@ export class DeviceService {
         request: DeviceAdapterRequest,
     ): Observable<unknown> {
         return this.http
-            .post(`${this.basePath}/${deviceId}/adapters`, request)
+            .post(`${this.basePath}/${deviceId}/adapter`, request)
             .pipe(
                 switchMap(compactAdapter =>
                     this.http.post(
@@ -97,8 +100,6 @@ export class DeviceService {
             name: '',
             host: '',
             pollingIntervalMs: 1000,
-            adapterType:
-                'org.apache.streampipes.connect.iiot.adapters.plc4x.s7',
         };
     }
 }

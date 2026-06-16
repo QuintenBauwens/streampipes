@@ -160,6 +160,7 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
     var config = new ArrayList<Map<String, Object>>();
     config.add(Map.of(PLC_IP, device.getHost()));
     config.add(Map.of(PLC_POLLING_INTERVAL, device.getPollingIntervalMs()));
+    // adapterType comes from the request so the same device can be used with different adapter protocols
 
     if (request.plcCodeBlock() != null && !request.plcCodeBlock().isBlank()) {
       config.add(Map.of(PLC_NODE_INPUT_ALTERNATIVES, PLC_NODE_INPUT_CODE_BLOCK_ALTIVE));
@@ -176,7 +177,7 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
         null,
         request.adapterName(),
         request.description() != null ? request.description() : "",
-        device.getAdapterType(),
+        request.adapterType() != null ? request.adapterType() : device.getAdapterType(),
         config,
         buildTransformationConfig(request),
         schema,
@@ -238,6 +239,7 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   @JsonIgnoreProperties(ignoreUnknown = true)
   public record DeviceAdapterRequest(
       String adapterName,
+      String adapterType,
       String description,
       String plcCodeBlock,
       String transformationScript,

@@ -16,28 +16,40 @@
  *
  */
 
-import { Component, inject } from '@angular/core';
+/**
+ * Add Adapter slide-in panel.
+ *
+ * Usage pattern (matches how Export Provider is opened in the Dataset tab):
+ *
+ *   this.dialogService.open(AddAdapterComponent, {
+ *       panelType: PanelType.SLIDE_IN_PANEL,
+ *       title: this.translateService.instant('Add Adapter'),
+ *       width: '50vw',
+ *       data: { device },
+ *   });
+ *
+ * Step 1: user selects the adapter type (e.g. PLC4x S7).
+ * Step 2: conditional sections for type-specific config appear below.
+ * The component emits close(result: DeviceAdapterRequest) on confirm
+ * so the parent can call deviceService.createAdapter().
+ */
+
+import { Component, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DeviceAdapterRequest, SpDevice } from '@streampipes/platform-services';
+import {
+    DialogRef,
+    FormFieldComponent,
+    SplitSectionComponent,
+} from '@streampipes/shared-ui';
 import { TranslatePipe } from '@ngx-translate/core';
-import {
-    LayoutAlignDirective,
-    LayoutDirective,
-    LayoutGapDirective,
-} from '@ngbracket/ngx-layout/flex';
-import { MatButton } from '@angular/material/button';
-import {
-    MAT_DIALOG_DATA,
-    MatDialogActions,
-    MatDialogContent,
-    MatDialogRef,
-    MatDialogTitle,
-} from '@angular/material/dialog';
-import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/core';
+import { MatButton } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
-import { MatIcon } from '@angular/material/icon';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 const DEFAULT_TRANSFORM_SCRIPT = `function transform(event, out, ctx) {
     // You can use utils like utils.addTimestamp(event) for basic transformations
@@ -46,58 +58,73 @@ const DEFAULT_TRANSFORM_SCRIPT = `function transform(event, out, ctx) {
     out.collect(event);
 }`;
 
+export const ADAPTER_TYPE_OPTIONS = [
+    {
+        label: 'PLC4x S7',
+        value: 'org.apache.streampipes.connect.iiot.adapters.plc4x.s7',
+    },
+];
+
 @Component({
-    selector: 'sp-add-adapter-dialog',
+    selector: 'sp-add-adapter',
     templateUrl: './add-adapter-dialog.component.html',
     imports: [
-        LayoutAlignDirective,
-        LayoutDirective,
-        LayoutGapDirective,
         FormsModule,
-        MatButton,
-        MatDialogTitle,
-        MatDialogContent,
-        MatDialogActions,
         MatFormField,
-        MatLabel,
-        MatHint,
         MatInput,
-        MatSlideToggle,
+        MatSelect,
+        MatOption,
+        MatButton,
         MatDivider,
-        MatIcon,
+        MatSlideToggle,
         TranslatePipe,
+        SplitSectionComponent,
+        FormFieldComponent,
     ],
 })
 export class AddAdapterDialogComponent {
-    private dialogRef =
-        inject<
-            MatDialogRef<
-                AddAdapterDialogComponent,
-                DeviceAdapterRequest | undefined
-            >
-        >(MatDialogRef);
-    data: { device: SpDevice } = inject(MAT_DIALOG_DATA);
+    /** Injected by DialogService. */
+    @Input() device: SpDevice;
 
+    private dialogRef = inject<DialogRef<AddAdapterDialogComponent>>(DialogRef);
+
+    readonly adapterTypeOptions = ADAPTER_TYPE_OPTIONS;
+
+    // Step 1 — adapter type
+    adapterType = ADAPTER_TYPE_OPTIONS[0].value;
+
+    // Step 2 — basic settings
     adapterName = '';
     description = '';
+
+    // Type-specific: PLC4x
     plcCodeBlock = '';
+
+    // Transformation
     transformationScript = DEFAULT_TRANSFORM_SCRIPT;
+
+    // Quality filters
     removeDuplicates = false;
     removeDuplicatesMs = 1000;
     reduceEventRate = false;
     reduceEventRateMs = 1000;
 
-    get device(): SpDevice {
-        return this.data.device;
+    get isPlc4x(): boolean {
+        return this.adapterType?.includes('plc4x') ?? false;
+    }
+
+    get isValid(): boolean {
+        return !!this.adapterName.trim() && !!this.adapterType;
     }
 
     confirm(): void {
-        if (!this.adapterName.trim()) {
+        if (!this.isValid) {
             return;
         }
 
         const result: DeviceAdapterRequest = {
             adapterName: this.adapterName.trim(),
+            adapterType: this.adapterType,
             description: this.description.trim() || undefined,
             plcCodeBlock: this.plcCodeBlock.trim() || undefined,
             transformationScript: this.transformationScript.trim() || undefined,
@@ -113,6 +140,6 @@ export class AddAdapterDialogComponent {
     }
 
     cancel(): void {
-        this.dialogRef.close();
+        this.dialogRef.close(undefined);
     }
 }

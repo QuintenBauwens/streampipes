@@ -16,158 +16,170 @@
 ~
 -->
 
-<h2 mat-dialog-title>
-    {{ 'Add Adapter for Device' | translate }}: {{ device.name }}
-</h2>
-
-<mat-dialog-content>
-    <div fxLayout="column" fxLayoutGap="16px" class="pt-sm">
-        <p class="text-sm">
-            <strong>{{ 'IP' | translate }}:</strong> {{ device.host }}
-            &emsp;
-            <strong>{{ 'Polling' | translate }}:</strong>
-            {{ device.pollingIntervalMs }} ms &emsp;
-            <strong>{{ 'Type' | translate }}:</strong>
-            {{ 'PLC4x S7' | translate }}
-        </p>
-
-        <!-- Basic settings -->
-        <mat-form-field color="accent">
-            <mat-label>{{ 'Adapter / Datapoint Name' | translate }}</mat-label>
-            <input
-                matInput
-                [(ngModel)]="adapterName"
-                placeholder="e.g. Temperature_DB1"
-            />
-            <mat-hint>{{
-                'Unique name for this datapoint adapter' | translate
-            }}</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field color="accent">
-            <mat-label>{{ 'Description' | translate }}</mat-label>
-            <input
-                matInput
-                [(ngModel)]="description"
-                [placeholder]="'Optional description' | translate"
-            />
-        </mat-form-field>
-
-        <mat-divider></mat-divider>
-
-        <!-- PLC code block -->
-        <div fxLayout="column" fxLayoutGap="4px">
-            <div class="text-md font-emphasized">
-                {{ 'PLC Register Definitions' | translate }}
-            </div>
-            <span class="text-sm">{{
-                'Define the PLC nodes to read, one per line (e.g. temperature=%DB1.DBX0.0:BOOL)'
+<div class="sp-dialog-container">
+    <div class="sp-dialog-content p-15">
+        <!-- Section 1: Adapter Type — always shown first -->
+        <sp-split-section
+            [level]="3"
+            [title]="'Adapter Type' | translate"
+            [subtitle]="
+                'Select the protocol used to communicate with this device'
                     | translate
-            }}</span>
-            <mat-form-field color="accent">
-                <mat-label>{{
-                    'PLC Code Block (optional)' | translate
-                }}</mat-label>
-                <textarea
-                    matInput
-                    [(ngModel)]="plcCodeBlock"
-                    rows="4"
-                    style="font-family: monospace; font-size: 13px"
-                    placeholder="temperature=%DB1.DBX0.0:BOOL&#10;pressure=%DB1.DBW2:INT"
-                ></textarea>
-            </mat-form-field>
-        </div>
+            "
+        >
+            <sp-form-field [level]="3" [label]="'Protocol' | translate">
+                <mat-form-field class="sp-select-field w-100">
+                    <mat-select [(ngModel)]="adapterType">
+                        @for (opt of adapterTypeOptions; track opt.value) {
+                            <mat-option [value]="opt.value">
+                                {{ opt.label | translate }}
+                            </mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            </sp-form-field>
+        </sp-split-section>
 
-        <mat-divider></mat-divider>
+        <!-- Section 2: Basic settings -->
+        <sp-split-section [level]="3" [title]="'Adapter Settings' | translate">
+            <sp-form-field
+                [level]="3"
+                [label]="'Adapter / Datapoint Name' | translate"
+            >
+                <mat-form-field class="w-100">
+                    <input
+                        matInput
+                        [(ngModel)]="adapterName"
+                        [placeholder]="'e.g. Temperature_DB1' | translate"
+                    />
+                </mat-form-field>
+            </sp-form-field>
 
-        <!-- Transformation script -->
-        <div fxLayout="column" fxLayoutGap="4px">
-            <div class="text-md font-emphasized">
-                {{ 'Transformation Script' | translate }}
-            </div>
-            <span class="text-sm">{{
+            <sp-form-field [level]="3" [label]="'Description' | translate">
+                <mat-form-field class="w-100">
+                    <input
+                        matInput
+                        [(ngModel)]="description"
+                        [placeholder]="'Optional description' | translate"
+                    />
+                </mat-form-field>
+            </sp-form-field>
+        </sp-split-section>
+
+        <!-- Section 3: PLC4x-specific configuration (shown only when PLC4x is selected) -->
+        @if (isPlc4x) {
+            <sp-split-section
+                [level]="3"
+                [title]="'PLC Register Definitions' | translate"
+                [subtitle]="
+                    'Define the PLC nodes to read, one per line (e.g. temperature=%DB1.DBX0.0:BOOL)'
+                        | translate
+                "
+            >
+                <sp-form-field
+                    [level]="3"
+                    [label]="'PLC Code Block (optional)' | translate"
+                >
+                    <mat-form-field class="w-100">
+                        <textarea
+                            matInput
+                            [(ngModel)]="plcCodeBlock"
+                            rows="5"
+                            style="font-family: monospace; font-size: 13px"
+                            placeholder="temperature=%DB1.DBX0.0:BOOL&#10;pressure=%DB1.DBW2:INT"
+                        ></textarea>
+                    </mat-form-field>
+                </sp-form-field>
+            </sp-split-section>
+        }
+
+        <!-- Section 4: Transformation -->
+        <sp-split-section
+            [level]="3"
+            [title]="'Transformation Script' | translate"
+            [subtitle]="
                 'Modify each event before it is stored. utils.addTimestamp(event) is applied by default.'
                     | translate
-            }}</span>
-            <mat-form-field color="accent">
-                <textarea
-                    matInput
-                    [(ngModel)]="transformationScript"
-                    rows="6"
-                    style="font-family: monospace; font-size: 13px"
-                ></textarea>
-            </mat-form-field>
-        </div>
+            "
+        >
+            <sp-form-field [level]="3" [label]="'Script' | translate">
+                <mat-form-field class="w-100">
+                    <textarea
+                        matInput
+                        [(ngModel)]="transformationScript"
+                        rows="6"
+                        style="font-family: monospace; font-size: 13px"
+                    ></textarea>
+                </mat-form-field>
+            </sp-form-field>
+        </sp-split-section>
 
-        <mat-divider></mat-divider>
-
-        <!-- Remove duplicates -->
-        <div fxLayout="column" fxLayoutGap="8px">
-            <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
-                <mat-icon>cleaning_services</mat-icon>
-                <div fxLayout="column">
-                    <span class="text-md font-emphasized">{{
-                        'Remove Duplicates' | translate
-                    }}</span>
-                    <span class="text-sm">{{
-                        'Avoid duplicated events within a time interval'
-                            | translate
-                    }}</span>
-                </div>
+        <!-- Section 5: Quality filters -->
+        <sp-split-section
+            [level]="3"
+            [title]="'Quality Filters' | translate"
+            [subtitle]="
+                'Optionally reduce noise or limit event throughput' | translate
+            "
+        >
+            <sp-form-field
+                [level]="3"
+                [label]="'Remove Duplicates' | translate"
+            >
                 <mat-slide-toggle
                     [(ngModel)]="removeDuplicates"
                 ></mat-slide-toggle>
-            </div>
-            @if (removeDuplicates) {
-                <mat-form-field color="accent">
-                    <mat-label>{{ 'Time Window (ms)' | translate }}</mat-label>
-                    <input
-                        matInput
-                        type="number"
-                        [(ngModel)]="removeDuplicatesMs"
-                    />
-                </mat-form-field>
-            }
-        </div>
+            </sp-form-field>
 
-        <!-- Reduce event rate -->
-        <div fxLayout="column" fxLayoutGap="8px">
-            <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
-                <mat-icon>speed</mat-icon>
-                <div fxLayout="column">
-                    <span class="text-md font-emphasized">{{
-                        'Reduce Event Rate' | translate
-                    }}</span>
-                    <span class="text-sm">{{
-                        'Send at most one event per time window' | translate
-                    }}</span>
-                </div>
+            @if (removeDuplicates) {
+                <sp-form-field
+                    [level]="3"
+                    [label]="'Deduplication Window (ms)' | translate"
+                >
+                    <mat-form-field class="w-100">
+                        <input
+                            matInput
+                            type="number"
+                            [(ngModel)]="removeDuplicatesMs"
+                        />
+                    </mat-form-field>
+                </sp-form-field>
+            }
+
+            <sp-form-field
+                [level]="3"
+                [label]="'Reduce Event Rate' | translate"
+            >
                 <mat-slide-toggle
                     [(ngModel)]="reduceEventRate"
                 ></mat-slide-toggle>
-            </div>
-            @if (reduceEventRate) {
-                <mat-form-field color="accent">
-                    <mat-label>{{ 'Time Window (ms)' | translate }}</mat-label>
-                    <input
-                        matInput
-                        type="number"
-                        [(ngModel)]="reduceEventRateMs"
-                    />
-                </mat-form-field>
-            }
-        </div>
-    </div>
-</mat-dialog-content>
+            </sp-form-field>
 
-<mat-dialog-actions fxLayoutAlign="end center" fxLayoutGap="8px">
-    <button mat-button (click)="cancel()">{{ 'Cancel' | translate }}</button>
-    <button
-        mat-flat-button
-        color="accent"
-        [disabled]="!adapterName.trim()"
-        (click)="confirm()"
-    >
-        {{ 'Create Adapter' | translate }}
-    </button>
-</mat-dialog-actions>
+            @if (reduceEventRate) {
+                <sp-form-field
+                    [level]="3"
+                    [label]="'Rate Window (ms)' | translate"
+                >
+                    <mat-form-field class="w-100">
+                        <input
+                            matInput
+                            type="number"
+                            [(ngModel)]="reduceEventRateMs"
+                        />
+                    </mat-form-field>
+                </sp-form-field>
+            }
+        </sp-split-section>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="sp-dialog-actions">
+        <button mat-flat-button [disabled]="!isValid" (click)="confirm()">
+            {{ 'Create Adapter' | translate }}
+        </button>
+        <button mat-flat-button class="mat-basic" (click)="cancel()">
+            {{ 'Cancel' | translate }}
+        </button>
+    </div>
+</div>
