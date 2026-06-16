@@ -43,6 +43,7 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | **Device registry UX polish** | ✅ Done | Padding/spacing in expanded panels; reachability status icon (TCP port 102 check); adapter creation error fixed (code block → auto schema, WorkerAdapterException caught); action log auto-dismiss + single-message-at-a-time |
 | **Device registry slide-in panels + status** | ✅ Done | Add/Edit Device + Add Adapter now use SLIDE_IN_PANEL (matches Export Provider pattern); adapterType moved from device to adapter request; Online/Offline/Checking status badge; startup crash (duplicate POST mapping) fixed |
 | **Device registry adapter creation fix** | ✅ Done | `plc_code_block` and `plc_node_input_alternatives` merged into single map entry so `PipelineElementTemplateVisitor` can find the code block when recursing into the selected alternative |
+| **Device registry adapter count** | ✅ Done | `SpDevice.adapterIds` tracks created adapters; pre-generated ID is consistent across both POST calls; adapter count tile shown in expanded panel |
 
 ---
 
