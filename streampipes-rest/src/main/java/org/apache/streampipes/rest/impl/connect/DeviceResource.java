@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -163,8 +164,13 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
     // adapterType comes from the request so the same device can be used with different adapter protocols
 
     if (request.plcCodeBlock() != null && !request.plcCodeBlock().isBlank()) {
-      config.add(Map.of(PLC_NODE_INPUT_ALTERNATIVES, PLC_NODE_INPUT_CODE_BLOCK_ALTIVE));
-      config.add(Map.of(PLC_CODE_BLOCK, request.plcCodeBlock()));
+      // Both keys MUST be in the same map entry. PipelineElementTemplateVisitor.visit(StaticPropertyAlternatives)
+      // narrows the config to List.of(that one entry) when it recurses into the selected alternative.
+      // A sibling list entry for plc_code_block would be invisible to that nested visitor.
+      var alternativesEntry = new HashMap<String, Object>();
+      alternativesEntry.put(PLC_NODE_INPUT_ALTERNATIVES, PLC_NODE_INPUT_CODE_BLOCK_ALTIVE);
+      alternativesEntry.put(PLC_CODE_BLOCK, request.plcCodeBlock());
+      config.add(alternativesEntry);
     }
 
     // Prefer explicit schema; fall back to auto-parsed code block so schema guessing
