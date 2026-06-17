@@ -21,11 +21,12 @@ import {
     AssetSiteDesc,
     Isa95TypeDesc,
     SpAsset,
+    SpAssetModel,
     SpLabel,
 } from '@streampipes/platform-services';
 
 export interface AssetBrowserData {
-    assets: SpAsset[];
+    assets: SpAssetModel[];
     assetLinks: AssetLink[];
     sites: AssetSiteDesc[];
     labels: SpLabel[];

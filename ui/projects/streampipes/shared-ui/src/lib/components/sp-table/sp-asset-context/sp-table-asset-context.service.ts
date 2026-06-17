@@ -17,7 +17,12 @@
  */
 
 import { Injectable } from '@angular/core';
-import { SpAsset, SpDataStream, SpLabel } from '@streampipes/platform-services';
+import {
+    SpAsset,
+    SpAssetModel,
+    SpDataStream,
+    SpLabel,
+} from '@streampipes/platform-services';
 import { AssetBrowserData } from '../../asset-browser/asset-browser.model';
 import {
     SpTableAssetContextValue,
@@ -54,7 +59,7 @@ export class SpTableAssetContextService {
                 index,
                 sitesById,
                 labelsById,
-                asset.assetId,
+                (asset as SpAssetModel).elementId ?? asset.assetId,
                 asset.assetName,
                 [],
                 [],
