@@ -50,6 +50,10 @@ import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import {
+    MatButtonToggle,
+    MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
 
 @Component({
     selector: 'sp-pipeline-setup-configuration',
@@ -74,6 +78,8 @@ import { MatTab, MatTabGroup } from '@angular/material/tabs';
         MatProgressSpinner,
         MatTabGroup,
         MatTab,
+        MatButtonToggleGroup,
+        MatButtonToggle,
         SplitSectionComponent,
         SpAlertBannerComponent,
         TranslatePipe,
@@ -114,6 +120,9 @@ export class PipelineSetupConfigurationComponent implements OnInit {
                 if (!this.config.adapterLabelIds) {
                     this.config.adapterLabelIds = [];
                 }
+                if (this.config.staticTopic == null) {
+                    this.config.staticTopic = '';
+                }
                 this.isLoading = false;
             },
             error: () => {
@@ -124,6 +133,18 @@ export class PipelineSetupConfigurationComponent implements OnInit {
             next: labels => (this.allLabels = labels),
             error: () => (this.allLabels = []),
         });
+    }
+
+    /** 'dynamic' = topic field from event stream; 'static' = fixed topic for all adapters. */
+    get topicMode(): string {
+        return this.config.staticTopic ? 'static' : 'dynamic';
+    }
+
+    set topicMode(value: string) {
+        if (value === 'dynamic') {
+            this.config.staticTopic = '';
+        }
+        this.clearStatus();
     }
 
     /** Derived sink selector — maps to/from the two boolean flags on the config. */

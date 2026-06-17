@@ -114,6 +114,110 @@
                                     @if (selectedSink === 'mqtt') {
                                         <mat-divider></mat-divider>
 
+                                        <!-- ── Topic source ──────────────── -->
+                                        <div
+                                            fxLayout="column"
+                                            fxLayoutGap="10px"
+                                        >
+                                            <span
+                                                class="text-sm sp-color-accent"
+                                                ><strong>{{
+                                                    'Topic source' | translate
+                                                }}</strong></span
+                                            >
+                                            <mat-button-toggle-group
+                                                [(ngModel)]="topicMode"
+                                                color="accent"
+                                                (ngModelChange)="clearStatus()"
+                                            >
+                                                <mat-button-toggle
+                                                    value="dynamic"
+                                                    >{{
+                                                        'Dynamic (from event field)'
+                                                            | translate
+                                                    }}</mat-button-toggle
+                                                >
+                                                <mat-button-toggle
+                                                    value="static"
+                                                    >{{
+                                                        'Static (fixed topic)'
+                                                            | translate
+                                                    }}</mat-button-toggle
+                                                >
+                                            </mat-button-toggle-group>
+
+                                            @if (topicMode === 'dynamic') {
+                                                <sp-alert-banner
+                                                    [type]="'info'"
+                                                    [title]="
+                                                        'Topic field required in adapter event stream'
+                                                            | translate
+                                                    "
+                                                    [description]="
+                                                        'The MQTT sink reads a field named \'topic\' from each event to route it to the correct broker topic. Enable topic enrichment in the Adapters tab to inject this field automatically from the adapter-to-asset mapping.'
+                                                            | translate
+                                                    "
+                                                ></sp-alert-banner>
+                                                <div
+                                                    fxLayout="row"
+                                                    fxLayoutAlign="start center"
+                                                    fxLayoutGap="6px"
+                                                    class="text-sm"
+                                                >
+                                                    <mat-icon
+                                                        class="sp-color-accent"
+                                                        style="
+                                                            font-size: 16px;
+                                                            width: 16px;
+                                                            height: 16px;
+                                                        "
+                                                        >open_in_new</mat-icon
+                                                    >
+                                                    <a
+                                                        class="sp-color-accent"
+                                                        style="cursor: pointer"
+                                                        (click)="
+                                                            selectedTabIndex = 1
+                                                        "
+                                                        >{{
+                                                            'Configure topic enrichment in the Adapters tab'
+                                                                | translate
+                                                        }}</a
+                                                    >
+                                                </div>
+                                            } @else {
+                                                <mat-form-field color="accent">
+                                                    <mat-label>{{
+                                                        'Static topic'
+                                                            | translate
+                                                    }}</mat-label>
+                                                    <input
+                                                        matInput
+                                                        [(ngModel)]="
+                                                            config.staticTopic
+                                                        "
+                                                        placeholder="e.g. plant/line1/data"
+                                                        (ngModelChange)="
+                                                            clearStatus()
+                                                        "
+                                                    />
+                                                </mat-form-field>
+                                                <sp-alert-banner
+                                                    [type]="'warning'"
+                                                    [title]="
+                                                        'All adapters will publish to the same topic'
+                                                            | translate
+                                                    "
+                                                    [description]="
+                                                        'A static topic applies to every auto-deployed pipeline. Use dynamic mode with topic enrichment to route each adapter to its own topic.'
+                                                            | translate
+                                                    "
+                                                ></sp-alert-banner>
+                                            }
+                                        </div>
+
+                                        <mat-divider></mat-divider>
+
                                         <mat-form-field color="accent">
                                             <mat-label>{{
                                                 'Broker URL' | translate
