@@ -131,11 +131,17 @@ public class MqttPublisherPipelineHandler {
       sinkConfig.add(Map.of(ACCESS_MODE, ANONYMOUS_ACCESS));
     }
 
-    // Topic mode: use dynamic if adapter schema has a 'topic' field
+    // Topic mode: prefer dynamic if adapter schema has a 'topic' field,
+    // then static topic from config, then fall back to adapter name.
     if (hasTopicField(adapter)) {
       sinkConfig.add(Map.of(
           TOPIC_MODE, DYNAMIC_TOPIC_ALTERNATIVE,
           TOPIC_FIELD, "s0::topic"
+      ));
+    } else if (config.getStaticTopic() != null && !config.getStaticTopic().isBlank()) {
+      sinkConfig.add(Map.of(
+          TOPIC_MODE, STATIC_TOPIC_ALTERNATIVE,
+          TOPIC, config.getStaticTopic()
       ));
     } else {
       sinkConfig.add(Map.of(
