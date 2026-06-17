@@ -76,6 +76,12 @@ public class MqttAutoPublishConfig implements Storable {
   /** "Yes" or "No" */
   private String mqttCompliant = "Yes";
 
+  /** Label IDs to assign to auto-deployed pipelines. */
+  private java.util.List<String> pipelineLabelIds = new java.util.ArrayList<>();
+
+  /** Label IDs to assign to auto-created adapters (YAML upload / device-registry import). */
+  private java.util.List<String> adapterLabelIds = new java.util.ArrayList<>();
+
   public MqttAutoPublishConfig() {
   }
 
@@ -209,5 +215,21 @@ public class MqttAutoPublishConfig implements Storable {
 
   public void setMqttCompliant(String mqttCompliant) {
     this.mqttCompliant = mqttCompliant;
+  }
+
+  public java.util.List<String> getPipelineLabelIds() {
+    return pipelineLabelIds;
+  }
+
+  public void setPipelineLabelIds(java.util.List<String> pipelineLabelIds) {
+    this.pipelineLabelIds = pipelineLabelIds;
+  }
+
+  public java.util.List<String> getAdapterLabelIds() {
+    return adapterLabelIds;
+  }
+
+  public void setAdapterLabelIds(java.util.List<String> adapterLabelIds) {
+    this.adapterLabelIds = adapterLabelIds;
   }
 }

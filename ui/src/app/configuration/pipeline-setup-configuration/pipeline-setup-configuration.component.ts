@@ -17,11 +17,13 @@
  */
 
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
+    LabelsService,
     MqttAutoPublishConfig,
     MqttAutoPublishConfigService,
+    SpLabel,
 } from '@streampipes/platform-services';
 import { SpConfigurationTabsService } from '../configuration-tabs.service';
 import { SpConfigurationRoutes } from '../configuration.breadcrumb';
@@ -52,6 +54,7 @@ import { MatTab, MatTabGroup } from '@angular/material/tabs';
 @Component({
     selector: 'sp-pipeline-setup-configuration',
     templateUrl: './pipeline-setup-configuration.component.html',
+    styleUrl: './pipeline-setup-configuration.component.scss',
     imports: [
         SpBasicNavTabsComponent,
         LayoutDirective,
@@ -74,17 +77,20 @@ import { MatTab, MatTabGroup } from '@angular/material/tabs';
         SplitSectionComponent,
         SpAlertBannerComponent,
         TranslatePipe,
+        RouterLink,
     ],
     standalone: true,
 })
 export class PipelineSetupConfigurationComponent implements OnInit {
     private configService = inject(MqttAutoPublishConfigService);
+    private labelsService = inject(LabelsService);
     private breadcrumbService = inject(SpBreadcrumbService);
     private tabsService = inject(SpConfigurationTabsService);
     private route = inject(ActivatedRoute);
 
     tabs = this.tabsService.getTabs();
     config: MqttAutoPublishConfig = this.configService.defaultConfig();
+    allLabels: SpLabel[] = [];
     isLoading = true;
     saved = false;
     error = false;
@@ -102,11 +108,21 @@ export class PipelineSetupConfigurationComponent implements OnInit {
         this.configService.getConfig().subscribe({
             next: cfg => {
                 this.config = cfg;
+                if (!this.config.pipelineLabelIds) {
+                    this.config.pipelineLabelIds = [];
+                }
+                if (!this.config.adapterLabelIds) {
+                    this.config.adapterLabelIds = [];
+                }
                 this.isLoading = false;
             },
             error: () => {
                 this.isLoading = false;
             },
+        });
+        this.labelsService.getAllLabels().subscribe({
+            next: labels => (this.allLabels = labels),
+            error: () => (this.allLabels = []),
         });
     }
 

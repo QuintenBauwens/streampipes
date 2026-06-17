@@ -48,6 +48,10 @@ export interface MqttAutoPublishConfig {
     keepAliveInSec: number;
     /** 'Yes' | 'No' */
     mqttCompliant: string;
+    /** Label IDs to assign to auto-deployed pipelines. */
+    pipelineLabelIds: string[];
+    /** Label IDs to assign to auto-created adapters (YAML upload / device-registry import). */
+    adapterLabelIds: string[];
 }
 
 @Injectable({
@@ -87,6 +91,8 @@ export class MqttAutoPublishConfigService {
             reconnectPeriodInSec: 30,
             keepAliveInSec: 30,
             mqttCompliant: 'Yes',
+            pipelineLabelIds: [],
+            adapterLabelIds: [],
         };
     }
 }

@@ -325,7 +325,70 @@
                             </sp-split-section>
                         }
 
-                        <!-- ── Save ──────────────────────────────────────── -->
+                        <!-- ── Pipeline Labels ───────────────────────────── -->
+                        <sp-split-section
+                            [title]="'Pipeline Labels' | translate"
+                            [subtitle]="
+                                'Labels to assign to every auto-deployed pipeline.'
+                                    | translate
+                            "
+                        >
+                            @if (allLabels.length === 0) {
+                                <div
+                                    fxLayout="row"
+                                    fxLayoutAlign="start center"
+                                    fxLayoutGap="8px"
+                                >
+                                    <mat-icon class="sp-color-accent"
+                                        >info</mat-icon
+                                    >
+                                    <span class="text-sm"
+                                        >{{ 'No labels found. ' | translate
+                                        }}<a
+                                            [routerLink]="[
+                                                '/configuration/labels',
+                                            ]"
+                                            class="sp-color-accent"
+                                            >{{
+                                                'Create a label first.'
+                                                    | translate
+                                            }}</a
+                                        ></span
+                                    >
+                                </div>
+                            } @else {
+                                <mat-form-field color="accent">
+                                    <mat-label>{{
+                                        'Select labels' | translate
+                                    }}</mat-label>
+                                    <mat-select
+                                        [(ngModel)]="config.pipelineLabelIds"
+                                        multiple
+                                        (ngModelChange)="clearStatus()"
+                                    >
+                                        @for (lbl of allLabels; track lbl._id) {
+                                            <mat-option [value]="lbl._id">
+                                                <span
+                                                    fxLayout="row"
+                                                    fxLayoutAlign="start center"
+                                                    fxLayoutGap="8px"
+                                                >
+                                                    <span
+                                                        class="label-color-dot"
+                                                        [style.background]="
+                                                            lbl.color
+                                                        "
+                                                    ></span>
+                                                    <span>{{ lbl.label }}</span>
+                                                </span>
+                                            </mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                            }
+                        </sp-split-section>
+
+                        <!-- ── Save (Pipelines tab) ───────────────────────── -->
                         <div fxLayoutAlign="start center" class="mt-lg">
                             <button
                                 mat-flat-button
@@ -378,7 +441,70 @@
                             </mat-slide-toggle>
                         </sp-split-section>
 
-                        <!-- ── Save ──────────────────────────────────────── -->
+                        <!-- ── Adapter Labels ─────────────────────────────── -->
+                        <sp-split-section
+                            [title]="'Adapter Labels' | translate"
+                            [subtitle]="
+                                'Labels to assign to every auto-created adapter (YAML upload / device-registry import).'
+                                    | translate
+                            "
+                        >
+                            @if (allLabels.length === 0) {
+                                <div
+                                    fxLayout="row"
+                                    fxLayoutAlign="start center"
+                                    fxLayoutGap="8px"
+                                >
+                                    <mat-icon class="sp-color-accent"
+                                        >info</mat-icon
+                                    >
+                                    <span class="text-sm"
+                                        >{{ 'No labels found. ' | translate
+                                        }}<a
+                                            [routerLink]="[
+                                                '/configuration/labels',
+                                            ]"
+                                            class="sp-color-accent"
+                                            >{{
+                                                'Create a label first.'
+                                                    | translate
+                                            }}</a
+                                        ></span
+                                    >
+                                </div>
+                            } @else {
+                                <mat-form-field color="accent">
+                                    <mat-label>{{
+                                        'Select labels' | translate
+                                    }}</mat-label>
+                                    <mat-select
+                                        [(ngModel)]="config.adapterLabelIds"
+                                        multiple
+                                        (ngModelChange)="clearStatus()"
+                                    >
+                                        @for (lbl of allLabels; track lbl._id) {
+                                            <mat-option [value]="lbl._id">
+                                                <span
+                                                    fxLayout="row"
+                                                    fxLayoutAlign="start center"
+                                                    fxLayoutGap="8px"
+                                                >
+                                                    <span
+                                                        class="label-color-dot"
+                                                        [style.background]="
+                                                            lbl.color
+                                                        "
+                                                    ></span>
+                                                    <span>{{ lbl.label }}</span>
+                                                </span>
+                                            </mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                            }
+                        </sp-split-section>
+
+                        <!-- ── Save (Adapters tab) ────────────────────────── -->
                         <div fxLayoutAlign="start center" class="mt-lg">
                             <button
                                 mat-flat-button
