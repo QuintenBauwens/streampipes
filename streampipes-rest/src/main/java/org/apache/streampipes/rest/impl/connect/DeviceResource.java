@@ -43,12 +43,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
+import org.apache.streampipes.model.staticproperty.FreeTextStaticProperty;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,28 +69,46 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   @PreAuthorize("this.hasReadAuthority()")
   public ResponseEntity<?> getAllDevices() {
     var devices = getStorage().findAll();
-    var adaptersByDeviceId = StorageDispatcher.INSTANCE.getNoSqlStore()
+
+    // Build a map: normalised IP → list of adapter elementIds (live, includes deletions)
+    var adaptersByIp = StorageDispatcher.INSTANCE.getNoSqlStore()
         .getAdapterInstanceStorage()
         .findAll()
         .stream()
-        .filter(a -> a.getDeviceId() != null)
+        .filter(a -> extractPlcIp(a) != null)
         .collect(Collectors.groupingBy(
-            AdapterDescription::getDeviceId,
+            a -> normaliseHost(extractPlcIp(a)),
             Collectors.mapping(AdapterDescription::getElementId, Collectors.toList())
         ));
 
     devices.forEach(device -> {
-      if (device.getElementId() == null) {
-        return;
-      }
-      var fromStorage = adaptersByDeviceId.getOrDefault(device.getElementId(), List.of());
-      if (!fromStorage.isEmpty()) {
-        var combined = new HashSet<>(device.getAdapterIds() != null ? device.getAdapterIds() : List.of());
-        combined.addAll(fromStorage);
-        device.setAdapterIds(new ArrayList<>(combined));
-      }
+      var ip = normaliseHost(device.getHost());
+      device.setAdapterIds(adaptersByIp.getOrDefault(ip, List.of()));
     });
     return ok(devices);
+  }
+
+  /** Extracts the value of the {@code plc_ip} FreeTextStaticProperty from an adapter config. */
+  private String extractPlcIp(AdapterDescription adapter) {
+    if (adapter.getConfig() == null) {
+      return null;
+    }
+    return adapter.getConfig().stream()
+        .filter(sp -> PLC_IP.equals(sp.getInternalName())
+            && sp instanceof FreeTextStaticProperty)
+        .map(sp -> ((FreeTextStaticProperty) sp).getValue())
+        .filter(v -> v != null && !v.isBlank())
+        .findFirst()
+        .orElse(null);
+  }
+
+  /** Strips a port suffix so {@code "10.1.1.1:102"} and {@code "10.1.1.1"} both normalise to {@code "10.1.1.1"}. */
+  private String normaliseHost(String host) {
+    if (host == null) {
+      return "";
+    }
+    int colon = host.indexOf(':');
+    return colon >= 0 ? host.substring(0, colon).trim() : host.trim();
   }
 
   @PostMapping(
@@ -182,15 +200,6 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
 
     var adapterId = UUID.randomUUID().toString();
     var compact = buildCompactAdapter(device, request, adapterId);
-
-    // Track adapter ID on the device so the registry can show an adapter count
-    // (legacy fallback — new adapters are also linked via deviceId on the adapter itself)
-    var adapterIds = new ArrayList<>(
-        device.getAdapterIds() != null ? device.getAdapterIds() : List.of()
-    );
-    adapterIds.add(adapterId);
-    device.setAdapterIds(adapterIds);
-    getStorage().updateElement(device);
 
     return ok(compact);
   }
