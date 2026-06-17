@@ -44,6 +44,9 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | **Device registry slide-in panels + status** | ✅ Done | Add/Edit Device + Add Adapter now use SLIDE_IN_PANEL (matches Export Provider pattern); adapterType moved from device to adapter request; Online/Offline/Checking status badge; startup crash (duplicate POST mapping) fixed |
 | **Device registry adapter creation fix** | ✅ Done | `plc_code_block` and `plc_node_input_alternatives` merged into single map entry so `PipelineElementTemplateVisitor` can find the code block when recursing into the selected alternative |
 | **Device registry adapter count** | ✅ Done | `SpDevice.adapterIds` tracks created adapters; pre-generated ID is consistent across both POST calls; adapter count tile shown in expanded panel |
+| **Device registry bulk reachability on load** | ✅ Done | `checkAllReachability()` fires for all devices when page loads and every 5 min via `setInterval`; `onPanelOpened` still re-checks on expand; template `@if` order flipped (true/false/else) so null+undefined both show "Checking" |
+| **Device registry full adapter count** | ✅ Done | `deviceId` added to `AdapterDescription` + `CompactAdapter`; propagated via `AdapterBasicsGenerator`; `getAllDevices()` enriches `adapterIds` in-response with adapters carrying matching `deviceId`; YAML-imported adapters link via `deviceId` field |
+| **Automation settings: label assignment** | ✅ Done | `pipelineLabelIds` + `adapterLabelIds` added to `MqttAutoPublishConfig` (Java + TS interface); multi-select label pickers in both Pipelines and Adapters tabs; "no labels" state links to `/configuration/labels` |
 
 ---
 
@@ -56,8 +59,11 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 No outstanding work. If continuing:
 - `docker compose build && docker compose up -d` to smoke-test end-to-end
 - Verify `/connect/devices`:
+  - Page load → all devices show "Checking" then resolve to Online/Offline without any clicks
+  - Leave page open 5 min → statuses refresh automatically
+  - Expand a device → immediately re-checks that device (resets to "Checking" then resolves)
+  - Adapter count tile includes: adapters created via device registry + YAML-imported adapters with `deviceId` in YAML
   - "Add Device" → opens right-side slide-in panel (no adapter type field)
-  - Expand a device → Online/Offline/Checking badge updates
   - "Add Adapter" → slide-in panel with Protocol selector first; PLC4x code block section appears conditionally
 - API path fixed: `POST /api/v2/devices/{id}/adapter` (singular) — matches backend and frontend
 

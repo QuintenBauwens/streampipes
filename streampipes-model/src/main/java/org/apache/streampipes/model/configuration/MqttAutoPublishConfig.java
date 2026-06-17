@@ -82,6 +82,13 @@ public class MqttAutoPublishConfig implements Storable {
   /** Label IDs to assign to auto-created adapters (YAML upload / device-registry import). */
   private java.util.List<String> adapterLabelIds = new java.util.ArrayList<>();
 
+  /**
+   * When non-empty, every MQTT pipeline uses this fixed topic for all adapters.
+   * When empty (default), the topic is sourced dynamically from the {@code topic} field
+   * in the adapter event stream (populated via topic enrichment).
+   */
+  private String staticTopic = "";
+
   public MqttAutoPublishConfig() {
   }
 
@@ -231,5 +238,13 @@ public class MqttAutoPublishConfig implements Storable {
 
   public void setAdapterLabelIds(java.util.List<String> adapterLabelIds) {
     this.adapterLabelIds = adapterLabelIds;
+  }
+
+  public String getStaticTopic() {
+    return staticTopic;
+  }
+
+  public void setStaticTopic(String staticTopic) {
+    this.staticTopic = staticTopic;
   }
 }

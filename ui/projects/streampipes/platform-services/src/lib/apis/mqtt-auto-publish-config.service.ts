@@ -52,6 +52,11 @@ export interface MqttAutoPublishConfig {
     pipelineLabelIds: string[];
     /** Label IDs to assign to auto-created adapters (YAML upload / device-registry import). */
     adapterLabelIds: string[];
+    /**
+     * When non-empty, every MQTT pipeline uses this fixed topic for all adapters.
+     * When empty (default), the topic is read dynamically from the adapter's `topic` event field.
+     */
+    staticTopic: string;
 }
 
 @Injectable({
@@ -93,6 +98,7 @@ export class MqttAutoPublishConfigService {
             mqttCompliant: 'Yes',
             pipelineLabelIds: [],
             adapterLabelIds: [],
+            staticTopic: '',
         };
     }
 }
