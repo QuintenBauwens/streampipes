@@ -128,7 +128,9 @@
                                             <mat-button-toggle-group
                                                 [(ngModel)]="topicMode"
                                                 color="accent"
-                                                (ngModelChange)="clearStatus()"
+                                                (ngModelChange)="
+                                                    onTopicModeChange($event)
+                                                "
                                             >
                                                 <mat-button-toggle
                                                     value="dynamic"

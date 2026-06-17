@@ -102,6 +102,7 @@ export class PipelineSetupConfigurationComponent implements OnInit {
     error = false;
     errorMessage = '';
     selectedTabIndex = 0;
+    topicMode = 'dynamic';
 
     ngOnInit(): void {
         this.breadcrumbService.updateBreadcrumb([
@@ -123,6 +124,7 @@ export class PipelineSetupConfigurationComponent implements OnInit {
                 if (this.config.staticTopic == null) {
                     this.config.staticTopic = '';
                 }
+                this.topicMode = this.config.staticTopic ? 'static' : 'dynamic';
                 this.isLoading = false;
             },
             error: () => {
@@ -135,13 +137,8 @@ export class PipelineSetupConfigurationComponent implements OnInit {
         });
     }
 
-    /** 'dynamic' = topic field from event stream; 'static' = fixed topic for all adapters. */
-    get topicMode(): string {
-        return this.config.staticTopic ? 'static' : 'dynamic';
-    }
-
-    set topicMode(value: string) {
-        if (value === 'dynamic') {
+    onTopicModeChange(mode: string): void {
+        if (mode === 'dynamic') {
             this.config.staticTopic = '';
         }
         this.clearStatus();
