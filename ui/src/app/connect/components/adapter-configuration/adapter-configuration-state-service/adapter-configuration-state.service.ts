@@ -182,6 +182,8 @@ export class AdapterConfigurationStateService {
             activeScriptMetadata =
                 scripts.find(s => s.language === 'javascript') || scripts[0];
             activeScript = activeScriptMetadata.template;
+            // Enable script by default for new adapters
+            adapter.transformationConfig.scriptActive = true;
         }
 
         this.updateState({
@@ -191,6 +193,7 @@ export class AdapterConfigurationStateService {
                 scriptMetadata: activeScriptMetadata,
                 script: activeScript,
             },
+            adapterDescription: adapter,
         });
     }
 

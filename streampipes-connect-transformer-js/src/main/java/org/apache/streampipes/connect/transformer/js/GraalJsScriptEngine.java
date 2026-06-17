@@ -44,10 +44,9 @@ public class GraalJsScriptEngine implements TransformationEngine {
         "javascript",
         "JavaScript",
         """
-            // returns the same event
+            // returns the same event with an added timestamp field
             function transform(event, out, ctx) {
-              // You can use utils like utils.addTimestamp(event) for basic transformations
-              // To access the StreamPipesClient use ctx.client()
+              utils.addTimestamp(event);
               out.collect(event);
             }
             """
