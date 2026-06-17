@@ -177,6 +177,7 @@ export class PipelineSetupConfigurationComponent implements OnInit {
     }
 
     get mqttConfigValid(): boolean {
+        if (!this.config.autoDeploy) return true;
         if (this.selectedSink !== 'mqtt') return true;
         if (!this.config.brokerUrl?.trim()) return false;
         if (this.topicMode === 'static' && !this.config.staticTopic?.trim())
@@ -188,7 +189,7 @@ export class PipelineSetupConfigurationComponent implements OnInit {
         return true;
     }
 
-    save(): void {
+    savePipelines(): void {
         if (!this.sinksValid) {
             this.error = true;
             this.errorMessage =
@@ -211,6 +212,18 @@ export class PipelineSetupConfigurationComponent implements OnInit {
             }
             return;
         }
+        this.doSave();
+    }
+
+    saveAdapters(): void {
+        this.doSave();
+    }
+
+    save(): void {
+        this.doSave();
+    }
+
+    private doSave(): void {
         this.saved = false;
         this.error = false;
         this.configService.updateConfig(this.config).subscribe({
