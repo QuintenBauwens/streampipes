@@ -35,5 +35,8 @@ public class AdapterBasicsGenerator implements AdapterModelGenerator {
     } else {
       adapterDescription.setElementId(ElementIdGenerator.makeElementId(adapterDescription));
     }
+    if (compactAdapter.deviceId() != null) {
+      adapterDescription.setDeviceId(compactAdapter.deviceId());
+    }
   }
 }

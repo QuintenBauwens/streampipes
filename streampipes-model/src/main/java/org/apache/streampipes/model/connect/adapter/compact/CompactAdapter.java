@@ -55,5 +55,6 @@ public record CompactAdapter(
     TransformationConfig transformationConfig,
     Map<String, CompactEventProperty> schema,
     CreateOptions createOptions,
-    String topic
+    String topic,
+    String deviceId
 ) {}

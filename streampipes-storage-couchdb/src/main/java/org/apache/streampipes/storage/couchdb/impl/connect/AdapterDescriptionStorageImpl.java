@@ -50,6 +50,12 @@ public class AdapterDescriptionStorageImpl extends DefaultCrudStorage<AdapterDes
   }
 
   @Override
+  public List<AdapterDescription> findByDeviceId(String deviceId) {
+    // Adapter descriptions are templates; only instances carry a deviceId.
+    return List.of();
+  }
+
+  @Override
   public AdapterDescription updateElement(AdapterDescription element) {
     var rev = getCurrentRev(element.getElementId());
     element.setRev(rev);

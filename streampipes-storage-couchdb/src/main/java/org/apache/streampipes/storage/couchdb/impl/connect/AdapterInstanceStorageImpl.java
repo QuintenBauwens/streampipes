@@ -48,4 +48,12 @@ public class AdapterInstanceStorageImpl extends DefaultCrudStorage<AdapterDescri
         .filter(p -> p.getAppId().equals(appId))
         .toList();
   }
+
+  @Override
+  public List<AdapterDescription> findByDeviceId(String deviceId) {
+    return this.findAll()
+        .stream()
+        .filter(a -> deviceId.equals(a.getDeviceId()))
+        .toList();
+  }
 }

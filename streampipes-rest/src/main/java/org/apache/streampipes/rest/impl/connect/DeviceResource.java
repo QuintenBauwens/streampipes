@@ -42,14 +42,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.apache.streampipes.model.connect.adapter.AdapterDescription;
+
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v2/devices")
@@ -64,7 +68,29 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("this.hasReadAuthority()")
   public ResponseEntity<?> getAllDevices() {
-    return ok(getStorage().findAll());
+    var devices = getStorage().findAll();
+    var adaptersByDeviceId = StorageDispatcher.INSTANCE.getNoSqlStore()
+        .getAdapterInstanceStorage()
+        .findAll()
+        .stream()
+        .filter(a -> a.getDeviceId() != null)
+        .collect(Collectors.groupingBy(
+            AdapterDescription::getDeviceId,
+            Collectors.mapping(AdapterDescription::getElementId, Collectors.toList())
+        ));
+
+    devices.forEach(device -> {
+      if (device.getElementId() == null) {
+        return;
+      }
+      var fromStorage = adaptersByDeviceId.getOrDefault(device.getElementId(), List.of());
+      if (!fromStorage.isEmpty()) {
+        var combined = new HashSet<>(device.getAdapterIds() != null ? device.getAdapterIds() : List.of());
+        combined.addAll(fromStorage);
+        device.setAdapterIds(new ArrayList<>(combined));
+      }
+    });
+    return ok(devices);
   }
 
   @PostMapping(
@@ -158,6 +184,7 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
     var compact = buildCompactAdapter(device, request, adapterId);
 
     // Track adapter ID on the device so the registry can show an adapter count
+    // (legacy fallback — new adapters are also linked via deviceId on the adapter itself)
     var adapterIds = new ArrayList<>(
         device.getAdapterIds() != null ? device.getAdapterIds() : List.of()
     );
@@ -172,7 +199,6 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
     var config = new ArrayList<Map<String, Object>>();
     config.add(Map.of(PLC_IP, device.getHost()));
     config.add(Map.of(PLC_POLLING_INTERVAL, device.getPollingIntervalMs()));
-    // adapterType comes from the request so the same device can be used with different adapter protocols
 
     if (request.plcCodeBlock() != null && !request.plcCodeBlock().isBlank()) {
       // Both keys MUST be in the same map entry. PipelineElementTemplateVisitor.visit(StaticPropertyAlternatives)
@@ -199,7 +225,8 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
         buildTransformationConfig(request),
         schema,
         new CreateOptions(false, true),
-        null
+        null,
+        device.getElementId()
     );
   }
 

@@ -67,6 +67,9 @@ public class AdapterDescription extends VersionedNamedStreamPipesEntity {
 
   private TransformationConfig transformationConfig;
 
+  /** Optional reference to the SpDevice this adapter was created from. */
+  private String deviceId;
+
   public AdapterDescription() {
     super();
     this.rules = new ArrayList<>();
@@ -107,6 +110,7 @@ public class AdapterDescription extends VersionedNamedStreamPipesEntity {
     this.running = other.isRunning();
     this.deploymentConfiguration = other.getDeploymentConfiguration();
     this.transformationConfig = other.getTransformationConfig();
+    this.deviceId = other.getDeviceId();
   }
 
   public String getRev() {
@@ -242,5 +246,13 @@ public class AdapterDescription extends VersionedNamedStreamPipesEntity {
 
   public void setTransformationConfig(TransformationConfig transformationConfig) {
     this.transformationConfig = transformationConfig;
+  }
+
+  public String getDeviceId() {
+    return deviceId;
+  }
+
+  public void setDeviceId(String deviceId) {
+    this.deviceId = deviceId;
   }
 }
