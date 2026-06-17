@@ -27,6 +27,7 @@ import org.apache.streampipes.model.connect.adapter.compact.CreateOptions;
 import org.apache.streampipes.model.pipeline.PipelineOperationStatus;
 import org.apache.streampipes.model.pipeline.compact.CompactPipeline;
 import org.apache.streampipes.model.pipeline.compact.CompactPipelineElement;
+import org.apache.streampipes.storage.management.StorageDispatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,10 +96,11 @@ public class MqttPublisherPipelineHandler {
     );
 
     var adapterSlug = adapterDescription.getName().replaceAll("[^A-Za-z0-9_-]", "-");
+    var topicDescription = resolveTopicDescription(adapterDescription, config);
     var compactPipeline = new CompactPipeline(
         null,
         String.format("mqtt-%s", adapterSlug),
-        String.format("MQTT publish: %s", adapterDescription.getName()),
+        String.format("MQTT publish: %s", topicDescription),
         List.of(sinkElement, streamElement),
         new CreateOptions(false, true)
     );
@@ -167,5 +169,30 @@ public class MqttPublisherPipelineHandler {
                   .getEventProperties()
                   .stream()
                   .anyMatch(ep -> "topic".equals(ep.getRuntimeName()));
+  }
+
+  /**
+   * Resolves the topic string to display in the pipeline description.
+   * <ol>
+   *   <li>Returns the static topic from config if explicitly set.</li>
+   *   <li>Falls back to the adapter-asset mapping topic for this adapter name.</li>
+   *   <li>Falls back to the adapter name if no mapping is found.</li>
+   * </ol>
+   */
+  private String resolveTopicDescription(AdapterDescription adapter, MqttAutoPublishConfig config) {
+    if (config.getStaticTopic() != null && !config.getStaticTopic().isBlank()) {
+      return config.getStaticTopic();
+    }
+    try {
+      var mapping = StorageDispatcher.INSTANCE.getNoSqlStore()
+                                              .getAdapterAssetMappingStorage()
+                                              .getElementById(adapter.getName());
+      if (mapping != null && mapping.getTopic() != null && !mapping.getTopic().isBlank()) {
+        return mapping.getTopic();
+      }
+    } catch (Exception e) {
+      // ignore — fall through to adapter name
+    }
+    return adapter.getName();
   }
 }

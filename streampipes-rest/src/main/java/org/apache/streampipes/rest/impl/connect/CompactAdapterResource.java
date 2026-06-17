@@ -22,7 +22,6 @@ import org.apache.streampipes.commons.exceptions.NoServiceEndpointsAvailableExce
 import org.apache.streampipes.commons.exceptions.connect.AdapterException;
 import org.apache.streampipes.commons.prometheus.adapter.AdapterMetricsManager;
 import org.apache.streampipes.connect.management.compact.AdapterGenerationSteps;
-import org.apache.streampipes.connect.management.compact.MqttPublisherPipelineHandler;
 import org.apache.streampipes.connect.management.compact.PersistPipelineHandler;
 import org.apache.streampipes.connect.management.management.AdapterMasterManagement;
 import org.apache.streampipes.connect.management.management.AdapterUpdateManagement;
@@ -33,12 +32,10 @@ import org.apache.streampipes.extensions.api.connect.exception.WorkerAdapterExce
 import org.apache.streampipes.manager.api.extensions.ExtensionServiceRequestManager;
 import org.apache.streampipes.manager.execution.endpoint.ExtensionsServiceEndpointGenerator;
 import org.apache.streampipes.manager.pipeline.compact.CompactPipelineManagement;
-import org.apache.streampipes.model.configuration.MqttAutoPublishConfig;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
 import org.apache.streampipes.model.message.Notifications;
 import org.apache.streampipes.resource.management.SpResourceManager;
-import org.apache.streampipes.resource.management.connect.AdapterAssetEnrichmentService;
 import org.apache.streampipes.rest.shared.constants.SpMediaType;
 import org.apache.streampipes.rest.shared.exception.BadRequestException;
 import org.apache.streampipes.rest.shared.exception.SpMessageException;
@@ -147,7 +144,7 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
     var adapterId = adapterDescription.getElementId();
 
     // Enrich schema and link to asset if a pre-mapping exists for this adapter name
-    new AdapterAssetEnrichmentService().enrichAndLink(adapterDescription);
+    enrichOnCreate(adapterDescription);
 
     try {
       managementService.addAdapter(adapterDescription, adapterId, principalSid);
@@ -256,37 +253,4 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
     }
   }
 
-  private void tryAutoDeployPipeline(AdapterDescription adapter,
-                                     ExtensionServiceRequestManager requestManager) {
-    try {
-      var config = StorageDispatcher.INSTANCE.getNoSqlStore()
-                                              .getMqttAutoPublishConfigStorage()
-                                              .getElementById(MqttAutoPublishConfig.FIXED_ID);
-      if (config == null || !config.isAutoDeploy()) {
-        return;
-      }
-      if (config.isEnabled() && config.getBrokerUrl() != null && !config.getBrokerUrl().isBlank()) {
-        new MqttPublisherPipelineHandler(
-            new CompactPipelineManagement(
-                getNoSqlStorage().getPipelineElementDescriptionStorage(),
-                requestManager
-            ),
-            getAuthenticatedUserSid()
-        ).createAndStartMqttPipeline(adapter, config, requestManager);
-        LOG.info("Auto-deployed MQTT publisher pipeline for adapter '{}'", adapter.getName());
-      } else if (config.isDataLakeSinkEnabled()) {
-        new PersistPipelineHandler(
-            getNoSqlStorage().getPipelineTemplateStorage(),
-            new CompactPipelineManagement(
-                getNoSqlStorage().getPipelineElementDescriptionStorage(),
-                requestManager
-            ),
-            getAuthenticatedUserSid()
-        ).createAndStartPersistPipeline(adapter, requestManager);
-        LOG.info("Auto-deployed data lake pipeline for adapter '{}'", adapter.getName());
-      }
-    } catch (Exception e) {
-      LOG.warn("Could not auto-deploy pipeline for adapter '{}': {}", adapter.getName(), e.getMessage());
-    }
-  }
 }

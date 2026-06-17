@@ -91,18 +91,30 @@ public class AdapterResource extends AbstractAdapterResource<AdapterMasterManage
   public ResponseEntity<? extends Message> addAdapter(@RequestBody AdapterDescription adapterDescription) {
     var principalSid = getAuthenticatedUserSid();
     var username = getAuthenticatedUsername();
-    String adapterId;
-    LOG.info("User: {} starts adapter {}", username, adapterDescription.getElementId());
+    String adapterId = ElementIdGenerator.makeElementId(adapterDescription);
+    // Set element ID before enrichment so asset linking records the correct resource ID
+    adapterDescription.setElementId(adapterId);
+    LOG.info("User: {} starts adapter {}", username, adapterId);
+
+    // Enrich event schema and transform script with topic metadata (adapter-asset mapping)
+    enrichOnCreate(adapterDescription);
 
     try {
-      adapterId = ElementIdGenerator.makeElementId(adapterDescription);
       managementService.addAdapter(adapterDescription, adapterId, principalSid);
     } catch (AdapterException e) {
       LOG.error("Error while starting adapter with id {}", adapterDescription.getAppId(), e);
       return ok(Notifications.error(e.getMessage()));
     }
 
-    LOG.info("Stream adapter with id " + adapterId + " successfully added");
+    LOG.info("Stream adapter with id {} successfully added", adapterId);
+
+    // Auto-deploy pipeline per global automation config
+    try {
+      tryAutoDeployPipeline(managementService.getAdapter(adapterId), requestManager);
+    } catch (AdapterException e) {
+      LOG.warn("Could not retrieve adapter '{}' for auto-deploy pipeline: {}", adapterId, e.getMessage());
+    }
+
     return ok(Notifications.success(adapterId));
   }
 
