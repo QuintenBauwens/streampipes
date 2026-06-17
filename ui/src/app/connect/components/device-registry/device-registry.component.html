@@ -84,23 +84,6 @@
                             >
                                 <!-- Connectivity status badge -->
                                 @if (
-                                    reachabilityMap[device.elementId] === null
-                                ) {
-                                    <span
-                                        class="device-status device-status--checking"
-                                        [matTooltip]="
-                                            'Checking connectivity...'
-                                                | translate
-                                        "
-                                    >
-                                        <mat-icon class="device-status__dot"
-                                            >fiber_manual_record</mat-icon
-                                        >
-                                        <span class="device-status__label">{{
-                                            'Checking' | translate
-                                        }}</span>
-                                    </span>
-                                } @else if (
                                     reachabilityMap[device.elementId] === true
                                 ) {
                                     <span
@@ -116,7 +99,9 @@
                                             'Online' | translate
                                         }}</span>
                                     </span>
-                                } @else {
+                                } @else if (
+                                    reachabilityMap[device.elementId] === false
+                                ) {
                                     <span
                                         class="device-status device-status--offline"
                                         [matTooltip]="
@@ -128,6 +113,21 @@
                                         >
                                         <span class="device-status__label">{{
                                             'Offline' | translate
+                                        }}</span>
+                                    </span>
+                                } @else {
+                                    <span
+                                        class="device-status device-status--checking"
+                                        [matTooltip]="
+                                            'Checking connectivity...'
+                                                | translate
+                                        "
+                                    >
+                                        <mat-icon class="device-status__dot"
+                                            >fiber_manual_record</mat-icon
+                                        >
+                                        <span class="device-status__label">{{
+                                            'Checking' | translate
                                         }}</span>
                                     </span>
                                 }

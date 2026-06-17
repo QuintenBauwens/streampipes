@@ -34,7 +34,7 @@
  *
  */
 
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
     DeviceAdapterRequest,
     DeviceService,
@@ -105,7 +105,7 @@ import { AddDeviceComponent } from './add-device/add-device.component';
         TranslatePipe,
     ],
 })
-export class DeviceRegistryComponent implements OnInit {
+export class DeviceRegistryComponent implements OnInit, OnDestroy {
     private deviceService = inject(DeviceService);
     private breadcrumbService = inject(SpBreadcrumbService);
     private dialogService = inject(DialogService);
@@ -123,6 +123,8 @@ export class DeviceRegistryComponent implements OnInit {
     reachabilityMap: Record<string, boolean | null> = {};
 
     private msgTimer: ReturnType<typeof setTimeout> | null = null;
+    private reachabilityInterval: ReturnType<typeof setInterval> | null = null;
+    private readonly REACHABILITY_POLL_MS = 5 * 60 * 1000;
 
     get filteredDevices(): SpDevice[] {
         const term = this.searchTerm.toLowerCase().trim();
@@ -142,12 +144,40 @@ export class DeviceRegistryComponent implements OnInit {
             { label: 'Device Registry' },
         ]);
         this.loadDevices();
+        this.reachabilityInterval = setInterval(
+            () => this.checkAllReachability(),
+            this.REACHABILITY_POLL_MS,
+        );
+    }
+
+    ngOnDestroy(): void {
+        if (this.reachabilityInterval !== null) {
+            clearInterval(this.reachabilityInterval);
+            this.reachabilityInterval = null;
+        }
     }
 
     loadDevices(): void {
         this.deviceService.getAll().subscribe({
-            next: devices => (this.devices = devices),
+            next: devices => {
+                this.devices = devices;
+                this.checkAllReachability();
+            },
             error: () => this.showError('Could not load devices'),
+        });
+    }
+
+    private checkAllReachability(): void {
+        this.devices.forEach(device => {
+            if (!device.elementId) {
+                return;
+            }
+            this.reachabilityMap[device.elementId] = null;
+            this.deviceService.checkReachable(device.elementId).subscribe({
+                next: res =>
+                    (this.reachabilityMap[device.elementId!] = res.reachable),
+                error: () => (this.reachabilityMap[device.elementId!] = false),
+            });
         });
     }
 
