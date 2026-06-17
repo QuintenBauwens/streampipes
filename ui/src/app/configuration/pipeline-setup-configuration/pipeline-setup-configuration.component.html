@@ -146,7 +146,10 @@
                                                 >
                                             </mat-button-toggle-group>
 
-                                            @if (topicMode === 'dynamic') {
+                                            @if (
+                                                topicMode === 'dynamic' &&
+                                                !config.topicEnrichmentEnabled
+                                            ) {
                                                 <sp-alert-banner
                                                     [type]="'info'"
                                                     [title]="

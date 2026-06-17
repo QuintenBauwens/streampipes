@@ -176,11 +176,39 @@ export class PipelineSetupConfigurationComponent implements OnInit {
         );
     }
 
+    get mqttConfigValid(): boolean {
+        if (this.selectedSink !== 'mqtt') return true;
+        if (!this.config.brokerUrl?.trim()) return false;
+        if (this.topicMode === 'static' && !this.config.staticTopic?.trim())
+            return false;
+        if (this.usesUsernameAccess) {
+            if (!this.config.username?.trim()) return false;
+            if (!this.config.password?.trim()) return false;
+        }
+        return true;
+    }
+
     save(): void {
         if (!this.sinksValid) {
             this.error = true;
             this.errorMessage =
                 'A sink must be selected when auto pipeline deployment is active.';
+            return;
+        }
+        if (!this.mqttConfigValid) {
+            this.error = true;
+            if (!this.config.brokerUrl?.trim()) {
+                this.errorMessage = 'Broker URL is required for the MQTT sink.';
+            } else if (
+                this.topicMode === 'static' &&
+                !this.config.staticTopic?.trim()
+            ) {
+                this.errorMessage =
+                    'A static topic is required when static topic mode is selected.';
+            } else {
+                this.errorMessage =
+                    'Username and password are required for username/password access mode.';
+            }
             return;
         }
         this.saved = false;
