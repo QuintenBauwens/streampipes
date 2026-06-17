@@ -150,11 +150,13 @@ logs/
 
 # Python
 venv
+.venv
 *pyc
 dist/
 *whl
 *egg-info/
 __pycache__
+.env
 
 # Develocity
 .mvn/.develocity
