@@ -126,17 +126,16 @@ export class PipelineSetupConfigurationComponent implements OnInit {
         });
     }
 
-    onMqttSinkToggle(): void {
-        if (this.config.enabled) {
-            this.config.dataLakeSinkEnabled = false;
-        }
-        this.clearStatus();
+    /** Derived sink selector — maps to/from the two boolean flags on the config. */
+    get selectedSink(): string {
+        if (this.config.enabled) return 'mqtt';
+        if (this.config.dataLakeSinkEnabled) return 'data-lake';
+        return '';
     }
 
-    onDataLakeSinkToggle(): void {
-        if (this.config.dataLakeSinkEnabled) {
-            this.config.enabled = false;
-        }
+    set selectedSink(value: string) {
+        this.config.enabled = value === 'mqtt';
+        this.config.dataLakeSinkEnabled = value === 'data-lake';
         this.clearStatus();
     }
 
@@ -160,7 +159,7 @@ export class PipelineSetupConfigurationComponent implements OnInit {
         if (!this.sinksValid) {
             this.error = true;
             this.errorMessage =
-                'At least one sink must be enabled when auto pipeline deployment is active.';
+                'A sink must be selected when auto pipeline deployment is active.';
             return;
         }
         this.saved = false;
