@@ -154,6 +154,8 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
 
     adapterMetrics: Record<string, SpMetricsEntry> = {};
     tutorialActive = false;
+    showRefreshHint =
+        (localStorage.getItem('refresh-hint-dismissed') ?? 'false') !== 'true';
     readonly bulkAdapterActionOptions: SpTableMultiActionOption[] = [
         { value: 'start', label: 'Start selected', icon: 'play_arrow' },
         { value: 'stop', label: 'Stop selected', icon: 'stop' },
@@ -470,5 +472,10 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
         this.user$?.unsubscribe();
         this.tutorial$?.unsubscribe();
         this.assetFilter$?.unsubscribe();
+    }
+
+    dismissRefreshHint(): void {
+        this.showRefreshHint = false;
+        localStorage.setItem('refresh-hint-dismissed', 'true');
     }
 }

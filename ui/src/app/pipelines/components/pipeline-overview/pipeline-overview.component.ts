@@ -113,6 +113,7 @@ export class PipelineOverviewComponent implements OnInit, OnDestroy {
     starting = false;
     stopping = false;
     hasPipelineWritePrivileges = false;
+    showRefreshHint = localStorage.getItem('refresh-hint-dismissed') !== 'true';
     readonly assetContextConfig: SpTableAssetContextConfig = {
         resourceLinkType: 'pipeline',
         resourceIdKey: 'elementId',
@@ -239,5 +240,10 @@ export class PipelineOverviewComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.userSub?.unsubscribe();
+    }
+
+    dismissRefreshHint(): void {
+        this.showRefreshHint = false;
+        localStorage.setItem('refresh-hint-dismissed', 'true');
     }
 }
