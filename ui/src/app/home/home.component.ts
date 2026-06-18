@@ -147,10 +147,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.localStorageService.get('default-asset-view', 'table'),
         );
         this.showRefreshHint =
-            (this.localStorageService.get(
-                'refresh-hint-dismissed',
-                'false',
-            ) as string) !== 'true';
+            sessionStorage.getItem('refresh-hint-dismissed') !== 'true';
     }
 
     ngOnInit() {
@@ -328,7 +325,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     dismissRefreshHint(): void {
         this.showRefreshHint = false;
-        this.localStorageService.set('refresh-hint-dismissed', 'true');
+        sessionStorage.setItem('refresh-hint-dismissed', 'true');
     }
 
     ngOnDestroy() {
