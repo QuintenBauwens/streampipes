@@ -1,0 +1,173 @@
+<!--
+~ Licensed to the Apache Software Foundation (ASF) under one or more
+~ contributor license agreements.  See the NOTICE file distributed with
+~ this work for additional information regarding copyright ownership.
+~ The ASF licenses this file to You under the Apache License, Version 2.0
+~ (the "License"); you may not use this file except in compliance with
+~ the License.  You may obtain a copy of the License at
+~
+~    http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+~
+-->
+
+<div class="sp-dialog-container">
+    <div class="sp-dialog-content p-15">
+        <!-- Phase: confirm -->
+        @if (phase === 'confirm') {
+            <div fxLayout="column" style="width: 100%">
+                <p>
+                    {{ 'You are about to delete the following' | translate }}
+                    <b>{{ adapters.length }}</b>
+                    {{ 'adapter(s):' | translate }}
+                </p>
+                <ul class="delete-adapter-list">
+                    @for (adapter of adapters; track adapter.elementId) {
+                        <li>{{ adapter.name }}</li>
+                    }
+                </ul>
+                <p>
+                    <b>{{ 'This operation cannot be undone.' | translate }}</b>
+                </p>
+            </div>
+        }
+
+        <!-- Phase: deleting (progress) -->
+        @if (phase === 'deleting') {
+            <div
+                fxFlex="100"
+                fxLayoutAlign="center center"
+                fxLayout="column"
+                fxLayoutGap="16px"
+            >
+                <mat-spinner
+                    [diameter]="50"
+                    [mode]="'indeterminate'"
+                    color="accent"
+                ></mat-spinner>
+                <b>
+                    {{ 'Deleting adapters' | translate }}
+                    {{ progress }} / {{ adapters.length }}…
+                </b>
+            </div>
+        }
+
+        <!-- Phase: pipeline-confirm (some adapters have associated pipelines) -->
+        @if (phase === 'pipeline-confirm') {
+            <div fxLayout="column" style="width: 100%">
+                <p>
+                    {{
+                        'The following adapter(s) are currently used by pipelines:'
+                            | translate
+                    }}
+                </p>
+                <ul class="delete-adapter-list">
+                    @for (
+                        adapter of conflictedAdapters;
+                        track adapter.elementId
+                    ) {
+                        <li>{{ adapter.name }}</li>
+                    }
+                </ul>
+                <p>
+                    <b>
+                        {{
+                            'Do you want to delete all associated pipelines and these adapters?'
+                                | translate
+                        }}
+                    </b>
+                </p>
+            </div>
+        }
+
+        <!-- Phase: result (summary) -->
+        @if (phase === 'result') {
+            <div fxLayout="column" style="width: 100%">
+                @if (successCount > 0) {
+                    <p>
+                        ✅
+                        <b>{{ successCount }}</b>
+                        {{ 'adapter(s) deleted successfully.' | translate }}
+                    </p>
+                }
+                @if (skippedCount > 0) {
+                    <p>
+                        ⚠️
+                        <b>{{ skippedCount }}</b>
+                        {{
+                            'adapter(s) skipped (associated pipelines not deleted or permission denied).'
+                                | translate
+                        }}
+                    </p>
+                }
+                @if (errorCount > 0) {
+                    <p>
+                        ❌
+                        <b>{{ errorCount }}</b>
+                        {{ 'adapter(s) could not be deleted.' | translate }}
+                    </p>
+                }
+            </div>
+        }
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="sp-dialog-actions actions-align-right">
+        <!-- confirm: Cancel + Delete -->
+        @if (phase === 'confirm') {
+            <button
+                mat-flat-button
+                class="mat-basic"
+                (click)="close(false)"
+                style="margin-right: 10px"
+            >
+                {{ 'Cancel' | translate }}
+            </button>
+            <button
+                mat-flat-button
+                class="btn-warn"
+                data-cy="delete-multiple-adapters-confirm"
+                (click)="startDelete()"
+            >
+                {{ 'Delete' | translate }}
+            </button>
+        }
+
+        <!-- pipeline-confirm: Skip + Delete all -->
+        @if (phase === 'pipeline-confirm') {
+            <button
+                mat-flat-button
+                class="mat-basic"
+                (click)="skipConflicted()"
+                style="margin-right: 10px"
+            >
+                {{ 'Skip these adapters' | translate }}
+            </button>
+            <button
+                mat-flat-button
+                class="btn-warn"
+                data-cy="delete-multiple-adapters-with-pipelines"
+                (click)="deleteConflictedWithPipelines()"
+            >
+                {{ 'DELETE ALL including pipelines' | translate }}
+            </button>
+        }
+
+        <!-- result / deleting: Close -->
+        @if (phase === 'result') {
+            <button
+                mat-flat-button
+                class="mat-basic"
+                (click)="close(successCount > 0)"
+            >
+                {{ 'Close' | translate }}
+            </button>
+        }
+    </div>
+</div>

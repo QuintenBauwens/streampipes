@@ -59,6 +59,7 @@ import {
     SpTableComponent,
 } from '@streampipes/shared-ui';
 import { DeleteAdapterDialogComponent } from '../../dialog/delete-adapter-dialog/delete-adapter-dialog.component';
+import { DeleteMultipleAdaptersDialogComponent } from '../../dialog/delete-multiple-adapters-dialog/delete-multiple-adapters-dialog.component';
 import { AllAdapterActionsComponent } from '../../dialog/start-all-adapters/all-adapter-actions-dialog.component';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { Router } from '@angular/router';
@@ -155,6 +156,7 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
     readonly bulkAdapterActionOptions: SpTableMultiActionOption[] = [
         { value: 'start', label: 'Start selected', icon: 'play_arrow' },
         { value: 'stop', label: 'Stop selected', icon: 'stop' },
+        { value: 'delete', label: 'Delete selected', icon: 'delete' },
     ];
 
     assetFilter$: Subscription;
@@ -234,12 +236,30 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
     startStopSelectedAdapters(
         event: SpTableMultiActionExecuteEvent<AdapterDescription>,
     ) {
-        if (event.action !== 'start' && event.action !== 'stop') {
+        const selectedAdapters = event.selectedRows ?? [];
+        if (!selectedAdapters.length) {
             return;
         }
 
-        const selectedAdapters = event.selectedRows ?? [];
-        if (!selectedAdapters.length) {
+        if (event.action === 'delete') {
+            const dialogRef: DialogRef<DeleteMultipleAdaptersDialogComponent> =
+                this.dialogService.open(DeleteMultipleAdaptersDialogComponent, {
+                    panelType: PanelType.STANDARD_PANEL,
+                    title: this.translate.instant('Delete adapters'),
+                    width: '70vw',
+                    data: {
+                        adapters: selectedAdapters,
+                    },
+                });
+            dialogRef.afterClosed().subscribe(refresh => {
+                if (refresh) {
+                    this.getAdaptersRunning();
+                }
+            });
+            return;
+        }
+
+        if (event.action !== 'start' && event.action !== 'stop') {
             return;
         }
 
