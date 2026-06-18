@@ -107,7 +107,11 @@ public class MqttPublisherPipelineHandler {
 
     var result = pipelineManagement.makePipeline(compactPipeline);
     if (result.allPipelineElementsValid()) {
-      String pipelineId = PipelineManager.addPipeline(authenticatedUserSid, result.pipeline());
+      var pipeline = result.pipeline();
+      if (config.getPipelineLabelIds() != null && !config.getPipelineLabelIds().isEmpty()) {
+        pipeline.setLabels(config.getPipelineLabelIds());
+      }
+      String pipelineId = PipelineManager.addPipeline(authenticatedUserSid, pipeline);
       if (compactPipeline.createOptions().start()) {
         return PipelineManager.startPipeline(pipelineId, requestManager);
       }

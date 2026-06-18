@@ -70,6 +70,9 @@ public class AdapterDescription extends VersionedNamedStreamPipesEntity {
   /** Optional reference to the SpDevice this adapter was created from. */
   private String deviceId;
 
+  /** Label IDs assigned to this adapter (mirrors Pipeline.labels). */
+  private List<String> labelIds = new ArrayList<>();
+
   public AdapterDescription() {
     super();
     this.rules = new ArrayList<>();
@@ -111,6 +114,7 @@ public class AdapterDescription extends VersionedNamedStreamPipesEntity {
     this.deploymentConfiguration = other.getDeploymentConfiguration();
     this.transformationConfig = other.getTransformationConfig();
     this.deviceId = other.getDeviceId();
+    this.labelIds = other.getLabelIds() != null ? new ArrayList<>(other.getLabelIds()) : new ArrayList<>();
   }
 
   public String getRev() {
@@ -254,5 +258,13 @@ public class AdapterDescription extends VersionedNamedStreamPipesEntity {
 
   public void setDeviceId(String deviceId) {
     this.deviceId = deviceId;
+  }
+
+  public List<String> getLabelIds() {
+    return labelIds;
+  }
+
+  public void setLabelIds(List<String> labelIds) {
+    this.labelIds = labelIds != null ? labelIds : new ArrayList<>();
   }
 }

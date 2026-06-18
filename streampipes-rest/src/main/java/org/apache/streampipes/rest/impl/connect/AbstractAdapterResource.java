@@ -64,11 +64,24 @@ public class AbstractAdapterResource<T> extends AbstractAuthGuardedRestResource 
   /**
    * Enriches the adapter's event schema and transformation script with topic metadata sourced
    * from the adapter-asset mapping DB, then links the adapter to the matching asset node.
+   * Also applies any configured adapter label IDs from the automation config.
    * Controlled by the global automation config ({@code topicEnrichmentEnabled}).
    * Safe to call even when no mapping exists — it will silently do nothing.
    */
   protected void enrichOnCreate(AdapterDescription adapter) {
     new AdapterAssetEnrichmentService().enrichAndLink(adapter);
+    try {
+      var config = StorageDispatcher.INSTANCE.getNoSqlStore()
+                                              .getMqttAutoPublishConfigStorage()
+                                              .getElementById(MqttAutoPublishConfig.FIXED_ID);
+      if (config != null
+          && config.getAdapterLabelIds() != null
+          && !config.getAdapterLabelIds().isEmpty()) {
+        adapter.setLabelIds(config.getAdapterLabelIds());
+      }
+    } catch (Exception e) {
+      LOG.warn("Could not apply adapter label IDs for adapter '{}': {}", adapter.getName(), e.getMessage());
+    }
   }
 
   /**
@@ -102,7 +115,7 @@ public class AbstractAdapterResource<T> extends AbstractAuthGuardedRestResource 
                 requestManager
             ),
             getAuthenticatedUserSid()
-        ).createAndStartPersistPipeline(adapter, requestManager);
+        ).createAndStartPersistPipeline(adapter, config.getPipelineLabelIds(), requestManager);
         LOG.info("Auto-deployed data lake pipeline for adapter '{}'", adapter.getName());
       }
     } catch (Exception e) {

@@ -73,6 +73,7 @@ import { MatFormField } from '@angular/material/form-field';
 import { Subscription } from 'rxjs';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { SpAssetBrowserService } from '../asset-browser/asset-browser.service';
+import { AssetBrowserData } from '../asset-browser/asset-browser.model';
 import { SpLabelComponent } from '../sp-label/sp-label.component';
 import {
     MatButtonToggle,
@@ -85,6 +86,7 @@ import {
     SpTableResolvedAssetContext,
 } from './sp-table.model';
 import { SpTableAssetContextService } from './sp-asset-context/sp-table-asset-context.service';
+import { SpLabel } from '@streampipes/platform-services';
 
 type SpTableGroupViewMode = 'list' | 'grouped';
 type SpTableGroupingMode = 'label' | 'site' | 'asset';
@@ -175,6 +177,13 @@ export class SpTableComponent<T>
     @Input() featureCardId: string;
     @Input() resourceIdKey = 'elementId';
     @Input() assetContextConfig?: SpTableAssetContextConfig;
+    /**
+     * Optional property key on the row object that holds an array of label IDs
+     * (e.g. `'labels'` for Pipeline or `'labelIds'` for AdapterDescription).
+     * When set, those labels are merged into the resolved asset context so they
+     * appear in the label chip column even without an explicit asset link.
+     */
+    @Input() rowLabelIdsKey?: string;
 
     @Input() dataSource: MatTableDataSource<T>;
 
@@ -210,6 +219,7 @@ export class SpTableComponent<T>
         string,
         Map<string, SpTableResolvedAssetContext>
     >();
+    private currentAssetData: AssetBrowserData | undefined;
     private compactLayout = false;
 
     readonly pageSize: Signal<number>;
@@ -221,6 +231,7 @@ export class SpTableComponent<T>
         );
         this.assetDataSubscription =
             this.assetBrowserService.assetData$.subscribe(assetData => {
+                this.currentAssetData = assetData;
                 this.assetContextIndex =
                     this.assetContextService.buildAssetContextIndex(assetData);
                 this.applyAssetContextSortingAccessor();
@@ -361,9 +372,44 @@ export class SpTableComponent<T>
             return undefined;
         }
 
-        return this.assetContextIndex
+        const fromIndex = this.assetContextIndex
             .get(config.resourceLinkType)
             ?.get(resourceId);
+
+        if (!this.rowLabelIdsKey) {
+            return fromIndex;
+        }
+
+        const rowLabelIds: string[] =
+            ((row as Record<string, unknown>)[
+                this.rowLabelIdsKey
+            ] as string[]) ?? [];
+        if (!rowLabelIds.length) {
+            return fromIndex;
+        }
+
+        const labelsById = new Map(
+            (this.currentAssetData?.labels ?? [])
+                .filter(l => l._id)
+                .map(l => [l._id, l]),
+        );
+        const rowLabels = rowLabelIds
+            .map(id => labelsById.get(id))
+            .filter(l => !!l);
+        if (!rowLabels.length) {
+            return fromIndex;
+        }
+
+        const merged = fromIndex
+            ? { ...fromIndex, labels: [...fromIndex.labels] }
+            : new SpTableResolvedAssetContext();
+        const existingIds = new Set(merged.labels.map(l => l._id ?? l.label));
+        rowLabels.forEach(l => {
+            if (!existingIds.has(l._id ?? l.label)) {
+                merged.labels.push(l);
+            }
+        });
+        return merged;
     }
 
     get selectedRows(): T[] {

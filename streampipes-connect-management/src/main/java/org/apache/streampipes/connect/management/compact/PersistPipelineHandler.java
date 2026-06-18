@@ -57,6 +57,7 @@ public class PersistPipelineHandler {
   }
 
   public PipelineOperationStatus createAndStartPersistPipeline(AdapterDescription adapterDescription,
+                                                               List<String> pipelineLabelIds,
                                                                ExtensionServiceRequestManager requestManager) throws Exception {
     var template = getTemplate();
     if (template != null) {
@@ -69,7 +70,11 @@ public class PersistPipelineHandler {
       );
       var pipelineGenerationResult = pipelineManagement.makePipeline(compactPipeline);
       if (pipelineGenerationResult.allPipelineElementsValid()) {
-        String pipelineId = PipelineManager.addPipeline(authenticatedUserSid, pipelineGenerationResult.pipeline());
+        var pipeline = pipelineGenerationResult.pipeline();
+        if (pipelineLabelIds != null && !pipelineLabelIds.isEmpty()) {
+          pipeline.setLabels(pipelineLabelIds);
+        }
+        String pipelineId = PipelineManager.addPipeline(authenticatedUserSid, pipeline);
         if (compactPipeline.createOptions().start()) {
           return PipelineManager.startPipeline(pipelineId, requestManager);
         }

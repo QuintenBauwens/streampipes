@@ -109,6 +109,7 @@ export class AdapterDescription extends VersionedNamedStreamPipesEntity {
     'eventGrounding': EventGrounding;
     'eventSchema': EventSchema;
     'icon': string;
+    'labelIds': string[];
     'rules': TransformationRuleDescriptionUnion[];
     'running': boolean;
     'selectedEndpointUrl': string;
@@ -139,6 +140,9 @@ export class AdapterDescription extends VersionedNamedStreamPipesEntity {
         instance.eventGrounding = EventGrounding.fromData(data.eventGrounding);
         instance.eventSchema = EventSchema.fromData(data.eventSchema);
         instance.icon = data.icon;
+        instance.labelIds = __getCopyArrayFn(__identity<string>())(
+            data.labelIds,
+        );
         instance.rules = __getCopyArrayFn(
             TransformationRuleDescription.fromDataUnion,
         )(data.rules);
