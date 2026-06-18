@@ -21,36 +21,16 @@
     height: 100%;
 }
 
-/* Force sp-basic-view to fill and flex so panel-content can grow */
-:host ::ng-deep sp-basic-view .page-container {
-    min-height: 0 !important;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-:host ::ng-deep sp-basic-view .page-container > div:last-child {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
 .designer-panel-content {
     padding: 0;
-    overflow: hidden;
-    height: calc(100vh - 64px);
-    display: flex;
-    flex-direction: column;
+    max-height: calc(100vh - 76px);
+    overflow-y: auto;
 }
 
 /* Flex column that fills the sp-basic-view content area */
 .panel-content {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
 }
 
 /* Search bar — pinned at the top, visually separated from the tree */
@@ -64,11 +44,16 @@
     width: 100%;
 }
 
-/* Scrollable area that fills all remaining space */
+/* Scrollable tree area — explicit max-height so scroll always triggers */
 .tree-wrapper {
-    flex: 1 1 auto;
-    min-height: 0;
     overflow-y: auto;
+    /*
+     * 76px app header
+     * 44px sp-basic-view nav bar
+     * 80px search wrapper (padding + input height + border)
+     * 20px extra breathing room
+     */
+    max-height: calc(100vh - 220px);
     padding: 6px 5px 10px 2px;
 }
 
