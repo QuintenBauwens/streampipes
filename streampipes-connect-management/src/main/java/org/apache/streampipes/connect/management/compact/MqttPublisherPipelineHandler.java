@@ -99,7 +99,7 @@ public class MqttPublisherPipelineHandler {
     var topicDescription = resolveTopicDescription(adapterDescription, config);
     var compactPipeline = new CompactPipeline(
         null,
-        String.format("mqtt-%s", adapterSlug),
+        String.format("auto-%s", adapterSlug),
         String.format("MQTT publish: %s", topicDescription),
         List.of(sinkElement, streamElement),
         new CreateOptions(false, true)
@@ -173,14 +173,18 @@ public class MqttPublisherPipelineHandler {
 
   /**
    * Resolves the topic string to display in the pipeline description.
+   * Mirrors the priority used in {@link #buildSinkConfig}:
    * <ol>
-   *   <li>Returns the static topic from config if explicitly set.</li>
-   *   <li>Falls back to the adapter-asset mapping topic for this adapter name.</li>
-   *   <li>Falls back to the adapter name if no mapping is found.</li>
+   *   <li>If the adapter schema has a {@code topic} field, the pipeline will
+   *       use dynamic topic mode — return the mapping topic (or adapter name).</li>
+   *   <li>Otherwise, if a static topic is configured, return that.</li>
+   *   <li>Fall back to the adapter name.</li>
    * </ol>
    */
   private String resolveTopicDescription(AdapterDescription adapter, MqttAutoPublishConfig config) {
-    if (config.getStaticTopic() != null && !config.getStaticTopic().isBlank()) {
+    if (!hasTopicField(adapter)
+        && config.getStaticTopic() != null
+        && !config.getStaticTopic().isBlank()) {
       return config.getStaticTopic();
     }
     try {

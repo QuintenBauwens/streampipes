@@ -108,9 +108,13 @@ export class SpTableAssetContextService {
         // Use the immediate asset that holds the link as the group key so that
         // grouped views show the direct parent asset (e.g. B-3151200) instead
         // of the hierarchy root (e.g. B).
+        // Fall back through elementId → assetId → assetName so that assets
+        // created without an explicit assetId (e.g. older Maximo imports) still
+        // produce a valid, non-empty key and are not silently dropped by uniqueBy.
         const currentAssetId =
             (asset as SpAsset & { elementId?: string }).elementId ??
-            asset.assetId;
+            asset.assetId ??
+            asset.assetName;
 
         (asset.assetLinks ?? []).forEach(link => {
             const contextsByResource =

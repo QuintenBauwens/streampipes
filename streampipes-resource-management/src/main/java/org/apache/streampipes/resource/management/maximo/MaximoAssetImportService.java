@@ -103,6 +103,9 @@ public class MaximoAssetImportService {
     SpAssetModel asset = new SpAssetModel();
     asset.setAssetName(loc.getLocation());
     asset.setAssetDescription(loc.getDescription());
+    // Use the Maximo location code as a stable, human-readable assetId so that
+    // sub-assets have a valid ID for the UI context index and tree navigation.
+    asset.setAssetId(loc.getLocation());
 
     Map<String, Object> additional = new HashMap<>();
     additional.put("maximo_location", loc.getLocation());
