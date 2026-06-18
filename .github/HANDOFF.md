@@ -47,6 +47,7 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 | **Device registry bulk reachability on load** | ✅ Done | `checkAllReachability()` fires for all devices when page loads and every 5 min via `setInterval`; `onPanelOpened` still re-checks on expand; template `@if` order flipped (true/false/else) so null+undefined both show "Checking" |
 | **Device registry full adapter count** | ✅ Done | `deviceId` added to `AdapterDescription` + `CompactAdapter`; propagated via `AdapterBasicsGenerator`; `getAllDevices()` enriches `adapterIds` in-response with adapters carrying matching `deviceId`; YAML-imported adapters link via `deviceId` field |
 | **Automation settings: label assignment** | ✅ Done | `pipelineLabelIds` + `adapterLabelIds` added to `MqttAutoPublishConfig` (Java + TS interface); multi-select label pickers in both Pipelines and Adapters tabs; "no labels" state links to `/configuration/labels` |
+| **Manual adapter creation automation** | ✅ Done | `AdapterResource.addAdapter()` now calls `enrichOnCreate()` + `tryAutoDeployPipeline()` (both moved to `AbstractAdapterResource`); element ID set before enrichment; pipeline description uses actual topic |
 
 ---
 
@@ -54,18 +55,25 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 
 All features compile-verified (backend) and build-verified (Angular dev build). Branch: `copilot-cli`.
 
+## This Session's Changes
+
+| Fix / Feature | Status | Commit |
+|---|---|---|
+| Asset grouping uses direct asset (not root) | ✅ Done | `fix(assets): group adapters/pipelines by direct asset instead of root` |
+| Maximo sub-assets missing assetId | ✅ Done | `fix(connect,assets): pipeline name auto-X, consistent topic desc, fix asset context` |
+| Auto-pipeline name `auto-<adapterName>` | ✅ Done | same commit |
+| Topic description mirrors dynamic/static priority | ✅ Done | same commit |
+| Back arrow on `/assets/mappings` page | ✅ Done | `feat(assets,config): back arrow on mappings page, static topic warning, scrollable+searchable asset tree` |
+| Static topic + topic enrichment info warning | ✅ Done | same commit |
+| Asset editor: scrollable tree + search input | ✅ Done | same commit |
+
 ## First Thing To Do Next Session
 
 No outstanding work. If continuing:
 - `docker compose build && docker compose up -d` to smoke-test end-to-end
-- Verify `/connect/devices`:
-  - Page load → all devices show "Checking" then resolve to Online/Offline without any clicks
-  - Leave page open 5 min → statuses refresh automatically
-  - Expand a device → immediately re-checks that device (resets to "Checking" then resolves)
-  - Adapter count tile includes: adapters created via device registry + YAML-imported adapters with `deviceId` in YAML
-  - "Add Device" → opens right-side slide-in panel (no adapter type field)
-  - "Add Adapter" → slide-in panel with Protocol selector first; PLC4x code block section appears conditionally
-- API path fixed: `POST /api/v2/devices/{id}/adapter` (singular) — matches backend and frontend
+- Verify asset grouping: adapters assigned to sub-assets now group under the immediate parent asset (not root)
+- Verify asset editor: tree is scrollable; search input filters nodes as you type; clicking a result selects it
+- Verify pipeline automation settings: when both static topic + topic enrichment are enabled, info banner appears explaining static topic is the fallback for adapters without a topic field
 
 ---
 
