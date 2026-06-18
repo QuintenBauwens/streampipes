@@ -25,18 +25,28 @@ import {
     PipelineCanvasMetadata,
     PipelineCanvasMetadataService,
     PipelineService,
+    SpLabel,
 } from '@streampipes/platform-services';
 import { forkJoin } from 'rxjs';
 import {
     FlexDirective,
     FlexFillDirective,
     LayoutDirective,
+    LayoutGapDirective,
 } from '@ngbracket/ngx-layout';
-import { FeatureCardHeaderComponent } from '@streampipes/shared-ui';
+import {
+    FeatureCardHeaderComponent,
+    SpAssetBrowserService,
+    SpLabelComponent,
+    SpTableAssetContextService,
+    SpTableResolvedAssetContext,
+} from '@streampipes/shared-ui';
 import { PipelinePreviewMetaComponent } from './pipeline-preview-meta/pipeline-preview-meta.component';
 import { MatDivider } from '@angular/material/list';
 import { Router } from '@angular/router';
 import { PipelinePreviewComponent } from '../../../pipeline-details/components/preview/pipeline-preview.component';
+import { MatIcon } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'sp-pipeline-feature-card',
@@ -47,9 +57,13 @@ import { PipelinePreviewComponent } from '../../../pipeline-details/components/p
         FlexFillDirective,
         MatDivider,
         LayoutDirective,
+        LayoutGapDirective,
         FeatureCardHeaderComponent,
         FlexDirective,
         PipelinePreviewComponent,
+        SpLabelComponent,
+        MatIcon,
+        TranslatePipe,
     ],
 })
 export class PipelineFeatureCardComponent implements OnInit {
@@ -61,11 +75,15 @@ export class PipelineFeatureCardComponent implements OnInit {
     pipeline: Pipeline;
     pipelineCanvasMetadata: PipelineCanvasMetadata;
     assetLink: AssetLinkType;
+    resolvedLabels: SpLabel[] = [];
+    assetContext: SpTableResolvedAssetContext | undefined;
 
     private pipelineService = inject(PipelineService);
     private pipelineCanvasService = inject(PipelineCanvasMetadataService);
     private genericStorageService = inject(GenericStorageService);
     private router = inject(Router);
+    private assetBrowserService = inject(SpAssetBrowserService);
+    private assetContextService = inject(SpTableAssetContextService);
 
     ngOnInit() {
         forkJoin([
@@ -82,6 +100,27 @@ export class PipelineFeatureCardComponent implements OnInit {
                 ? p[1]
                 : new PipelineCanvasMetadata();
             this.assetLink = p[2].find(a => a.linkType === 'pipeline');
+
+            const assetData = this.assetBrowserService.assetData$.value;
+
+            // Resolve pipeline's own label IDs to full label objects
+            if (this.pipeline?.labels?.length && assetData?.labels) {
+                const labelsById = new Map(
+                    assetData.labels.filter(l => l._id).map(l => [l._id, l]),
+                );
+                this.resolvedLabels = this.pipeline.labels
+                    .map(id => labelsById.get(id))
+                    .filter((l): l is SpLabel => !!l);
+            }
+
+            // Resolve asset context (linked asset, site)
+            if (assetData && this.pipeline?.elementId) {
+                const index =
+                    this.assetContextService.buildAssetContextIndex(assetData);
+                this.assetContext = index
+                    .get('pipeline')
+                    ?.get(this.pipeline.elementId);
+            }
         });
     }
 

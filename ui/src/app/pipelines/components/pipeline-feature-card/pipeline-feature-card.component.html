@@ -36,6 +36,63 @@
         >
         </sp-pipeline-preview-meta>
 
+        @if (assetContext) {
+            <div class="feature-card-meta-card meta-card">
+                <div class="feature-card-meta-section__label">
+                    {{ 'Asset context' | translate }}
+                </div>
+                <div fxLayout="row wrap" fxLayoutGap="4px" class="mb-xs">
+                    @for (site of assetContext.sites; track site.id) {
+                        <sp-label size="small" variant="soft" tone="info">
+                            <mat-icon
+                                class="mr-xs"
+                                style="
+                                    font-size: 12px;
+                                    height: 12px;
+                                    width: 12px;
+                                "
+                                >location_on</mat-icon
+                            >
+                            {{ site.label }}
+                        </sp-label>
+                    }
+                    @for (asset of assetContext.assets; track asset.id) {
+                        <sp-label size="small" variant="soft" tone="neutral">
+                            <mat-icon
+                                class="mr-xs"
+                                style="
+                                    font-size: 12px;
+                                    height: 12px;
+                                    width: 12px;
+                                "
+                                >category</mat-icon
+                            >
+                            {{ asset.tooltip ?? asset.label }}
+                        </sp-label>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (resolvedLabels.length) {
+            <div class="feature-card-meta-card meta-card">
+                <div class="feature-card-meta-section__label">
+                    {{ 'Labels' | translate }}
+                </div>
+                <div fxLayout="row wrap" fxLayoutGap="4px" class="mb-xs">
+                    @for (label of resolvedLabels; track label._id) {
+                        <sp-label
+                            size="small"
+                            variant="soft"
+                            [color]="label.color"
+                        >
+                            {{ label.label }}
+                        </sp-label>
+                    }
+                </div>
+            </div>
+        }
+
         <mat-divider></mat-divider>
 
         <div fxFlex fxLayout="column" class="feature-preview-wrapper">

@@ -69,6 +69,17 @@
                     <button
                         mat-flat-button
                         class="mat-basic"
+                        data-cy="sp-table-select-all"
+                        (click)="selectAllFilteredRows()"
+                        [disabled]="!dataSource?.filteredData?.length"
+                    >
+                        <mat-icon>done_all</mat-icon>
+                        {{ 'Select all' | translate }}
+                        ({{ dataSource?.filteredData?.length ?? 0 }})
+                    </button>
+                    <button
+                        mat-flat-button
+                        class="mat-basic"
                         data-cy="sp-table-select-none"
                         (click)="clearSelection()"
                         [disabled]="!selectedRows.length"
