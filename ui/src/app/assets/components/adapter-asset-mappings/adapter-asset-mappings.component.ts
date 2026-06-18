@@ -103,6 +103,8 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
     private mappingService = inject(AdapterAssetMappingService);
     private breadcrumbService = inject(SpBreadcrumbService);
 
+    readonly backLink = ['/assets'];
+
     @ViewChild('csvFileInput')
     csvFileInput: ElementRef<HTMLInputElement>;
 

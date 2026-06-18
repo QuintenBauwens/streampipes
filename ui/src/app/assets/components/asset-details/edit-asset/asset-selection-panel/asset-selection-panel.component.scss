@@ -30,6 +30,18 @@
     padding: 5px 5px 10px 2px;
     overflow-y: auto;
     flex: 1 1 auto;
+    max-height: calc(100vh - 280px);
+}
+
+.search-field {
+    width: 100%;
+    padding: 0 8px;
+}
+
+.no-results {
+    padding: 16px 12px;
+    color: var(--fg-muted, #666);
+    font-size: var(--font-size-sm);
 }
 
 .sp-tree-invisible {

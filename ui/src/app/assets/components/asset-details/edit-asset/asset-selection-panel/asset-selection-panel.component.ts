@@ -43,8 +43,15 @@ import {
 } from '@ngbracket/ngx-layout/flex';
 import { SpBasicViewComponent } from '@streampipes/shared-ui';
 import { MatIcon } from '@angular/material/icon';
-import { MatIconButton } from '@angular/material/button';
+import { MatIconButton, MatButton } from '@angular/material/button';
 import { TranslatePipe } from '@ngx-translate/core';
+import { FormsModule } from '@angular/forms';
+import {
+    MatFormField,
+    MatLabel,
+    MatPrefix,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 
 @Component({
     selector: 'sp-asset-selection-panel',
@@ -62,8 +69,14 @@ import { TranslatePipe } from '@ngx-translate/core';
         MatTreeNodeToggle,
         MatIcon,
         MatIconButton,
+        MatButton,
         MatNestedTreeNode,
         MatTreeNodeOutlet,
+        FormsModule,
+        MatFormField,
+        MatLabel,
+        MatPrefix,
+        MatInput,
         TranslatePipe,
     ],
 })
@@ -84,10 +97,35 @@ export class SpAssetSelectionPanelComponent implements OnInit {
     treeControl = new NestedTreeControl<SpAsset>(node => node.assets);
     dataSource = new MatTreeNestedDataSource<SpAsset>();
 
+    searchTerm = '';
+
     @ViewChild('tree') tree;
 
     hasChild = (_: number, node: SpAsset) =>
         !!node.assets && node.assets.length > 0;
+
+    get filteredFlatNodes(): SpAsset[] {
+        if (!this.searchTerm?.trim() || !this.assetModel) {
+            return [];
+        }
+        const term = this.searchTerm.toLowerCase();
+        const results: SpAsset[] = [];
+        this.collectMatchingNodes(this.assetModel, term, results);
+        return results;
+    }
+
+    private collectMatchingNodes(
+        node: SpAsset,
+        term: string,
+        results: SpAsset[],
+    ): void {
+        if (node.assetName?.toLowerCase().includes(term)) {
+            results.push(node);
+        }
+        (node.assets ?? []).forEach(child =>
+            this.collectMatchingNodes(child, term, results),
+        );
+    }
 
     ngOnInit(): void {
         this.treeControl = new NestedTreeControl<SpAsset>(node => node.assets);

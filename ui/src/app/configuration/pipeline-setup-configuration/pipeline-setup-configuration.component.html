@@ -222,6 +222,21 @@
                                                             | translate
                                                     "
                                                 ></sp-alert-banner>
+                                                @if (
+                                                    config.topicEnrichmentEnabled
+                                                ) {
+                                                    <sp-alert-banner
+                                                        [type]="'info'"
+                                                        [title]="
+                                                            'Topic enrichment is active'
+                                                                | translate
+                                                        "
+                                                        [description]="
+                                                            'Adapters that have a matching entry in the adapter-to-asset mapping will receive a dynamic topic field and publish to their own topic. The static topic entered above is used only as a fallback for adapters without a mapping.'
+                                                                | translate
+                                                        "
+                                                    ></sp-alert-banner>
+                                                }
                                             }
                                         </div>
 
