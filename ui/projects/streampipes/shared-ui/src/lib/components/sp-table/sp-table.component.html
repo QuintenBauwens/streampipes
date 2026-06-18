@@ -390,9 +390,7 @@
 <ng-template #assetContextCell let-element>
     @if (getAssetContext(element); as assetContext) {
         <div class="asset-context-cell">
-            @if (
-                showGroupedSitesInAssetContext && assetContext.sites.length > 0
-            ) {
+            @if (assetContext.sites.length > 0) {
                 @for (site of assetContext.sites; track site.id) {
                     <sp-label
                         size="small"
@@ -403,10 +401,7 @@
                     </sp-label>
                 }
             }
-            @if (
-                showGroupedAssetsInAssetContext &&
-                assetContext.assets.length > 0
-            ) {
+            @if (assetContext.assets.length > 0) {
                 @for (asset of assetContext.assets; track asset.id) {
                     <sp-label
                         size="small"
@@ -418,10 +413,7 @@
                     </sp-label>
                 }
             }
-            @if (
-                showGroupedLabelsInAssetContext &&
-                assetContext.labels.length > 0
-            ) {
+            @if (assetContext.labels.length > 0) {
                 @for (
                     label of assetContext.labels;
                     track label._id ?? label.label

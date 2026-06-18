@@ -349,18 +349,6 @@ export class SpTableComponent<T>
             : this.dataSource;
     }
 
-    get showGroupedLabelsInAssetContext(): boolean {
-        return this.viewMode !== 'grouped' || this.groupBy !== 'label';
-    }
-
-    get showGroupedSitesInAssetContext(): boolean {
-        return this.viewMode !== 'grouped' || this.groupBy !== 'site';
-    }
-
-    get showGroupedAssetsInAssetContext(): boolean {
-        return this.viewMode !== 'grouped' || this.groupBy !== 'asset';
-    }
-
     /** Returns the context purely from the asset-link index — used for grouping. */
     private getBaseAssetContext(
         row: T,
