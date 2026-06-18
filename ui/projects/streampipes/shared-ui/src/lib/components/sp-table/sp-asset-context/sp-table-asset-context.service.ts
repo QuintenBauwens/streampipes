@@ -17,12 +17,7 @@
  */
 
 import { Injectable } from '@angular/core';
-import {
-    SpAsset,
-    SpAssetModel,
-    SpDataStream,
-    SpLabel,
-} from '@streampipes/platform-services';
+import { SpAsset, SpDataStream, SpLabel } from '@streampipes/platform-services';
 import { AssetBrowserData } from '../../asset-browser/asset-browser.model';
 import {
     SpTableAssetContextValue,
@@ -59,8 +54,6 @@ export class SpTableAssetContextService {
                 index,
                 sitesById,
                 labelsById,
-                (asset as SpAssetModel).elementId ?? asset.assetId,
-                asset.assetName,
                 [],
                 [],
                 null,
@@ -93,8 +86,6 @@ export class SpTableAssetContextService {
         index: Map<string, Map<string, SpTableResolvedAssetContext>>,
         sitesById: Map<string, string>,
         labelsById: Map<string, SpLabel>,
-        topLevelAssetId: string,
-        topLevelAssetLabel: string,
         hierarchy: string[],
         inheritedLabels: SpLabel[],
         inheritedSiteLabel: string | null,
@@ -114,6 +105,13 @@ export class SpTableAssetContextService {
             asset.assetSite?.area ??
             inheritedSiteLabel;
 
+        // Use the immediate asset that holds the link as the group key so that
+        // grouped views show the direct parent asset (e.g. B-3151200) instead
+        // of the hierarchy root (e.g. B).
+        const currentAssetId =
+            (asset as SpAsset & { elementId?: string }).elementId ??
+            asset.assetId;
+
         (asset.assetLinks ?? []).forEach(link => {
             const contextsByResource =
                 index.get(link.linkType) ??
@@ -126,8 +124,8 @@ export class SpTableAssetContextService {
                 [
                     ...currentContext.assets,
                     new SpTableAssetContextValue(
-                        topLevelAssetId,
-                        topLevelAssetLabel,
+                        currentAssetId,
+                        asset.assetName,
                         currentHierarchy.join(' / '),
                     ),
                 ],
@@ -167,8 +165,6 @@ export class SpTableAssetContextService {
                 index,
                 sitesById,
                 labelsById,
-                topLevelAssetId,
-                topLevelAssetLabel,
                 currentHierarchy,
                 currentLabels,
                 siteLabel,
