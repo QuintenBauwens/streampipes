@@ -21,21 +21,55 @@
     height: 100%;
 }
 
+/* Force sp-basic-view to fill and flex so panel-content can grow */
+:host ::ng-deep sp-basic-view .page-container {
+    min-height: 0 !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep sp-basic-view .page-container > div:last-child {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .designer-panel-content {
     padding: 0;
     overflow: hidden;
+    height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
 }
 
-.tree-wrapper {
-    padding: 5px 5px 10px 2px;
-    overflow-y: auto;
+/* Flex column that fills the sp-basic-view content area */
+.panel-content {
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
-    max-height: calc(100vh - 280px);
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Search bar — pinned at the top, visually separated from the tree */
+.search-wrapper {
+    flex: 0 0 auto;
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid var(--color-bg-3);
 }
 
 .search-field {
     width: 100%;
-    padding: 0 8px;
+}
+
+/* Scrollable area that fills all remaining space */
+.tree-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 6px 5px 10px 2px;
 }
 
 .no-results {
