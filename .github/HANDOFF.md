@@ -66,14 +66,20 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Back arrow on `/assets/mappings` page | ✅ Done | `feat(assets,config): back arrow on mappings page, static topic warning, scrollable+searchable asset tree` |
 | Static topic + topic enrichment info warning | ✅ Done | same commit |
 | Asset editor: scrollable tree + search input | ✅ Done | same commit |
+| Asset editor scroll cutoff fix | ✅ Done | `fix(assets): fix asset selection panel cutoff and enable tree scroll` |
+| Group adapters by **parent** asset (not direct) | ✅ Done | `feat(assets): group adapters by parent asset, show direct asset as context` |
+| Apply automation label IDs to pipelines/adapters | ✅ Done | `feat(labels): apply automation label IDs to auto-created pipelines and adapters` |
+| Asset grouping unaffected by row-level labels | ✅ Done | `fix(labels): keep asset/label grouping asset-only, row labels are display-only` |
+| Label grouping now correctly groups by row labelIds | ✅ Done | `feat(connect): fix label grouping and add labels/asset context to adapter preview` |
+| Adapter preview shows labels + asset context | ✅ Done | same commit |
 
 ## First Thing To Do Next Session
 
-No outstanding work. If continuing:
-- `docker compose build && docker compose up -d` to smoke-test end-to-end
-- Verify asset grouping: adapters assigned to sub-assets now group under the immediate parent asset (not root)
-- Verify asset editor: tree is scrollable; search input filters nodes as you type; clicking a result selects it
-- Verify pipeline automation settings: when both static topic + topic enrichment are enabled, info banner appears explaining static topic is the fallback for adapters without a topic field
+No outstanding work. Smoke-test checklist:
+- `docker compose build && docker compose up -d`
+- **Label grouping**: adapter overview → Group by Label → adapters with automation-assigned labels should appear under their label group (not Unassigned)
+- **Adapter preview**: click any adapter row → preview panel should show "Asset context" chips (site + asset) and "Labels" chips if automation labels were assigned
+- **Asset grouping**: adapters linked to deep sub-assets should group under the **immediate parent** asset (e.g. `B-3151200`), not the root
 
 ---
 
