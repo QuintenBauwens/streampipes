@@ -57,6 +57,8 @@ export class SpTableAssetContextService {
                 [],
                 [],
                 null,
+                null,
+                null,
             ),
         );
 
@@ -89,6 +91,8 @@ export class SpTableAssetContextService {
         hierarchy: string[],
         inheritedLabels: SpLabel[],
         inheritedSiteLabel: string | null,
+        parentAssetId: string | null,
+        parentAssetName: string | null,
     ): void {
         const currentHierarchy = [...hierarchy, asset.assetName].filter(
             Boolean,
@@ -105,12 +109,8 @@ export class SpTableAssetContextService {
             asset.assetSite?.area ??
             inheritedSiteLabel;
 
-        // Use the immediate asset that holds the link as the group key so that
-        // grouped views show the direct parent asset (e.g. B-3151200) instead
-        // of the hierarchy root (e.g. B).
-        // Fall back through elementId → assetId → assetName so that assets
-        // created without an explicit assetId (e.g. older Maximo imports) still
-        // produce a valid, non-empty key and are not silently dropped by uniqueBy.
+        // Stable ID for this asset node, used as the display key in the
+        // asset-context chip and as the group key when no parent exists.
         const currentAssetId =
             (asset as SpAsset & { elementId?: string }).elementId ??
             asset.assetId ??
@@ -131,6 +131,11 @@ export class SpTableAssetContextService {
                         currentAssetId,
                         asset.assetName,
                         currentHierarchy.join(' / '),
+                        // Group by the parent asset so that sibling adapters
+                        // (e.g. all children of B-3151200) appear under the
+                        // same group header. Fall back to self when at root.
+                        parentAssetId ?? currentAssetId,
+                        parentAssetName ?? asset.assetName,
                     ),
                 ],
                 item => item.id,
@@ -172,6 +177,8 @@ export class SpTableAssetContextService {
                 currentHierarchy,
                 currentLabels,
                 siteLabel,
+                currentAssetId,
+                asset.assetName,
             ),
         );
     }

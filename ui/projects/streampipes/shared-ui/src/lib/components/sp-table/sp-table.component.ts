@@ -719,8 +719,8 @@ export class SpTableComponent<T>
         const assets = assetContext?.assets ?? [];
         return assets.length
             ? assets.map(asset => ({
-                  id: `asset:${asset.id}`,
-                  title: asset.label,
+                  id: `asset:${asset.groupId}`,
+                  title: asset.groupLabel,
               }))
             : [this.createUnassignedGroup()];
     }

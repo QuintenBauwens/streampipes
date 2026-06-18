@@ -40,11 +40,23 @@ export class SpTableAssetContextValue {
     id: string;
     label: string;
     tooltip?: string;
+    /** ID used for grouping — set to the parent asset's ID when available */
+    groupId: string;
+    /** Label used for grouping — set to the parent asset's name when available */
+    groupLabel: string;
 
-    constructor(id: string, label: string, tooltip?: string) {
+    constructor(
+        id: string,
+        label: string,
+        tooltip?: string,
+        groupId?: string,
+        groupLabel?: string,
+    ) {
         this.id = id;
         this.label = label;
         this.tooltip = tooltip;
+        this.groupId = groupId ?? id;
+        this.groupLabel = groupLabel ?? label;
     }
 }
 
