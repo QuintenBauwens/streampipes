@@ -36,13 +36,17 @@ import {
     GenericStorageService,
     PipelineElementService,
     SpDataStream,
+    SpLabel,
 } from '@streampipes/platform-services';
 import {
     DateFormatService,
     FeatureCardHeaderComponent,
     FeatureCardMetaSectionComponent,
     PipelineElementRuntimeInfoComponent,
+    SpAssetBrowserService,
     SpLabelComponent,
+    SpTableAssetContextService,
+    SpTableResolvedAssetContext,
 } from '@streampipes/shared-ui';
 
 @Component({
@@ -73,12 +77,16 @@ export class ConnectFeatureCardComponent implements OnInit {
     adapter: AdapterDescription;
     assetLinkType: AssetLinkType;
     streamDescription: SpDataStream;
+    resolvedLabels: SpLabel[] = [];
+    assetContext: SpTableResolvedAssetContext | undefined;
 
     private adapterService = inject(AdapterService);
     private genericStorageService = inject(GenericStorageService);
     private pipelineElementService = inject(PipelineElementService);
     private dateFormatService = inject(DateFormatService);
     private router = inject(Router);
+    private assetBrowserService = inject(SpAssetBrowserService);
+    private assetContextService = inject(SpTableAssetContextService);
 
     ngOnInit(): void {
         forkJoin([
@@ -91,6 +99,27 @@ export class ConnectFeatureCardComponent implements OnInit {
             this.assetLinkType = assetLinkTypes.find(
                 link => link.linkType === 'adapter',
             );
+
+            const assetData = this.assetBrowserService.assetData$.value;
+
+            // Resolve adapter's own label IDs to full label objects
+            if (adapter?.labelIds?.length && assetData?.labels) {
+                const labelsById = new Map(
+                    assetData.labels.filter(l => l._id).map(l => [l._id, l]),
+                );
+                this.resolvedLabels = adapter.labelIds
+                    .map(id => labelsById.get(id))
+                    .filter((l): l is SpLabel => !!l);
+            }
+
+            // Resolve asset context (linked asset, site, asset labels)
+            if (assetData && adapter?.elementId) {
+                const index =
+                    this.assetContextService.buildAssetContextIndex(assetData);
+                this.assetContext = index
+                    .get('adapter')
+                    ?.get(adapter.elementId);
+            }
 
             if (adapter?.correspondingDataStreamElementId) {
                 this.pipelineElementService
