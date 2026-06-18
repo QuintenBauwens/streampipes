@@ -361,20 +361,31 @@ export class SpTableComponent<T>
         return this.viewMode !== 'grouped' || this.groupBy !== 'asset';
     }
 
-    getAssetContext(row: T): SpTableResolvedAssetContext | undefined {
+    /** Returns the context purely from the asset-link index — used for grouping. */
+    private getBaseAssetContext(
+        row: T,
+    ): SpTableResolvedAssetContext | undefined {
         const config = this.assetContextConfig;
         if (!config) {
             return undefined;
         }
-
         const resourceId = this.getAssetContextResourceId(row, config);
         if (!resourceId) {
             return undefined;
         }
-
-        const fromIndex = this.assetContextIndex
+        return this.assetContextIndex
             .get(config.resourceLinkType)
             ?.get(resourceId);
+    }
+
+    /**
+     * Returns the context for display (chip column). When rowLabelIdsKey is set,
+     * merges the row's own label IDs into the result so they appear as chips.
+     * Grouping always uses getBaseAssetContext so row-level labels never affect
+     * which group a row falls into.
+     */
+    getAssetContext(row: T): SpTableResolvedAssetContext | undefined {
+        const fromIndex = this.getBaseAssetContext(row);
 
         if (!this.rowLabelIdsKey) {
             return fromIndex;
@@ -395,7 +406,7 @@ export class SpTableComponent<T>
         );
         const rowLabels = rowLabelIds
             .map(id => labelsById.get(id))
-            .filter(l => !!l);
+            .filter((l): l is SpLabel => !!l);
         if (!rowLabels.length) {
             return fromIndex;
         }
@@ -680,7 +691,7 @@ export class SpTableComponent<T>
                 this.assetContextConfig &&
                 sortHeaderId === this.assetContextColumnId
             ) {
-                return this.getAssetContext(data)?.sortValue ?? '';
+                return this.getBaseAssetContext(data)?.sortValue ?? '';
             }
 
             return currentAccessor(data, sortHeaderId);
@@ -721,7 +732,9 @@ export class SpTableComponent<T>
     private resolveGroups(
         row: T,
     ): { id: string; title: string; color?: string }[] {
-        const assetContext = this.getAssetContext(row);
+        // Always use the base (asset-link-only) context for grouping so that
+        // a row's own labelIds never pull it out of "Unassigned".
+        const assetContext = this.getBaseAssetContext(row);
 
         if (this.groupBy === 'label') {
             return this.resolveLabelGroups(assetContext);
