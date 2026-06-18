@@ -156,7 +156,10 @@ public class CompactAdapterResource extends AbstractAdapterResource<AdapterMaste
           adapterDescription.getAppId(), e
       );
       return ResponseEntity.status(HttpStatus.CONFLICT)
-                           .body(Notifications.error(e.getMessage()));
+                           .body(Notifications.error(
+                               "Adapter '" + adapterDescription.getName() + "' already exists. "
+                               + "Delete the existing adapter first, or rename the adapter in the YAML file."
+                           ));
     }
 
     try {
