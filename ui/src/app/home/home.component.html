@@ -20,6 +20,27 @@
     @if (currentUser) {
         <sp-welcome [user]="currentUser"></sp-welcome>
     }
+    @if (showRefreshHint) {
+        <div class="refresh-hint-banner">
+            <mat-icon class="refresh-hint-icon">info</mat-icon>
+            <span class="refresh-hint-text">
+                {{
+                    'If labels or asset context appear stale after a deployment, press'
+                        | translate
+                }}
+                <kbd>Ctrl+Shift+R</kbd>
+                {{ 'to hard-refresh.' | translate }}
+            </span>
+            <button
+                mat-icon-button
+                class="refresh-hint-close"
+                (click)="dismissRefreshHint()"
+                [attr.aria-label]="'Dismiss' | translate"
+            >
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    }
     @if (showStatus) {
         <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
             @for (box of statusBoxes; track box) {

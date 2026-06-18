@@ -64,6 +64,8 @@ import {
     MatButtonToggle,
     MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
+import { MatIcon } from '@angular/material/icon';
+import { MatIconButton } from '@angular/material/button';
 import { HomeAssetMapComponent } from './components/asset-map/home-asset-map.component';
 import { HomeAssetTableComponent } from './components/asset-table/home-asset-table.component';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -81,6 +83,8 @@ import { TranslatePipe } from '@ngx-translate/core';
         SplitSectionComponent,
         MatButtonToggleGroup,
         MatButtonToggle,
+        MatIcon,
+        MatIconButton,
         FlexDirective,
         HomeAssetMapComponent,
         SpAlertBannerComponent,
@@ -114,6 +118,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     currentUser: UserInfo;
     selectedView = signal<string>('table');
     contentLoaded = false;
+    showRefreshHint = true;
 
     private homeService = inject(HomeService);
     private currentUserService = inject(CurrentUserService);
@@ -141,6 +146,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.selectedView.set(
             this.localStorageService.get('default-asset-view', 'table'),
         );
+        this.showRefreshHint =
+            (this.localStorageService.get(
+                'refresh-hint-dismissed',
+                'false',
+            ) as string) !== 'true';
     }
 
     ngOnInit() {
@@ -314,6 +324,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     updateView(view: string): void {
         this.selectedView.set(view);
         this.localStorageService.set('default-asset-view', view);
+    }
+
+    dismissRefreshHint(): void {
+        this.showRefreshHint = false;
+        this.localStorageService.set('refresh-hint-dismissed', 'true');
     }
 
     ngOnDestroy() {

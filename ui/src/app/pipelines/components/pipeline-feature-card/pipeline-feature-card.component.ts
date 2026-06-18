@@ -32,7 +32,6 @@ import {
     FlexDirective,
     FlexFillDirective,
     LayoutDirective,
-    LayoutGapDirective,
 } from '@ngbracket/ngx-layout';
 import {
     FeatureCardHeaderComponent,
@@ -46,6 +45,7 @@ import { MatDivider } from '@angular/material/list';
 import { Router } from '@angular/router';
 import { PipelinePreviewComponent } from '../../../pipeline-details/components/preview/pipeline-preview.component';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
@@ -57,12 +57,12 @@ import { TranslatePipe } from '@ngx-translate/core';
         FlexFillDirective,
         MatDivider,
         LayoutDirective,
-        LayoutGapDirective,
         FeatureCardHeaderComponent,
         FlexDirective,
         PipelinePreviewComponent,
         SpLabelComponent,
         MatIcon,
+        MatTooltip,
         TranslatePipe,
     ],
 })
@@ -129,5 +129,12 @@ export class PipelineFeatureCardComponent implements OnInit {
         setTimeout(() => {
             this.router.navigate(['pipelines', 'details', this.resourceId]);
         }, 500);
+    }
+
+    shortAssetPath(tooltip: string): string {
+        const parts = tooltip.split(' / ');
+        return parts.length > 2
+            ? `\u2026 / ${parts.slice(-2).join(' / ')}`
+            : tooltip;
     }
 }

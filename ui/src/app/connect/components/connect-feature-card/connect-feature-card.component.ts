@@ -26,6 +26,7 @@ import {
     LayoutGapDirective,
 } from '@ngbracket/ngx-layout/flex';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import {
@@ -60,6 +61,7 @@ import {
         LayoutAlignDirective,
         LayoutGapDirective,
         MatIcon,
+        MatTooltip,
         TranslatePipe,
         FeatureCardHeaderComponent,
         FeatureCardMetaSectionComponent,
@@ -163,5 +165,12 @@ export class ConnectFeatureCardComponent implements OnInit {
     navigateToAdapter(): void {
         this.onClose?.();
         this.router.navigate(['connect', 'details', this.resourceId, 'data']);
+    }
+
+    shortAssetPath(tooltip: string): string {
+        const parts = tooltip.split(' / ');
+        return parts.length > 2
+            ? `\u2026 / ${parts.slice(-2).join(' / ')}`
+            : tooltip;
     }
 }

@@ -109,7 +109,12 @@
                         </sp-label>
                     }
                     @for (asset of assetContext.assets; track asset.id) {
-                        <sp-label size="small" variant="soft" tone="neutral">
+                        <sp-label
+                            size="small"
+                            variant="soft"
+                            tone="neutral"
+                            [matTooltip]="asset.tooltip ?? asset.label"
+                        >
                             <mat-icon
                                 class="mr-xs"
                                 style="
@@ -119,7 +124,7 @@
                                 "
                                 >category</mat-icon
                             >
-                            {{ asset.tooltip ?? asset.label }}
+                            {{ shortAssetPath(asset.tooltip ?? asset.label) }}
                         </sp-label>
                     }
                 </div>
