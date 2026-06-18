@@ -41,7 +41,7 @@
                 <div class="feature-card-meta-section__label">
                     {{ 'Asset context' | translate }}
                 </div>
-                <div fxLayout="row wrap" fxLayoutGap="4px" class="mb-xs">
+                <div class="chip-row mb-xs">
                     @for (site of assetContext.sites; track site.id) {
                         <sp-label size="small" variant="soft" tone="info">
                             <mat-icon
@@ -79,7 +79,7 @@
                 <div class="feature-card-meta-section__label">
                     {{ 'Labels' | translate }}
                 </div>
-                <div fxLayout="row wrap" fxLayoutGap="4px" class="mb-xs">
+                <div class="chip-row mb-xs">
                     @for (label of resolvedLabels; track label._id) {
                         <sp-label
                             size="small"
@@ -92,6 +92,21 @@
                 </div>
             </div>
         }
+
+        <div class="feature-card-meta-card">
+            <div class="refresh-hint">
+                <mat-icon>info</mat-icon>
+                <span>
+                    {{
+                        'Labels or asset context not showing correctly?'
+                            | translate
+                    }}
+                    {{ 'Press' | translate }}
+                    <kbd>Ctrl+Shift+R</kbd>
+                    {{ 'to hard-refresh.' | translate }}
+                </span>
+            </div>
+        </div>
 
         <mat-divider></mat-divider>
 
