@@ -39,7 +39,8 @@
             data-cy="connect-upload-adapter-config-button"
             (click)="triggerAdapterConfigUpload()"
             [matTooltip]="
-                'Upload adapter configuration from YAML file' | translate
+                'Upload one or more adapter configuration YAML files'
+                    | translate
             "
         >
             <i class="material-icons">upload_file</i>&nbsp;{{
@@ -50,6 +51,7 @@
             #adapterConfigFileInput
             type="file"
             accept=".yaml,.yml"
+            multiple
             style="display: none"
             (change)="onAdapterConfigFileSelected($event)"
         />

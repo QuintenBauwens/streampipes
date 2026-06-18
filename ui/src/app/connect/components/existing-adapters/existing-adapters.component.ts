@@ -60,6 +60,7 @@ import {
 } from '@streampipes/shared-ui';
 import { DeleteAdapterDialogComponent } from '../../dialog/delete-adapter-dialog/delete-adapter-dialog.component';
 import { DeleteMultipleAdaptersDialogComponent } from '../../dialog/delete-multiple-adapters-dialog/delete-multiple-adapters-dialog.component';
+import { BulkAdapterUploadDialogComponent } from '../../dialog/bulk-adapter-upload-dialog/bulk-adapter-upload-dialog.component';
 import { AllAdapterActionsComponent } from '../../dialog/start-all-adapters/all-adapter-actions-dialog.component';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { Router } from '@angular/router';
@@ -433,29 +434,24 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
         if (!input.files || input.files.length === 0) {
             return;
         }
-        this.adapterService.uploadAdapterConfig(input.files[0]).subscribe({
-            next: () => {
+
+        const files = Array.from(input.files);
+        const dialogRef = this.dialogService.open(
+            BulkAdapterUploadDialogComponent,
+            {
+                panelType: PanelType.STANDARD_PANEL,
+                title:
+                    files.length === 1
+                        ? this.translate.instant('Import adapter config')
+                        : this.translate.instant('Import adapter configs'),
+                width: '60vw',
+                data: { files },
+            },
+        );
+        dialogRef.afterClosed().subscribe(refresh => {
+            if (refresh) {
                 this.getAdaptersRunning();
-            },
-            error: err => {
-                const dialogRef = this.dialogService.open(
-                    SpExceptionDetailsDialogComponent,
-                    {
-                        panelType: PanelType.STANDARD_PANEL,
-                        title: this.translate.instant(
-                            'Adapter config upload failed',
-                        ),
-                        width: '70vw',
-                        data: {
-                            message: err?.error,
-                            title: this.translate.instant(
-                                'Could not import adapter configuration',
-                            ),
-                            additionalButton: false,
-                        },
-                    },
-                );
-            },
+            }
         });
     }
 

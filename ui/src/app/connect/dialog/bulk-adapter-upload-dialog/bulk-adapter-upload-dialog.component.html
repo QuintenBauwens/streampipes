@@ -1,0 +1,141 @@
+<!--
+~ Licensed to the Apache Software Foundation (ASF) under one or more
+~ contributor license agreements.  See the NOTICE file distributed with
+~ this work for additional information regarding copyright ownership.
+~ The ASF licenses this file to You under the Apache License, Version 2.0
+~ (the "License"); you may not use this file except in compliance with
+~ the License.  You may obtain a copy of the License at
+~
+~    http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+~
+-->
+
+<div class="sp-dialog-container">
+    <div class="sp-dialog-content p-15">
+        <!-- Phase: preview -->
+        @if (phase === 'preview') {
+            <p>
+                {{ 'The following' | translate }}
+                <b>{{ files.length }}</b>
+                {{ 'file(s) will be imported as adapters:' | translate }}
+            </p>
+            <ul class="file-list">
+                @for (file of files; track file.name) {
+                    <li class="file-list__item">
+                        <mat-icon class="file-list__icon">description</mat-icon>
+                        {{ file.name }}
+                    </li>
+                }
+            </ul>
+        }
+
+        <!-- Phase: uploading -->
+        @if (phase === 'uploading') {
+            <p>
+                <b>
+                    {{ 'Importing' | translate }} {{ currentIndex }}
+                    {{ 'of' | translate }} {{ entries.length }}…
+                </b>
+            </p>
+            <ul class="file-list">
+                @for (entry of entries; track entry.file.name) {
+                    <li class="file-list__item">
+                        @if (entry.status === 'uploading') {
+                            <mat-spinner
+                                [diameter]="16"
+                                class="file-list__spinner"
+                            ></mat-spinner>
+                        } @else {
+                            <mat-icon
+                                class="file-list__icon"
+                                [style.color]="statusColor(entry.status)"
+                            >
+                                {{ statusIcon(entry.status) }}
+                            </mat-icon>
+                        }
+                        <span>{{ entry.file.name }}</span>
+                        @if (entry.error) {
+                            <span class="file-list__error">
+                                — {{ entry.error }}
+                            </span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+
+        <!-- Phase: result -->
+        @if (phase === 'result') {
+            @if (successCount > 0) {
+                <p>
+                    ✅ <b>{{ successCount }}</b>
+                    {{ 'adapter(s) imported successfully.' | translate }}
+                </p>
+            }
+            @if (errorCount > 0) {
+                <p>
+                    ❌ <b>{{ errorCount }}</b>
+                    {{ 'file(s) failed to import:' | translate }}
+                </p>
+                <ul class="file-list">
+                    @for (entry of entries; track entry.file.name) {
+                        @if (entry.status === 'error') {
+                            <li class="file-list__item file-list__item--error">
+                                <mat-icon
+                                    class="file-list__icon file-list__icon--error"
+                                >
+                                    error
+                                </mat-icon>
+                                <span
+                                    ><b>{{ entry.file.name }}</b>
+                                    @if (entry.error) {
+                                        — {{ entry.error }}
+                                    }
+                                </span>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+        }
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="sp-dialog-actions actions-align-right">
+        @if (phase === 'preview') {
+            <button
+                mat-flat-button
+                class="mat-basic"
+                (click)="close(false)"
+                style="margin-right: 10px"
+            >
+                {{ 'Cancel' | translate }}
+            </button>
+            <button
+                mat-flat-button
+                color="accent"
+                data-cy="bulk-adapter-upload-start"
+                (click)="startUpload()"
+            >
+                {{ 'Import' | translate }} {{ files.length }}
+                {{ 'file(s)' | translate }}
+            </button>
+        }
+        @if (phase === 'result') {
+            <button
+                mat-flat-button
+                class="mat-basic"
+                (click)="close(successCount > 0)"
+            >
+                {{ 'Close' | translate }}
+            </button>
+        }
+    </div>
+</div>
