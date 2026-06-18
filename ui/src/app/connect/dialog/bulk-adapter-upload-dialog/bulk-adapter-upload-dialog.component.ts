@@ -104,11 +104,16 @@ export class BulkAdapterUploadDialogComponent {
             },
             error: err => {
                 entry.status = 'error';
-                entry.error =
-                    err?.error?.title ??
-                    err?.error?.message ??
-                    err?.message ??
-                    'Unknown error';
+                // Backend standard error: { notifications: [{ title, description }] }
+                const notif = err?.error?.notifications?.[0];
+                const detail =
+                    notif?.title ??
+                    notif?.description ??
+                    (typeof err?.error === 'string' ? err.error : null);
+                const statusPrefix = err?.status ? `[${err.status}] ` : '';
+                entry.error = detail
+                    ? `${statusPrefix}${detail}`
+                    : (err?.message ?? 'Upload failed');
                 this.uploadNext(index + 1);
             },
         });

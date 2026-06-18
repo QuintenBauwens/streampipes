@@ -63,6 +63,7 @@ export class DeleteMultipleAdaptersDialogComponent {
 
     phase: DeletePhase = 'confirm';
     progress = 0;
+    currentBatchSize = 0;
     results: AdapterDeleteResult[] = [];
 
     /** Adapters that returned 409 on the first pass (have pipelines) */
@@ -92,6 +93,7 @@ export class DeleteMultipleAdaptersDialogComponent {
     startDelete(): void {
         this.phase = 'deleting';
         this.progress = 0;
+        this.currentBatchSize = this.adapters.length;
         this.results = [];
         this.conflictedAdapters = [];
         this.conflictedPipelineNames = [];
@@ -176,6 +178,8 @@ export class DeleteMultipleAdaptersDialogComponent {
 
     deleteConflictedWithPipelines(): void {
         this.phase = 'deleting';
+        this.progress = 0;
+        this.currentBatchSize = this.conflictedAdapters.length;
         const toRetry = [...this.conflictedAdapters];
         this.conflictedAdapters = [];
         this.conflictedPipelineNames = [];
