@@ -251,6 +251,7 @@ export class SpTableComponent<T>
                 this.assetContextIndex =
                     this.assetContextService.buildAssetContextIndex(assetData);
                 this.applyAssetContextSortingAccessor();
+                this.applyAssetContextFilterPredicate();
                 this.refreshRenderedRows();
             });
         this.updateCompactLayout();
@@ -577,6 +578,7 @@ export class SpTableComponent<T>
         }
 
         this.dataSource.paginator = this.paginator;
+        this.applyAssetContextFilterPredicate();
 
         this.renderedDataSubscription?.unsubscribe();
         this.renderedDataSubscription = this.dataSource.connect().subscribe({
@@ -694,6 +696,45 @@ export class SpTableComponent<T>
     private updateCompactLayout(): void {
         const hideBelowWidth = this.assetContextConfig?.hideBelowWidth ?? 1200;
         this.compactLayout = window.innerWidth < hideBelowWidth;
+    }
+
+    private applyAssetContextFilterPredicate(): void {
+        if (!this.dataSource || !this.assetContextConfig) {
+            return;
+        }
+
+        this.dataSource.filterPredicate = (row: T, filter: string): boolean => {
+            if (!filter) {
+                return true;
+            }
+
+            // Check all string-valued own properties of the row
+            const rowText = Object.values(row as Record<string, unknown>)
+                .filter(v => typeof v === 'string')
+                .join(' ')
+                .toLowerCase();
+
+            if (rowText.includes(filter)) {
+                return true;
+            }
+
+            // Also check the resolved asset context: asset names, site names, labels
+            const ctx = this.getBaseAssetContext(row);
+            if (ctx) {
+                const ctxText = [
+                    ...(ctx.assets ?? []).map(a => a.label ?? ''),
+                    ...(ctx.sites ?? []).map(s => s.label ?? ''),
+                    ...(ctx.labels ?? []).map(l => l.label ?? ''),
+                ]
+                    .join(' ')
+                    .toLowerCase();
+                if (ctxText.includes(filter)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
     }
 
     private applyAssetContextSortingAccessor(): void {
