@@ -52,6 +52,7 @@ import {
 } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { SpTableActionsDirective } from './sp-actions/sp-table-actions.directive';
+import { SpTableFilterDirective } from './sp-actions/sp-table-filter.directive';
 import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { SpTableMultiActionsDirective } from './sp-actions/sp-table-multi-actions.directive';
 import { LocalStorageService } from '../../services/local-storage-settings.service';
@@ -199,6 +200,8 @@ export class SpTableComponent<T>
     actionsTemplate?: TemplateRef<any>;
     @ContentChild(SpTableMultiActionsDirective, { read: TemplateRef })
     multiActionsTemplate?: TemplateRef<any>;
+    @ContentChild(SpTableFilterDirective, { read: TemplateRef })
+    filterTemplate?: TemplateRef<any>;
 
     visiblePageRows: T[] = [];
     selectedMultiAction: string | null = null;

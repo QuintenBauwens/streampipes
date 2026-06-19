@@ -64,6 +64,7 @@ import {
     SpLabelComponent,
     SpTableAssetContextConfig,
     SpTableActionsDirective,
+    SpTableFilterDirective,
     SpTableComponent,
 } from '@streampipes/shared-ui';
 import { DeleteDatalakeIndexComponent } from '../../dialog/delete-datalake-index/delete-datalake-index-dialog.component';
@@ -139,6 +140,7 @@ import { Subscription } from 'rxjs';
         SpBasicViewComponent,
         SpAlertBannerComponent,
         SpTableActionsDirective,
+        SpTableFilterDirective,
     ],
 })
 export class DatalakeConfigurationComponent

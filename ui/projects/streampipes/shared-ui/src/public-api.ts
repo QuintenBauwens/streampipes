@@ -52,6 +52,7 @@ export * from './lib/components/sp-exception-message/exception-details/exception
 export * from './lib/components/sp-label/sp-label.component';
 export * from './lib/components/sp-table/sp-table.component';
 export * from './lib/components/sp-table/sp-actions/sp-table-actions.directive';
+export * from './lib/components/sp-table/sp-actions/sp-table-filter.directive';
 export * from './lib/components/sp-table/sp-actions/sp-table-multi-actions.directive';
 export * from './lib/components/sp-table/sp-table.model';
 export * from './lib/components/sp-table/sp-asset-context/sp-table-asset-context.service';

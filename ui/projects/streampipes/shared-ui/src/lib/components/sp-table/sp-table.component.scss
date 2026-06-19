@@ -34,6 +34,14 @@
     width: 180px;
 }
 
+.grouping-toolbar__filter {
+    flex: 1 1 auto;
+}
+
+.grouping-toolbar__filter .mat-mdc-form-field {
+    margin-bottom: 0;
+}
+
 .grouping-toolbar {
     padding: var(--space-sm) 0 var(--space-lg);
 }

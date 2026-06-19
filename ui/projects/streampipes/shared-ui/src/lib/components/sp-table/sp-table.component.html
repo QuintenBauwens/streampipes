@@ -24,7 +24,16 @@
             fxLayoutAlign="space-between center"
             fxLayoutGap="12px"
         >
-            <div class="grouping-toolbar__spacer" fxFlex></div>
+            <div
+                class="grouping-toolbar__filter"
+                fxLayout="row"
+                fxLayoutAlign="start center"
+            >
+                @if (filterTemplate) {
+                    <ng-container *ngTemplateOutlet="filterTemplate">
+                    </ng-container>
+                }
+            </div>
             <div
                 class="grouping-toolbar__controls"
                 fxLayout="row wrap"
