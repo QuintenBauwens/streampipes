@@ -38,6 +38,7 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Label grouping + adapter preview chips | ✅ Done | Label grouping fixed; labels + asset context shown in preview |
 | Datasets page search box | ✅ Done | `SpTableFilterDirective` slot in `sp-table` toolbar; stacks with asset filter |
 | Data Lake retention config in automation | ✅ Done | Toggle + days + interval in automation pipeline config; applied on pipeline start |
+| Auto-deployed pipeline linked to adapter asset | ✅ Done | Both MQTT and Data Lake pipelines get `AssetLink(linkType="pipeline")` on the same asset node as the adapter |
 
 ---
 
@@ -82,7 +83,7 @@ No outstanding work. Smoke-test checklist:
 | `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices`; Checkstyle import fix applied |
 | `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — `utils.addTimestamp(event)` in default transform |
-| `streampipes-rest/src/main/java/.../rest/impl/connect/AbstractAdapterResource.java` | MODIFIED — `applyRetentionToMeasure()` called after Data Lake pipeline start |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/AbstractAdapterResource.java` | MODIFIED — `applyRetentionToMeasure()` after Data Lake start; `linkPipelineToAsset()` after both auto-deploys |
 
 ### Frontend (Angular)
 
@@ -158,6 +159,11 @@ No outstanding work. Smoke-test checklist:
 ### YAML Upload with Pre-defined Schema
 - `AdapterSchemaGenerator.apply()` skips live `getSampleData()` when `compactAdapter.schema()` is non-null/non-empty
 - Default `runtimeType` = `XSD double` URI (fits Modbus/energy meter registers)
+
+### Auto-Deployed Pipeline Asset Linking
+- `AdapterAssetEnrichmentService.linkPipelineToAsset(pipelineId, pipelineName, adapterName)` looks up the adapter-asset mapping → gets topic → traverses all assets for a node with `additionalData["mqtt_topic"] == topic` → adds `AssetLink(linkType="pipeline")`
+- Shared `linkResourceToAsset()` private helper is now used by both `linkToAsset` (adapters) and `linkPipelineToAsset` (pipelines) to avoid code duplication
+- Called in `AbstractAdapterResource.tryAutoDeployPipeline()` after both MQTT and Data Lake auto-deploy; errors are logged and never propagate to the caller
 
 ### Data Lake Retention (automation pipeline)
 - `applyRetentionToMeasure()` runs after `createAndStartPersistPipeline` when retention is enabled
