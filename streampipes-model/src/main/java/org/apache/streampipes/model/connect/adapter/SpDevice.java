@@ -30,8 +30,8 @@ import java.util.List;
  * Represents a physical PLC/sensor device whose connection parameters can be reused
  * to quickly create multiple adapters (datapoints) without re-entering the same details.
  *
- * <p>Currently supports PLC4x S7 adapters. The {@code host} maps to {@code plc_ip}
- * and {@code pollingIntervalMs} maps to {@code plc_polling_interval}.
+ * <p>Supports PLC4x S7 adapters ({@code host} / {@code pollingIntervalMs}) and
+ * OPC-UA adapters ({@code opcuaEnabled}, {@code opcuaEndpointUrl}, etc.).
  */
 public class SpDevice implements Storable {
 
@@ -57,6 +57,21 @@ public class SpDevice implements Storable {
 
   /** ElementIds of adapters created from this device via the device registry. */
   private List<String> adapterIds = new ArrayList<>();
+
+  /** Whether OPC-UA connectivity settings are configured for this device. */
+  private boolean opcuaEnabled = false;
+
+  /** OPC-UA endpoint URL (e.g. opc.tcp://192.168.0.10:4840). */
+  private String opcuaEndpointUrl = "";
+
+  /** OPC-UA security mode: None, Sign, or SignAndEncrypt. */
+  private String opcuaSecurityMode = "None";
+
+  /** OPC-UA username for UsernamePassword authentication (blank = anonymous). */
+  private String opcuaUsername = "";
+
+  /** OPC-UA password for UsernamePassword authentication. */
+  private String opcuaPassword = "";
 
   public SpDevice() {
   }
@@ -119,5 +134,45 @@ public class SpDevice implements Storable {
 
   public void setAdapterIds(List<String> adapterIds) {
     this.adapterIds = adapterIds;
+  }
+
+  public boolean isOpcuaEnabled() {
+    return opcuaEnabled;
+  }
+
+  public void setOpcuaEnabled(boolean opcuaEnabled) {
+    this.opcuaEnabled = opcuaEnabled;
+  }
+
+  public String getOpcuaEndpointUrl() {
+    return opcuaEndpointUrl;
+  }
+
+  public void setOpcuaEndpointUrl(String opcuaEndpointUrl) {
+    this.opcuaEndpointUrl = opcuaEndpointUrl;
+  }
+
+  public String getOpcuaSecurityMode() {
+    return opcuaSecurityMode;
+  }
+
+  public void setOpcuaSecurityMode(String opcuaSecurityMode) {
+    this.opcuaSecurityMode = opcuaSecurityMode;
+  }
+
+  public String getOpcuaUsername() {
+    return opcuaUsername;
+  }
+
+  public void setOpcuaUsername(String opcuaUsername) {
+    this.opcuaUsername = opcuaUsername;
+  }
+
+  public String getOpcuaPassword() {
+    return opcuaPassword;
+  }
+
+  public void setOpcuaPassword(String opcuaPassword) {
+    this.opcuaPassword = opcuaPassword;
   }
 }

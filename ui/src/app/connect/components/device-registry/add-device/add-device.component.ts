@@ -45,6 +45,9 @@ import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
@@ -56,6 +59,9 @@ import { TranslatePipe } from '@ngx-translate/core';
         MatInput,
         MatButton,
         MatDivider,
+        MatSlideToggle,
+        MatSelect,
+        MatOption,
         TranslatePipe,
         SplitSectionComponent,
         FormFieldComponent,
@@ -82,11 +88,15 @@ export class AddDeviceComponent implements OnInit {
     }
 
     get isValid(): boolean {
-        return (
-            !!this.model.name?.trim() &&
-            !!this.model.host?.trim() &&
-            this.model.pollingIntervalMs > 0
-        );
+        if (!this.model.name?.trim()) {
+            return false;
+        }
+        if (this.model.opcuaEnabled) {
+            // OPC-UA device: endpoint URL is required
+            return !!this.model.opcuaEndpointUrl?.trim();
+        }
+        // PLC/generic device: host and polling interval are required
+        return !!this.model.host?.trim() && this.model.pollingIntervalMs > 0;
     }
 
     save(): void {

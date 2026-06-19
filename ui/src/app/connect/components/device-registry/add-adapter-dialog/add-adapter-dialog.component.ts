@@ -49,6 +49,7 @@ import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatButton } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
+import { MatIcon } from '@angular/material/icon';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 const DEFAULT_TRANSFORM_SCRIPT = `function transform(event, out, ctx) {
@@ -63,6 +64,10 @@ export const ADAPTER_TYPE_OPTIONS = [
         label: 'PLC4x S7',
         value: 'org.apache.streampipes.connect.iiot.adapters.plc4x.s7',
     },
+    {
+        label: 'OPC-UA',
+        value: 'org.apache.streampipes.connect.iiot.adapters.opcua',
+    },
 ];
 
 @Component({
@@ -76,6 +81,7 @@ export const ADAPTER_TYPE_OPTIONS = [
         MatOption,
         MatButton,
         MatDivider,
+        MatIcon,
         MatSlideToggle,
         TranslatePipe,
         SplitSectionComponent,
@@ -100,6 +106,9 @@ export class AddAdapterDialogComponent {
     // Type-specific: PLC4x
     plcCodeBlock = '';
 
+    // Type-specific: OPC-UA
+    opcuaNodeBlock = '';
+
     // Transformation
     transformationScript = DEFAULT_TRANSFORM_SCRIPT;
 
@@ -113,8 +122,24 @@ export class AddAdapterDialogComponent {
         return this.adapterType?.includes('plc4x') ?? false;
     }
 
+    get isOpcUa(): boolean {
+        return this.adapterType?.includes('opcua') ?? false;
+    }
+
+    get hasOpcuaSettings(): boolean {
+        return !!(
+            this.device?.opcuaEnabled && this.device?.opcuaEndpointUrl?.trim()
+        );
+    }
+
     get isValid(): boolean {
-        return !!this.adapterName.trim() && !!this.adapterType;
+        if (!this.adapterName.trim() || !this.adapterType) {
+            return false;
+        }
+        if (this.isOpcUa && !this.hasOpcuaSettings) {
+            return false;
+        }
+        return true;
     }
 
     confirm(): void {
@@ -127,6 +152,7 @@ export class AddAdapterDialogComponent {
             adapterType: this.adapterType,
             description: this.description.trim() || undefined,
             plcCodeBlock: this.plcCodeBlock.trim() || undefined,
+            opcuaNodeBlock: this.opcuaNodeBlock.trim() || undefined,
             transformationScript: this.transformationScript.trim() || undefined,
             removeDuplicatesMs: this.removeDuplicates
                 ? this.removeDuplicatesMs

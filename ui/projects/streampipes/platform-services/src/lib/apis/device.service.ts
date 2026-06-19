@@ -31,6 +31,16 @@ export interface SpDevice {
     adapterType?: string;
     /** ElementIds of adapters created from this device via the device registry. */
     adapterIds?: string[];
+    /** Whether OPC-UA connectivity settings are configured for this device. */
+    opcuaEnabled?: boolean;
+    /** OPC-UA endpoint URL (e.g. opc.tcp://192.168.0.10:4840). */
+    opcuaEndpointUrl?: string;
+    /** OPC-UA security mode: None, Sign, or SignAndEncrypt. */
+    opcuaSecurityMode?: string;
+    /** OPC-UA username (blank = anonymous). */
+    opcuaUsername?: string;
+    /** OPC-UA password. */
+    opcuaPassword?: string;
 }
 
 export interface DeviceAdapterRequest {
@@ -39,6 +49,8 @@ export interface DeviceAdapterRequest {
     adapterType: string;
     description?: string;
     plcCodeBlock?: string;
+    /** OPC-UA node block: one node per line in name=nodeId format. */
+    opcuaNodeBlock?: string;
     transformationScript?: string;
     removeDuplicatesMs?: number;
     reduceEventRateMs?: number;
@@ -102,6 +114,11 @@ export class DeviceService {
             name: '',
             host: '',
             pollingIntervalMs: 1000,
+            opcuaEnabled: false,
+            opcuaEndpointUrl: '',
+            opcuaSecurityMode: 'None',
+            opcuaUsername: '',
+            opcuaPassword: '',
         };
     }
 }

@@ -56,6 +56,79 @@
             </sp-form-field>
         </sp-split-section>
 
+        <sp-split-section
+            [level]="3"
+            [title]="'OPC-UA Settings' | translate"
+            [subtitle]="
+                'Optional: configure OPC-UA connectivity for this device'
+                    | translate
+            "
+        >
+            <sp-form-field [level]="3" [label]="'Enable OPC-UA' | translate">
+                <mat-slide-toggle
+                    [(ngModel)]="model.opcuaEnabled"
+                ></mat-slide-toggle>
+            </sp-form-field>
+
+            @if (model.opcuaEnabled) {
+                <sp-form-field [level]="3" [label]="'Endpoint URL' | translate">
+                    <mat-form-field class="w-100">
+                        <input
+                            matInput
+                            [(ngModel)]="model.opcuaEndpointUrl"
+                            [placeholder]="
+                                'opc.tcp://192.168.0.10:4840' | translate
+                            "
+                        />
+                    </mat-form-field>
+                </sp-form-field>
+
+                <sp-form-field
+                    [level]="3"
+                    [label]="'Security Mode' | translate"
+                >
+                    <mat-form-field class="sp-select-field w-100">
+                        <mat-select [(ngModel)]="model.opcuaSecurityMode">
+                            <mat-option value="None">{{
+                                'None' | translate
+                            }}</mat-option>
+                            <mat-option value="Sign">{{
+                                'Sign' | translate
+                            }}</mat-option>
+                            <mat-option value="SignAndEncrypt">{{
+                                'Sign & Encrypt' | translate
+                            }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </sp-form-field>
+
+                <sp-form-field
+                    [level]="3"
+                    [label]="'Username (optional)' | translate"
+                >
+                    <mat-form-field class="w-100">
+                        <input
+                            matInput
+                            [(ngModel)]="model.opcuaUsername"
+                            [placeholder]="
+                                'Leave blank for anonymous access' | translate
+                            "
+                        />
+                    </mat-form-field>
+                </sp-form-field>
+
+                <sp-form-field [level]="3" [label]="'Password' | translate">
+                    <mat-form-field class="w-100">
+                        <input
+                            matInput
+                            type="password"
+                            [(ngModel)]="model.opcuaPassword"
+                        />
+                    </mat-form-field>
+                </sp-form-field>
+            }
+        </sp-split-section>
+
         @if (errorMessage) {
             <div class="sp-color-warn text-sm mt-sm">
                 {{ errorMessage | translate }}

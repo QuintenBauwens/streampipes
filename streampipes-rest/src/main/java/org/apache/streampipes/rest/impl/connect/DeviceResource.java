@@ -64,6 +64,8 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   private static final String PLC_NODE_INPUT_CODE_BLOCK_ALTIVE = "plc_node_input_code_block_altive";
   private static final String PLC_CODE_BLOCK = "plc_code_block";
 
+  private static final String OPCUA_APP_ID = "org.apache.streampipes.connect.iiot.adapters.opcua";
+
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("this.hasReadAuthority()")
   public ResponseEntity<?> getAllDevices() {
@@ -204,31 +206,33 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
   }
 
   private CompactAdapter buildCompactAdapter(SpDevice device, DeviceAdapterRequest request, String adapterId) {
+    var effectiveType = request.adapterType() != null ? request.adapterType() : device.getAdapterType();
     var config = new ArrayList<Map<String, Object>>();
-    config.add(Map.of(PLC_IP, device.getHost()));
-    config.add(Map.of(PLC_POLLING_INTERVAL, device.getPollingIntervalMs()));
 
-    if (request.plcCodeBlock() != null && !request.plcCodeBlock().isBlank()) {
-      // Both keys MUST be in the same map entry. PipelineElementTemplateVisitor.visit(StaticPropertyAlternatives)
-      // narrows the config to List.of(that one entry) when it recurses into the selected alternative.
-      // A sibling list entry for plc_code_block would be invisible to that nested visitor.
-      var alternativesEntry = new HashMap<String, Object>();
-      alternativesEntry.put(PLC_NODE_INPUT_ALTERNATIVES, PLC_NODE_INPUT_CODE_BLOCK_ALTIVE);
-      alternativesEntry.put(PLC_CODE_BLOCK, request.plcCodeBlock());
-      config.add(alternativesEntry);
+    Map<String, CompactEventProperty> schema;
+    if (OPCUA_APP_ID.equals(effectiveType)) {
+      buildOpcUaConfig(device, request, config);
+      schema = request.schema() != null ? request.schema() : buildSchemaFromOpcUaNodeBlock(request.opcuaNodeBlock());
+    } else {
+      config.add(Map.of(PLC_IP, device.getHost()));
+      config.add(Map.of(PLC_POLLING_INTERVAL, device.getPollingIntervalMs()));
+      if (request.plcCodeBlock() != null && !request.plcCodeBlock().isBlank()) {
+        // Both keys MUST be in the same map entry. PipelineElementTemplateVisitor.visit(StaticPropertyAlternatives)
+        // narrows the config to List.of(that one entry) when it recurses into the selected alternative.
+        // A sibling list entry for plc_code_block would be invisible to that nested visitor.
+        var alternativesEntry = new HashMap<String, Object>();
+        alternativesEntry.put(PLC_NODE_INPUT_ALTERNATIVES, PLC_NODE_INPUT_CODE_BLOCK_ALTIVE);
+        alternativesEntry.put(PLC_CODE_BLOCK, request.plcCodeBlock());
+        config.add(alternativesEntry);
+      }
+      schema = request.schema() != null ? request.schema() : buildSchemaFromCodeBlock(request.plcCodeBlock());
     }
-
-    // Prefer explicit schema; fall back to auto-parsed code block so schema guessing
-    // (which requires a live device) is skipped when a code block is provided.
-    var schema = request.schema() != null
-        ? request.schema()
-        : buildSchemaFromCodeBlock(request.plcCodeBlock());
 
     return new CompactAdapter(
         adapterId,
         request.adapterName(),
         request.description() != null ? request.description() : "",
-        request.adapterType() != null ? request.adapterType() : device.getAdapterType(),
+        effectiveType,
         config,
         buildTransformationConfig(request),
         schema,
@@ -236,6 +240,95 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
         null,
         device.getElementId()
     );
+  }
+
+  /**
+   * Populates the CompactAdapter config list for an OPC-UA adapter using the device's
+   * OPC-UA settings and the node block from the request.
+   *
+   * <p>Config keys mirror the static-property internal names used by the OPC-UA adapter
+   * and are applied by {@code PipelineElementTemplateVisitor} when the CompactAdapter is
+   * expanded into a full {@code AdapterDescription}.
+   */
+  private void buildOpcUaConfig(SpDevice device, DeviceAdapterRequest request,
+                                List<Map<String, Object>> config) {
+    // Connection URL (both keys must be in the same map entry for alternatives visitor)
+    var connectionEntry = new HashMap<String, Object>();
+    connectionEntry.put("OPC_HOST_OR_URL", "OPC_URL");
+    connectionEntry.put("OPC_SERVER_URL",
+        device.getOpcuaEndpointUrl() != null ? device.getOpcuaEndpointUrl() : "");
+    config.add(connectionEntry);
+
+    // Security mode (None / Sign / SignAndEncrypt)
+    var securityMode = device.getOpcuaSecurityMode() != null ? device.getOpcuaSecurityMode() : "None";
+    config.add(Map.of("securityMode", securityMode));
+    // Security policy — Basic256Sha256 for signed modes, None otherwise
+    var securityPolicy = "None".equals(securityMode) ? "None" : "Basic256Sha256";
+    config.add(Map.of("securityPolicy", securityPolicy));
+
+    // Authentication
+    if (device.getOpcuaUsername() != null && !device.getOpcuaUsername().isBlank()) {
+      var authEntry = new HashMap<String, Object>();
+      authEntry.put("userAuthentication", "USERNAME_GROUP");
+      authEntry.put("USERNAME", device.getOpcuaUsername());
+      authEntry.put("PASSWORD", device.getOpcuaPassword() != null ? device.getOpcuaPassword() : "");
+      config.add(authEntry);
+    } else {
+      config.add(Map.of("userAuthentication", "anonymous"));
+    }
+
+    // Adapter mode — subscription is preferred for OPC-UA
+    config.add(Map.of("ADAPTER_TYPE", "SUBSCRIPTION_MODE"));
+
+    // Naming strategy — use display name by default
+    config.add(Map.of("NAMING_STRATEGY", "DISPLAY_NAME"));
+
+    // Node selection (optional — empty means adapter will use all browsable nodes)
+    var nodeIds = parseOpcUaNodeIds(request.opcuaNodeBlock());
+    if (!nodeIds.isEmpty()) {
+      config.add(Map.of("AVAILABLE_NODES", nodeIds));
+    }
+  }
+
+  /**
+   * Parses an OPC-UA node block into a list of node ID strings.
+   * Each non-blank, non-comment line is expected in {@code name=nodeId} format;
+   * only the nodeId part (everything after the first {@code =}) is returned.
+   */
+  private List<String> parseOpcUaNodeIds(String nodeBlock) {
+    if (nodeBlock == null || nodeBlock.isBlank()) {
+      return List.of();
+    }
+    return nodeBlock.lines()
+        .map(String::trim)
+        .filter(line -> !line.isBlank() && !line.startsWith("//"))
+        .map(line -> {
+          int eq = line.indexOf('=');
+          return eq > 0 ? line.substring(eq + 1).trim() : line.trim();
+        })
+        .filter(id -> !id.isBlank())
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Builds a minimal schema from an OPC-UA node block (property name → null).
+   * Each line is expected in {@code name=nodeId} format; only the name is used.
+   */
+  private Map<String, CompactEventProperty> buildSchemaFromOpcUaNodeBlock(String nodeBlock) {
+    if (nodeBlock == null || nodeBlock.isBlank()) {
+      return null;
+    }
+    var schema = new LinkedHashMap<String, CompactEventProperty>();
+    nodeBlock.lines()
+             .map(String::trim)
+             .filter(line -> !line.isBlank() && !line.startsWith("//"))
+             .forEach(line -> {
+               int eq = line.indexOf('=');
+               if (eq > 0) {
+                 schema.put(line.substring(0, eq).trim(), null);
+               }
+             });
+    return schema.isEmpty() ? null : schema;
   }
 
   /**
@@ -294,6 +387,7 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
       String adapterType,
       String description,
       String plcCodeBlock,
+      String opcuaNodeBlock,
       String transformationScript,
       Long removeDuplicatesMs,
       Long reduceEventRateMs,

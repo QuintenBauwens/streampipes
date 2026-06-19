@@ -93,7 +93,77 @@
             </sp-split-section>
         }
 
-        <!-- Section 4: Transformation -->
+        <!-- Section 4: OPC-UA-specific configuration (shown only when OPC-UA is selected) -->
+        @if (isOpcUa) {
+            @if (!hasOpcuaSettings) {
+                <div
+                    class="sp-color-warn text-sm mb-sm"
+                    fxLayout="row"
+                    fxLayoutAlign="start center"
+                    fxLayoutGap="8px"
+                    style="padding: 8px 0"
+                >
+                    <mat-icon>warning</mat-icon>
+                    <span>{{
+                        'This device does not have OPC-UA settings configured. Please edit the device and enable OPC-UA first.'
+                            | translate
+                    }}</span>
+                </div>
+            } @else {
+                <sp-split-section
+                    [level]="3"
+                    [title]="'OPC-UA Connection' | translate"
+                    [subtitle]="
+                        'Connection settings are taken from the device'
+                            | translate
+                    "
+                >
+                    <sp-form-field
+                        [level]="3"
+                        [label]="'Endpoint URL' | translate"
+                    >
+                        <div class="text-sm">
+                            {{ device.opcuaEndpointUrl }}
+                        </div>
+                    </sp-form-field>
+
+                    <sp-form-field
+                        [level]="3"
+                        [label]="'Security Mode' | translate"
+                    >
+                        <div class="text-sm">
+                            {{ device.opcuaSecurityMode }}
+                        </div>
+                    </sp-form-field>
+                </sp-split-section>
+            }
+
+            <sp-split-section
+                [level]="3"
+                [title]="'OPC-UA Node Definitions' | translate"
+                [subtitle]="
+                    'Define the OPC-UA nodes to read, one per line (e.g. temperature=ns=2;s=Device1.Temperature). Leave blank to let the adapter browse all available nodes.'
+                        | translate
+                "
+            >
+                <sp-form-field
+                    [level]="3"
+                    [label]="'Node IDs (optional)' | translate"
+                >
+                    <mat-form-field class="w-100">
+                        <textarea
+                            matInput
+                            [(ngModel)]="opcuaNodeBlock"
+                            rows="5"
+                            style="font-family: monospace; font-size: 13px"
+                            placeholder="temperature=ns=2;s=Device1.Temperature&#10;pressure=ns=2;s=Device1.Pressure"
+                        ></textarea>
+                    </mat-form-field>
+                </sp-form-field>
+            </sp-split-section>
+        }
+
+        <!-- Section 5: Transformation -->
         <sp-split-section
             [level]="3"
             [title]="'Transformation Script' | translate"
@@ -114,7 +184,7 @@
             </sp-form-field>
         </sp-split-section>
 
-        <!-- Section 5: Quality filters -->
+        <!-- Section 6: Quality filters -->
         <sp-split-section
             [level]="3"
             [title]="'Quality Filters' | translate"
