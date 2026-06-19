@@ -70,22 +70,27 @@
                 data-cy="datalake-settings"
             >
                 <ng-template spTableMultiActions let-rows="selectedRows">
-                    <button
-                        mat-flat-button
-                        class="btn-warn"
-                        [disabled]="!canBulkDelete()"
+                    <span
+                        style="display: inline-block; pointer-events: auto"
                         [matTooltip]="
                             !canBulkDelete()
                                 ? ('Cannot delete: one or more selected datasets are actively used in a pipeline'
                                   | translate)
-                                : ('Delete selected datasets' | translate)
+                                : null
                         "
-                        (click)="bulkDeleteDatasets(rows)"
-                        data-cy="bulk-delete-datasets-btn"
+                        [matTooltipDisabled]="canBulkDelete()"
                     >
-                        <i class="material-icons">delete</i>&nbsp;
-                        {{ 'Delete' | translate }}
-                    </button>
+                        <button
+                            mat-flat-button
+                            class="btn-warn"
+                            [disabled]="!canBulkDelete()"
+                            (click)="bulkDeleteDatasets(rows)"
+                            data-cy="bulk-delete-datasets-btn"
+                        >
+                            <i class="material-icons">delete</i>&nbsp;
+                            {{ 'Delete' | translate }}
+                        </button>
+                    </span>
                 </ng-template>
 
                 <ng-container matColumnDef="name">
