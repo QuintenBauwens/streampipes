@@ -17,7 +17,7 @@
   -->
 
 <div fxLayout="column">
-    @if (shouldShowGroupingControls && !showSelectionCheckboxes) {
+    @if (shouldShowToolbar && !showSelectionCheckboxes) {
         <div
             class="grouping-toolbar grouping-toolbar--standalone"
             fxLayout="row wrap"
@@ -28,7 +28,20 @@
                 class="grouping-toolbar__filter"
                 fxLayout="row"
                 fxLayoutAlign="start center"
+                fxLayoutGap="10px"
             >
+                @if (showSearchFilter) {
+                    <mat-form-field class="form-field-small">
+                        <mat-label>{{ 'Search' | translate }}</mat-label>
+                        <mat-icon matPrefix>search</mat-icon>
+                        <input
+                            matInput
+                            [(ngModel)]="builtInSearchTerm"
+                            (ngModelChange)="onBuiltInSearchChange()"
+                            data-cy="sp-table-search-input"
+                        />
+                    </mat-form-field>
+                }
                 @if (filterTemplate) {
                     <ng-container *ngTemplateOutlet="filterTemplate">
                     </ng-container>
@@ -40,8 +53,10 @@
                 fxLayoutAlign="end center"
                 fxLayoutGap="12px"
             >
-                <ng-container *ngTemplateOutlet="groupingControls">
-                </ng-container>
+                @if (shouldShowGroupingControls) {
+                    <ng-container *ngTemplateOutlet="groupingControls">
+                    </ng-container>
+                }
             </div>
         </div>
     }
@@ -168,15 +183,29 @@
                 }
             </div>
 
-            @if (shouldShowGroupingControls) {
+            @if (shouldShowGroupingControls || showSearchFilter) {
                 <div
                     class="selection-toolbar__right"
                     fxLayout="row"
                     fxLayoutAlign="end center"
                     fxLayoutGap="8px"
                 >
-                    <ng-container *ngTemplateOutlet="groupingControls">
-                    </ng-container>
+                    @if (showSearchFilter) {
+                        <mat-form-field class="form-field-small">
+                            <mat-label>{{ 'Search' | translate }}</mat-label>
+                            <mat-icon matPrefix>search</mat-icon>
+                            <input
+                                matInput
+                                [(ngModel)]="builtInSearchTerm"
+                                (ngModelChange)="onBuiltInSearchChange()"
+                                data-cy="sp-table-search-input"
+                            />
+                        </mat-form-field>
+                    }
+                    @if (shouldShowGroupingControls) {
+                        <ng-container *ngTemplateOutlet="groupingControls">
+                        </ng-container>
+                    }
                 </div>
             }
         </div>

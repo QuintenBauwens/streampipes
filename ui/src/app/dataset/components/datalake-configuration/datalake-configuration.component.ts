@@ -66,7 +66,6 @@ import {
     SpLabelComponent,
     SpTableAssetContextConfig,
     SpTableActionsDirective,
-    SpTableFilterDirective,
     SpTableMultiActionsDirective,
     SpTableComponent,
 } from '@streampipes/shared-ui';
@@ -146,7 +145,6 @@ import { MatDialog } from '@angular/material/dialog';
         SpBasicViewComponent,
         SpAlertBannerComponent,
         SpTableActionsDirective,
-        SpTableFilterDirective,
         SpTableMultiActionsDirective,
     ],
 })
@@ -210,7 +208,6 @@ export class DatalakeConfigurationComponent
     writeAccess = false;
     assetFilter$: Subscription;
     currentFilterIds: Set<string> = new Set<string>();
-    searchTerm = '';
 
     ngOnInit(): void {
         this.assetFilterService.applyAssetLinkType('measurement');
@@ -314,13 +311,6 @@ export class DatalakeConfigurationComponent
             );
         }
 
-        if (this.searchTerm?.trim()) {
-            const term = this.searchTerm.trim().toLowerCase();
-            filtered = filtered.filter(m =>
-                m.name.toLowerCase().includes(term),
-            );
-        }
-
         this.filteredMeasurements = filtered;
         this.dataSource.data = this.filteredMeasurements;
         this.updatePaginatorAfterFiltering();
@@ -330,10 +320,6 @@ export class DatalakeConfigurationComponent
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
         });
-    }
-
-    onSearchChange(): void {
-        this.applyMeasurementFilters(this.currentFilterIds);
     }
 
     onSelectionChanged(rows: DataLakeConfigurationEntry[]): void {

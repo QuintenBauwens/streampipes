@@ -16,7 +16,12 @@
   ~
   -->
 
-<sp-table [columns]="displayedColumns" [dataSource]="dataSource" matSort>
+<sp-table
+    [columns]="displayedColumns"
+    [dataSource]="dataSource"
+    [showSearchFilter]="true"
+    matSort
+>
     <ng-container matColumnDef="name">
         <th mat-header-cell mat-sort-header *matHeaderCellDef>Name</th>
         <td mat-cell *matCellDef="let spFunction">

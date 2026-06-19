@@ -70,7 +70,13 @@ import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ClassDirective } from '@ngbracket/ngx-layout/extended';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MatCheckbox } from '@angular/material/checkbox';
-import { MatFormField } from '@angular/material/form-field';
+import {
+    MatFormField,
+    MatLabel,
+    MatPrefix,
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { SpAssetBrowserService } from '../asset-browser/asset-browser.service';
@@ -129,6 +135,10 @@ type SpTableRenderedRow<T> = T | SpTableGroupHeaderRow;
         MatIcon,
         MatCheckbox,
         MatFormField,
+        MatLabel,
+        MatPrefix,
+        MatInput,
+        FormsModule,
         MatMenuTrigger,
         MatMenu,
         MatSelect,
@@ -169,9 +179,9 @@ export class SpTableComponent<T>
     @Input() columns: string[];
     @Input() rowsClickable = false;
     @Input() showActionsMenu = false;
+    @Input() showSearchFilter = false;
     @Input() showSelectionCheckboxes = false;
     @Input() showMultiActionsExecuteButton = false;
-    @Input() multiActionsExecuteLabel = 'Execute';
     @Input() multiActionsExecuteDisabled = false;
     @Input() multiActionsSelectLabel = 'Action';
     @Input() multiActionOptions: SpTableMultiActionOption[] = [];
@@ -205,6 +215,8 @@ export class SpTableComponent<T>
 
     visiblePageRows: T[] = [];
     selectedMultiAction: string | null = null;
+    builtInSearchTerm = '';
+
     viewMode: SpTableGroupViewMode = 'list';
     groupBy: SpTableGroupingMode = 'asset';
     groupedSections: SpTableGroupedSection<T>[] = [];
@@ -335,6 +347,22 @@ export class SpTableComponent<T>
 
     get shouldShowGroupingControls(): boolean {
         return !!this.assetContextConfig;
+    }
+
+    get shouldShowToolbar(): boolean {
+        return (
+            this.shouldShowGroupingControls ||
+            this.showSearchFilter ||
+            !!this.filterTemplate
+        );
+    }
+
+    onBuiltInSearchChange(): void {
+        if (this.dataSource) {
+            this.dataSource.filter = this.builtInSearchTerm
+                .toLowerCase()
+                .trim();
+        }
     }
 
     get renderedDataSource(): MatTableDataSource<T> | SpTableRenderedRow<T>[] {

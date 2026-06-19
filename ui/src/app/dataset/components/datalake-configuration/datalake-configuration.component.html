@@ -64,24 +64,11 @@
                 [assetContextConfig]="assetContextConfig"
                 [showActionsMenu]="true"
                 [showSelectionCheckboxes]="writeAccess"
+                [showSearchFilter]="true"
                 (selectionChanged)="onSelectionChanged($event)"
                 matSort
                 data-cy="datalake-settings"
             >
-                <ng-template spTableFilter>
-                    <mat-form-field color="accent" style="width: 260px">
-                        <mat-label>{{
-                            'Search datasets' | translate
-                        }}</mat-label>
-                        <input
-                            matInput
-                            [(ngModel)]="searchTerm"
-                            (ngModelChange)="onSearchChange()"
-                            data-cy="datasets-search-input"
-                        />
-                    </mat-form-field>
-                </ng-template>
-
                 <ng-template spTableMultiActions let-rows="selectedRows">
                     <button
                         mat-flat-button

@@ -16,7 +16,12 @@
   ~
   -->
 
-<sp-table fxFlex="100" [columns]="displayedColumns" [dataSource]="dataSource">
+<sp-table
+    fxFlex="100"
+    [columns]="displayedColumns"
+    [dataSource]="dataSource"
+    [showSearchFilter]="true"
+>
     <ng-container matColumnDef="filename">
         <th mat-header-cell *matHeaderCellDef>{{ 'Filename' | translate }}</th>
         <td mat-cell *matCellDef="let fileMetadata">
