@@ -39,6 +39,8 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Datasets page search box | ✅ Done | `SpTableFilterDirective` slot in `sp-table` toolbar; stacks with asset filter |
 | Data Lake retention config in automation | ✅ Done | Toggle + days + interval in automation pipeline config; applied on pipeline start |
 | Auto-deployed pipeline linked to adapter asset | ✅ Done | Both MQTT and Data Lake pipelines get `AssetLink(linkType="pipeline")` on the same asset node as the adapter |
+| DataLakeMeasure linked to asset | ✅ Done | `linkMeasurementToAsset()` adds `AssetLink(linkType="measurement")`; `applyMeasurePostProcessing()` consolidates measure linking + retention |
+| Multi-select + bulk delete for datasets | ✅ Done | Checkbox column, select-all, bulk delete button with `ConfirmDialogComponent`; `forkJoin` parallel delete |
 
 ---
 
@@ -83,7 +85,7 @@ No outstanding work. Smoke-test checklist:
 | `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices`; Checkstyle import fix applied |
 | `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — `utils.addTimestamp(event)` in default transform |
-| `streampipes-rest/src/main/java/.../rest/impl/connect/AbstractAdapterResource.java` | MODIFIED — `applyRetentionToMeasure()` after Data Lake start; `linkPipelineToAsset()` after both auto-deploys |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/AbstractAdapterResource.java` | MODIFIED — `applyMeasurePostProcessing()` (measure asset link + retention) after Data Lake start; `linkPipelineToAsset()` after both auto-deploys |
 
 ### Frontend (Angular)
 
@@ -109,8 +111,8 @@ No outstanding work. Smoke-test checklist:
 | `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | NEW |
 | `ui/src/app/connect/connect.routes.ts` | MODIFIED — added `/connect/devices` route |
 | `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — Device Registry navigation button |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box; `SpTableFilterDirective` import |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — `ng-template[spTableFilter]` inside `sp-table` |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box; `SpTableFilterDirective` import; `SelectionModel`; `bulkDeleteDatasets()`; `masterToggle()`; `isAllSelected()` |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — `ng-template[spTableFilter]` with search + bulk delete button; `select` checkbox column |
 | `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-actions/sp-table-filter.directive.ts` | NEW |
 | `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.ts` | MODIFIED — `@ContentChild(SpTableFilterDirective)` |
 | `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.html` | MODIFIED — renders filterTemplate in toolbar |
