@@ -45,6 +45,7 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Execute button label restored | ✅ Done | `@Input() showMultiActionsExecuteButton` and `multiActionsExecuteLabel` were accidentally dropped; restored |
 | Duplicate search boxes removed | ✅ Done | `sp-connect-filter-toolbar` removed from adapter page nav; external search removed from adapter-asset-mappings page |
 | Delete dataset tooltip | ✅ Done | `matTooltip` on disabled "Delete dataset" menu item explains active pipeline constraint |
+| OPC-UA device settings + adapter creation | ✅ Done | `SpDevice` extended with `opcuaEnabled/EndpointUrl/SecurityMode/Username/Password`; `DeviceResource` routes to OPC-UA config builder when adapter type is opcua; add-device panel has OPC-UA section; add-adapter dialog has OPC-UA option with warning when settings missing |
 
 ---
 
@@ -52,6 +53,8 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 
 No outstanding work. Smoke-test checklist:
 - `docker compose build && docker compose up -d`
+- **OPC-UA device**: add a device, enable OPC-UA toggle, fill endpoint URL → save succeeds; edit device shows OPC-UA fields
+- **OPC-UA adapter**: add adapter for device → OPC-UA option appears in protocol dropdown; without OPC-UA settings on device, OPC-UA option shows warning and Create button is disabled; with settings, node block textarea is shown
 - **sp-table search**: every page using `sp-table` shows search input; typing filters rows; grouped mode also filters correctly
 - **Execute button**: on Pipelines page, select rows and check the execute button shows "Execute" label
 - **Duplicate search removed**: Adapters page nav has no search box; Asset Mappings page has only one search (inside sp-table)
@@ -85,7 +88,8 @@ No outstanding work. Smoke-test checklist:
 | `streampipes-extensions/streampipes-connectors-mqtt/.../shared/MqttPublisher.java` | MODIFIED — `publish(Event, String)` overload |
 | `streampipes-extensions/streampipes-processors-enricher-jvm/.../assethierarchy/AssetHierarchyEnrichmentProcessor.java` | NEW |
 | `streampipes-extensions/streampipes-processors-enricher-jvm/.../EnricherExtensionModuleExport.java` | MODIFIED — registered new processor |
-| `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | NEW |
+| `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | MODIFIED — added `opcuaEnabled`, `opcuaEndpointUrl`, `opcuaSecurityMode`, `opcuaUsername`, `opcuaPassword` fields with getters/setters |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | MODIFIED — `buildCompactAdapter` routes to OPC-UA branch; `buildOpcUaConfig()`, `parseOpcUaNodeIds()`, `buildSchemaFromOpcUaNodeBlock()` added; `DeviceAdapterRequest` extended with `opcuaNodeBlock` |
 | `streampipes-storage-api/src/main/java/.../storage/api/connect/ISpDeviceStorage.java` | NEW |
 | `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices`; Checkstyle import fix applied |
@@ -100,7 +104,11 @@ No outstanding work. Smoke-test checklist:
 | `ui/projects/streampipes/platform-services/src/lib/apis/adapter.service.ts` | MODIFIED — `uploadAdapterConfig(file)` |
 | `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | NEW — `getAllMappings()`, `saveMapping()`, `uploadMappingCsv()` |
 | `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | NEW — `getConfig()` / `updateConfig()`; MODIFIED — added data lake retention fields |
-| `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | NEW |
+| `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | MODIFIED — `SpDevice` extended with OPC-UA fields; `DeviceAdapterRequest` extended with `opcuaNodeBlock`; `emptyDevice()` initialises OPC-UA defaults |
+| `ui/src/app/connect/components/device-registry/add-device/add-device.component.ts` | MODIFIED — added `MatSlideToggle/MatSelect/MatOption` imports; `isValid` updated for OPC-UA |
+| `ui/src/app/connect/components/device-registry/add-device/add-device.component.html` | MODIFIED — added OPC-UA section (enable toggle, endpoint URL, security mode, username/password) |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.ts` | MODIFIED — OPC-UA option added; `isOpcUa`, `hasOpcuaSettings`, `isValid` getters; `opcuaNodeBlock` field; `MatIcon` import |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | MODIFIED — OPC-UA section with warning banner + connection info display + node IDs textarea |
 | `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports mqtt config, device, adapter-asset-mapping services |
 | `ui/src/app/assets/components/asset-overview/asset-overview.component.html` | MODIFIED — Maximo import + Adapter Mappings buttons |
 | `ui/src/app/assets/components/asset-overview/asset-overview.component.ts` | MODIFIED — `triggerMaximoImport()` |
@@ -176,7 +184,16 @@ No outstanding work. Smoke-test checklist:
 - `applyRetentionToMeasure()` runs after `createAndStartPersistPipeline` when retention is enabled
 - `DataLakeMeasure` is registered asynchronously by the extensions service; if not yet present on first invocation the method logs debug and does nothing — set retention manually from the Datasets page on first deploy
 
-### Built-in SpTable Search Filter
+### OPC-UA Device Registry
+
+- `SpDevice` now carries optional OPC-UA fields — existing PLC-only devices round-trip correctly (fields default to `false`/`""`)
+- `DeviceResource.buildCompactAdapter()` branches on `OPCUA_APP_ID` constant; all config map entries for the OPC-UA `PipelineElementTemplateVisitor` must follow the same-map-entry pattern for alternatives (just like PLC4x)
+- OPC-UA config map keys: `OPC_HOST_OR_URL + OPC_SERVER_URL` (same entry), `securityMode`, `securityPolicy`, `userAuthentication` (+ nested `USERNAME`/`PASSWORD` in same entry), `ADAPTER_TYPE`, `NAMING_STRATEGY`, `AVAILABLE_NODES`
+- Security policy defaults to `"None"` when mode is `"None"`, otherwise `"Basic256Sha256"`
+- Node block format: `name=ns=2;s=Device1.Temperature` — same `name=value` pattern as PLC4x code block; parser splits on first `=`
+- `AVAILABLE_NODES` config entry is omitted when node block is empty — adapter will attempt to browse all available nodes on startup
+- `isValid` in `add-device` now allows OPC-UA-only devices (no PLC host required when `opcuaEnabled = true`)
+- `isValid` in `add-adapter-dialog` blocks Create when OPC-UA type selected but device lacks OPC-UA settings
 - `@Input() showSearchFilter = false` on `SpTableComponent` — set to `true` on all 18 usages
 - `onBuiltInSearchChange()` sets `dataSource.filter = builtInSearchTerm.toLowerCase().trim()` which triggers the default `MatTableDataSource` filter predicate (concatenates all string properties)
 - `shouldShowToolbar` getter returns true when `assetContextConfig`, `showSearchFilter`, or `filterTemplate` is set — drives toolbar visibility
