@@ -41,7 +41,10 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Auto-deployed pipeline linked to adapter asset | ✅ Done | Both MQTT and Data Lake pipelines get `AssetLink(linkType="pipeline")` on the same asset node as the adapter |
 | DataLakeMeasure linked to asset | ✅ Done | `linkMeasurementToAsset()` adds `AssetLink(linkType="measurement")`; `applyMeasurePostProcessing()` consolidates measure linking + retention |
 | Multi-select + bulk delete for datasets | ✅ Done | Checkbox column, select-all, bulk delete button with `ConfirmDialogComponent`; `forkJoin` parallel delete |
-| Built-in search filter in SpTableComponent | ✅ Done | `[showSearchFilter]="true"` on all 18 sp-table usages; filters `MatTableDataSource` via built-in predicate |
+| Built-in search filter in SpTableComponent | ✅ Done | `[showSearchFilter]="true"` on all 18 sp-table usages; filters `MatTableDataSource` via built-in predicate; grouped mode supported via explicit `refreshRenderedRows()` call |
+| Execute button label restored | ✅ Done | `@Input() showMultiActionsExecuteButton` and `multiActionsExecuteLabel` were accidentally dropped; restored |
+| Duplicate search boxes removed | ✅ Done | `sp-connect-filter-toolbar` removed from adapter page nav; external search removed from adapter-asset-mappings page |
+| Delete dataset tooltip | ✅ Done | `matTooltip` on disabled "Delete dataset" menu item explains active pipeline constraint |
 
 ---
 
@@ -49,11 +52,11 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 
 No outstanding work. Smoke-test checklist:
 - `docker compose build && docker compose up -d`
-- **Built-in search**: every page using `sp-table` (adapters, pipelines, datasets, assets, dashboards, charts, security, labels, files, functions, certificates, sites) should show a search input in the table toolbar; typing filters rows instantly
-- **Datasets search**: Data Explorer → Datasets; search stacks with asset filter (asset filter uses data source directly, built-in search uses `dataSource.filter`)
-- **Automation Data Lake retention**: Configuration → Automation → Pipelines tab; select Data Lake sink; enable retention toggle; set days + interval; save and verify persisted
-- **Label grouping**: adapter overview → Group by Label → adapters with automation-assigned labels appear under their label group
-- **Adapter preview**: click any adapter row → preview shows "Asset context" and "Labels" chips
+- **sp-table search**: every page using `sp-table` shows search input; typing filters rows; grouped mode also filters correctly
+- **Execute button**: on Pipelines page, select rows and check the execute button shows "Execute" label
+- **Duplicate search removed**: Adapters page nav has no search box; Asset Mappings page has only one search (inside sp-table)
+- **Dataset delete tooltip**: when a dataset is in active pipeline, hovering the disabled Delete menu item shows tooltip
+- **Auto-link on adapter create**: create adapter that matches a mapping → adapter appears in the matched asset's Asset Context column
 
 ---
 
