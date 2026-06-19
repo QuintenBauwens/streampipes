@@ -140,26 +140,6 @@
                         data-cy="mapping-search-input"
                     />
                 </mat-form-field>
-                @if (totalFilteredCount > 0) {
-                    <button
-                        mat-button
-                        mat-flat-button
-                        class="mat-basic"
-                        (click)="selectAll()"
-                        [matTooltip]="
-                            ('Select all' | translate) +
-                            ' (' +
-                            totalFilteredCount +
-                            ')'
-                        "
-                        data-cy="select-all-button"
-                    >
-                        <i class="material-icons">select_all</i>&nbsp;
-                        {{ 'Select all' | translate }} ({{
-                            totalFilteredCount
-                        }})
-                    </button>
-                }
             </div>
 
             @if (uploadResult) {

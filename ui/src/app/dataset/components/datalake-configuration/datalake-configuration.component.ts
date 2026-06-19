@@ -67,6 +67,7 @@ import {
     SpTableAssetContextConfig,
     SpTableActionsDirective,
     SpTableFilterDirective,
+    SpTableMultiActionsDirective,
     SpTableComponent,
 } from '@streampipes/shared-ui';
 import { DeleteDatalakeIndexComponent } from '../../dialog/delete-datalake-index/delete-datalake-index-dialog.component';
@@ -99,9 +100,8 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'sp-datalake-configuration',
@@ -147,7 +147,7 @@ import { Subscription } from 'rxjs';
         SpAlertBannerComponent,
         SpTableActionsDirective,
         SpTableFilterDirective,
-        MatCheckbox,
+        SpTableMultiActionsDirective,
     ],
 })
 export class DatalakeConfigurationComponent
@@ -182,7 +182,6 @@ export class DatalakeConfigurationComponent
         new MatTableDataSource([]);
 
     displayedColumns: string[] = [
-        'select',
         'name',
         'assetContext',
         'pipeline',
@@ -203,7 +202,7 @@ export class DatalakeConfigurationComponent
 
     private localStorageService = inject(LocalStorageService);
 
-    selection = new SelectionModel<DataLakeConfigurationEntry>(true, []);
+    selectedDatasets: DataLakeConfigurationEntry[] = [];
 
     pageSize = this.localStorageService.get('paginator-page-size', 10);
     pageIndex = 0;
@@ -260,7 +259,7 @@ export class DatalakeConfigurationComponent
 
     loadAvailableMeasurements() {
         this.availableMeasurements = [];
-        this.selection.clear();
+        this.selectedDatasets = [];
         // get all available measurements that are stored in the data lake
         this.datalakeRestService
             .getAllMeasurementSeries()
@@ -337,34 +336,26 @@ export class DatalakeConfigurationComponent
         this.applyMeasurementFilters(this.currentFilterIds);
     }
 
-    isAllSelected(): boolean {
+    onSelectionChanged(rows: DataLakeConfigurationEntry[]): void {
+        this.selectedDatasets = rows;
+    }
+
+    canBulkDelete(): boolean {
         return (
-            this.selection.selected.length === this.filteredMeasurements.length
+            this.selectedDatasets.length > 0 &&
+            this.selectedDatasets.every(e => e.remove)
         );
     }
 
-    masterToggle(): void {
-        if (this.isAllSelected()) {
-            this.selection.clear();
-        } else {
-            this.filteredMeasurements.forEach(row =>
-                this.selection.select(row),
-            );
-        }
-    }
-
-    bulkDeleteDatasets(): void {
-        const deletable = this.selection.selected.filter(e => e.remove);
+    bulkDeleteDatasets(rows: DataLakeConfigurationEntry[]): void {
+        const deletable = rows.filter(e => e.remove);
         if (deletable.length === 0) {
             return;
         }
         const dialogRef = this.matDialog.open(ConfirmDialogComponent, {
             data: {
                 title: this.translateService.instant('Delete datasets'),
-                subtitle: this.translateService.instant(
-                    'Do you really want to delete {{count}} selected dataset(s)?',
-                    { count: deletable.length },
-                ),
+                subtitle: `${this.translateService.instant('Do you really want to delete')} ${deletable.length} ${this.translateService.instant('selected dataset(s)?')}`,
                 confirmTitle: this.translateService.instant('Delete'),
                 cancelTitle: this.translateService.instant('Cancel'),
             } as ConfirmDialogData,
@@ -378,7 +369,6 @@ export class DatalakeConfigurationComponent
                         ),
                     ),
                 ).subscribe(() => {
-                    this.selection.clear();
                     this.loadAvailableMeasurements();
                 });
             }
