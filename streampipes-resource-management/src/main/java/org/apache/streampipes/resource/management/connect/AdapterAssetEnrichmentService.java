@@ -108,33 +108,55 @@ public class AdapterAssetEnrichmentService {
     }
   }
 
+  /**
+   * Links an auto-deployed pipeline to the same asset as the given adapter if a mapping exists.
+   * Safe to call when no mapping exists — silently does nothing.
+   */
+  public void linkPipelineToAsset(String pipelineId, String pipelineName, String adapterName) {
+    try {
+      var mapping = StorageDispatcher.INSTANCE.getNoSqlStore()
+                                              .getAdapterAssetMappingStorage()
+                                              .getElementById(adapterName);
+      if (mapping == null || mapping.getTopic() == null || mapping.getTopic().isBlank()) {
+        return;
+      }
+      linkResourceToAsset(pipelineId, pipelineName, "pipeline", mapping.getTopic());
+    } catch (Exception e) {
+      LOG.warn("Failed to link pipeline '{}' to asset: {}", pipelineName, e.getMessage());
+    }
+  }
+
   private void linkToAsset(AdapterDescription adapter, String topic) {
     if (topic == null || topic.isBlank()) {
       return;
     }
+    linkResourceToAsset(adapter.getElementId(), adapter.getName(), "adapter", topic);
+  }
 
+  private void linkResourceToAsset(String resourceId, String resourceLabel,
+                                   String linkType, String topic) {
     try {
       var assetStorage = StorageDispatcher.INSTANCE.getNoSqlStore().getAssetStorage();
       for (SpAssetModel assetModel : assetStorage.findAll()) {
         var target = findAssetByMqttTopic(assetModel, topic);
         if (target != null) {
           var link = AssetLinkBuilder.create()
-              .withResourceId(adapter.getElementId())
-              .withLinkType("adapter")
-              .withLinkLabel(adapter.getName())
-              .withQueryHint(adapter.getElementId())
+              .withResourceId(resourceId)
+              .withLinkType(linkType)
+              .withLinkLabel(resourceLabel)
+              .withQueryHint(resourceId)
               .build();
 
-          target.getAssetLinks().removeIf(l -> adapter.getElementId().equals(l.getResourceId()));
+          target.getAssetLinks().removeIf(l -> resourceId.equals(l.getResourceId()));
           target.getAssetLinks().add(link);
           assetStorage.updateElement(assetModel);
-          LOG.info("Linked adapter '{}' to asset '{}'", adapter.getName(), target.getAssetName());
+          LOG.info("Linked {} '{}' to asset '{}'", linkType, resourceLabel, target.getAssetName());
           return;
         }
       }
-      LOG.info("No asset found matching mqtt_topic '{}' - skipping asset link", topic);
+      LOG.debug("No asset found matching mqtt_topic '{}' — skipping {} link", topic, linkType);
     } catch (Exception e) {
-      LOG.warn("Failed to link adapter '{}' to asset: {}", adapter.getName(), e.getMessage());
+      LOG.warn("Failed to link {} '{}' to asset: {}", linkType, resourceLabel, e.getMessage());
     }
   }
 

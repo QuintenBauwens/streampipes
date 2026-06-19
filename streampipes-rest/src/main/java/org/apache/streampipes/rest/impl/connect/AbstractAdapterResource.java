@@ -103,7 +103,7 @@ public class AbstractAdapterResource<T> extends AbstractAuthGuardedRestResource 
         return;
       }
       if (config.isEnabled() && config.getBrokerUrl() != null && !config.getBrokerUrl().isBlank()) {
-        new MqttPublisherPipelineHandler(
+        var status = new MqttPublisherPipelineHandler(
             new CompactPipelineManagement(
                 getNoSqlStorage().getPipelineElementDescriptionStorage(),
                 requestManager
@@ -111,8 +111,10 @@ public class AbstractAdapterResource<T> extends AbstractAuthGuardedRestResource 
             getAuthenticatedUserSid()
         ).createAndStartMqttPipeline(adapter, config, requestManager);
         LOG.info("Auto-deployed MQTT publisher pipeline for adapter '{}'", adapter.getName());
+        new AdapterAssetEnrichmentService()
+            .linkPipelineToAsset(status.getPipelineId(), status.getPipelineName(), adapter.getName());
       } else if (config.isDataLakeSinkEnabled()) {
-        new PersistPipelineHandler(
+        var status = new PersistPipelineHandler(
             getNoSqlStorage().getPipelineTemplateStorage(),
             new CompactPipelineManagement(
                 getNoSqlStorage().getPipelineElementDescriptionStorage(),
@@ -121,6 +123,8 @@ public class AbstractAdapterResource<T> extends AbstractAuthGuardedRestResource 
             getAuthenticatedUserSid()
         ).createAndStartPersistPipeline(adapter, config.getPipelineLabelIds(), requestManager);
         LOG.info("Auto-deployed data lake pipeline for adapter '{}'", adapter.getName());
+        new AdapterAssetEnrichmentService()
+            .linkPipelineToAsset(status.getPipelineId(), status.getPipelineName(), adapter.getName());
         if (config.isDataLakeRetentionEnabled()) {
           applyRetentionToMeasure(adapter.getName(), config);
         }
