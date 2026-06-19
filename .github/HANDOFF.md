@@ -1,8 +1,9 @@
-# StreamPipes IIoT Feature Extensions — Session Handoff
+﻿# StreamPipes IIoT Feature Extensions — Session Handoff
 
 > **Maintenance:** Update this file at the end of every session. The workflow is defined in `.github/copilot-instructions.md` under "Session Workflow".
 
 ## Project Goal
+
 Extend Apache StreamPipes for Industrial IoT use cases with:
 1. Import asset hierarchies from Maximo JSON exports
 2. Upload adapter configs via YAML file
@@ -13,76 +14,41 @@ Extend Apache StreamPipes for Industrial IoT use cases with:
 
 ---
 
-## Status
+## Status — All Features Complete ✅
+
+All features compile-verified (backend) and build-verified (Angular dev build). Branch: `copilot-cli`.
 
 | Feature | Status | Notes |
 |---|---|---|
-| Dynamic MQTT topic support | ✅ Done | Uses `getStaticPropertyByName` to correctly find nested `MappingPropertyUnary` |
+| Dynamic MQTT topic support | ✅ Done | `getStaticPropertyByName` recurses into `StaticPropertyAlternative` |
 | Maximo asset import (service + REST) | ✅ Done | Backend compile-verified |
 | YAML adapter upload endpoint | ✅ Done | Backend compile-verified |
 | Asset hierarchy enrichment processor | ✅ Done | Backend compile-verified |
 | Platform-services API methods | ✅ Done | `importMaximoAssets()` + `uploadAdapterConfig()` |
-| Frontend: Maximo import button (assets) | ✅ Done | Angular build passes |
-| Frontend: YAML upload button (connect) | ✅ Done | Angular build passes |
-| **Angular build verification** | ✅ Done | Build passes — only pre-existing CommonJS warnings |
-| Adapter-to-asset topic mapping (backend) | ✅ Done | CouchDB `adapter-asset-mappings` db; enrichment + asset linking service |
-| Asset linking fix (null-safe traversal) | ✅ Done | NPE on null `additionalData` in nested `SpAsset` nodes no longer silently aborts linking |
-| Asset linking fix (direct JSON save) | ✅ Done | Angular `saveMapping()` now POSTs JSON (not CSV) to new `@PostMapping` on `AdapterAssetMappingResource` |
-| CSV header detection fix | ✅ Done | Backend also accepts `adaptername` header prefix in CSV upload |
-| Dynamic MQTT topic fix | ✅ Done | `getStaticPropertyByName` correctly recurses into `StaticPropertyAlternative` |
-| Adapter-to-asset mapping UI page | ✅ Done | `/assets/mappings` route; table + add form + CSV upload |
-| Upload error handling fix | ✅ Done | Separate catches for `JsonProcessingException` vs `WorkerAdapterException` |
-| Routing fix for mappings button | ✅ Done | Fixed absolute routerLink; added "Asset Mappings" button to connect page |
-| YAML upload with pre-defined schema | ✅ Done | Skip live device guessing when `schema` block is present in YAML |
-| **MQTT auto-publish pipeline** | ✅ Done | Global config stored in CouchDB; auto-creates MQTT pipeline per adapter on upload |
-| **Timestamp field on adapter create/import** | ✅ Done | `addTimestampProperty()` in `AdapterSchemaGenerator`; default script includes `event.timestamp = Date.now()` |
-| **Null-safe propertyScope in PersistPipelineHandler** | ✅ Done | Flipped equalsIgnoreCase receiver to avoid NPE on null scope |
-| **Automation config section (UI)** | ✅ Done | `/configuration/automation`; Pipelines tab + Adapters tab (topic enrichment toggle); settings shortcuts on pipelines + connect pages |
-| **PLC device registry** | ✅ Done | Full-stack device CRUD + adapter prefill endpoint/UI; build-verified this session |
-| **Device registry UX overhaul** | ✅ Done | Accordion replacing table; back nav fixed; rich Add Adapter dialog (desc, PLC code block, script, dedup, rate); adapter creation gap fixed via two-step POST chain |
-| **Device registry UX polish** | ✅ Done | Padding/spacing in expanded panels; reachability status icon (TCP port 102 check); adapter creation error fixed (code block → auto schema, WorkerAdapterException caught); action log auto-dismiss + single-message-at-a-time |
-| **Device registry slide-in panels + status** | ✅ Done | Add/Edit Device + Add Adapter now use SLIDE_IN_PANEL (matches Export Provider pattern); adapterType moved from device to adapter request; Online/Offline/Checking status badge; startup crash (duplicate POST mapping) fixed |
-| **Device registry adapter creation fix** | ✅ Done | `plc_code_block` and `plc_node_input_alternatives` merged into single map entry so `PipelineElementTemplateVisitor` can find the code block when recursing into the selected alternative |
-| **Device registry adapter count** | ✅ Done | `SpDevice.adapterIds` tracks created adapters; pre-generated ID is consistent across both POST calls; adapter count tile shown in expanded panel |
-| **Device registry bulk reachability on load** | ✅ Done | `checkAllReachability()` fires for all devices when page loads and every 5 min via `setInterval`; `onPanelOpened` still re-checks on expand; template `@if` order flipped (true/false/else) so null+undefined both show "Checking" |
-| **Device registry full adapter count** | ✅ Done | `deviceId` added to `AdapterDescription` + `CompactAdapter`; propagated via `AdapterBasicsGenerator`; `getAllDevices()` enriches `adapterIds` in-response with adapters carrying matching `deviceId`; YAML-imported adapters link via `deviceId` field |
-| **Automation settings: label assignment** | ✅ Done | `pipelineLabelIds` + `adapterLabelIds` added to `MqttAutoPublishConfig` (Java + TS interface); multi-select label pickers in both Pipelines and Adapters tabs; "no labels" state links to `/configuration/labels` |
-| **Manual adapter creation automation** | ✅ Done | `AdapterResource.addAdapter()` now calls `enrichOnCreate()` + `tryAutoDeployPipeline()` (both moved to `AbstractAdapterResource`); element ID set before enrichment; pipeline description uses actual topic |
+| Frontend: Maximo import + YAML upload buttons | ✅ Done | Angular build passes |
+| Adapter-to-asset topic mapping | ✅ Done | CouchDB `adapter-asset-mappings`; `/assets/mappings` route |
+| Asset linking (null-safe + JSON POST) | ✅ Done | Null-safe traversal; Angular POSTs JSON directly |
+| MQTT auto-publish pipeline | ✅ Done | Singleton CouchDB config; auto-creates pipeline per adapter |
+| Timestamp field on adapter create/import | ✅ Done | `addTimestampProperty()` in `AdapterSchemaGenerator` |
+| Automation config section (UI) | ✅ Done | `/configuration/automation`; Pipelines + Adapters tabs |
+| PLC device registry | ✅ Done | Full-stack CRUD; slide-in panels; reachability check; adapter count |
+| Automation label assignment | ✅ Done | `pipelineLabelIds` + `adapterLabelIds`; multi-select pickers |
+| Manual adapter creation automation | ✅ Done | `enrichOnCreate()` + `tryAutoDeployPipeline()` in `AbstractAdapterResource` |
+| Asset grouping by parent asset | ✅ Done | Adapters grouped by parent asset; direct asset shown as context |
+| Label grouping + adapter preview chips | ✅ Done | Label grouping fixed; labels + asset context shown in preview |
+| Datasets page search box | ✅ Done | `SpTableFilterDirective` slot in `sp-table` toolbar; stacks with asset filter |
+| Data Lake retention config in automation | ✅ Done | Toggle + days + interval in automation pipeline config; applied on pipeline start |
 
 ---
-
-## Status: All Features Complete ✅
-
-All features compile-verified (backend) and build-verified (Angular dev build). Branch: `copilot-cli`.
-
-## This Session's Changes
-
-| Fix / Feature | Status | Commit |
-|---|---|---|
-| Asset grouping uses direct asset (not root) | ✅ Done | `fix(assets): group adapters/pipelines by direct asset instead of root` |
-| Maximo sub-assets missing assetId | ✅ Done | `fix(connect,assets): pipeline name auto-X, consistent topic desc, fix asset context` |
-| Auto-pipeline name `auto-<adapterName>` | ✅ Done | same commit |
-| Topic description mirrors dynamic/static priority | ✅ Done | same commit |
-| Back arrow on `/assets/mappings` page | ✅ Done | `feat(assets,config): back arrow on mappings page, static topic warning, scrollable+searchable asset tree` |
-| Static topic + topic enrichment info warning | ✅ Done | same commit |
-| Asset editor: scrollable tree + search input | ✅ Done | same commit |
-| Asset editor scroll cutoff fix | ✅ Done | `fix(assets): fix asset selection panel cutoff and enable tree scroll` |
-| Group adapters by **parent** asset (not direct) | ✅ Done | `feat(assets): group adapters by parent asset, show direct asset as context` |
-| Apply automation label IDs to pipelines/adapters | ✅ Done | `feat(labels): apply automation label IDs to auto-created pipelines and adapters` |
-| Asset grouping unaffected by row-level labels | ✅ Done | `fix(labels): keep asset/label grouping asset-only, row labels are display-only` |
-| Label grouping now correctly groups by row labelIds | ✅ Done | `feat(connect): fix label grouping and add labels/asset context to adapter preview` |
-| Adapter preview shows labels + asset context | ✅ Done | same commit |
-| **Datasets page search box** | ✅ Done | `feat(datasets): add search box to datasets page` |
-| **Data Lake retention config in automation pipeline** | ✅ Done | `feat(automation): add data retention config for Data Lake sink in automation pipeline` |
 
 ## First Thing To Do Next Session
 
 No outstanding work. Smoke-test checklist:
 - `docker compose build && docker compose up -d`
-- **Datasets search**: navigate to Data Explorer → Datasets; search input in header should filter the table by measurement name in real time; search stacks with the asset filter
-- **Automation Data Lake retention**: go to Configuration → Automation → Pipelines tab; select Data Lake sink; "Enable data retention" toggle appears; enable it → days + interval fields appear; save and verify persisted
-- **Label grouping**: adapter overview → Group by Label → adapters with automation-assigned labels should appear under their label group (not Unassigned)
-- **Adapter preview**: click any adapter row → preview panel should show "Asset context" chips and "Labels" chips
+- **Datasets search**: Data Explorer → Datasets; search input in toolbar filters by measurement name; stacks with asset filter
+- **Automation Data Lake retention**: Configuration → Automation → Pipelines tab; select Data Lake sink; enable retention toggle; set days + interval; save and verify persisted
+- **Label grouping**: adapter overview → Group by Label → adapters with automation-assigned labels appear under their label group
+- **Adapter preview**: click any adapter row → preview shows "Asset context" and "Labels" chips
 
 ---
 
@@ -98,78 +64,108 @@ No outstanding work. Smoke-test checklist:
 | `streampipes-rest/src/main/java/.../rest/impl/MaximoAssetImportResource.java` | NEW |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/CompactAdapterResource.java` | MODIFIED — YAML upload + MQTT auto-pipeline hook |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/AdapterAssetMappingResource.java` | MODIFIED — JSON `@PostMapping` + CSV header fix |
-| `streampipes-rest/src/main/java/.../rest/impl/admin/AutoMqttConfigResource.java` | NEW — `GET/PUT /api/v2/config/mqtt-auto-publish` |
-| `streampipes-model/src/main/java/.../model/configuration/MqttAutoPublishConfig.java` | NEW — singleton config model; MODIFIED — added `dataLakeRetentionEnabled`, `dataLakeOlderThanDays`, `dataLakeRetentionInterval` |
+| `streampipes-rest/src/main/java/.../rest/impl/admin/AutoMqttConfigResource.java` | NEW |
+| `streampipes-model/src/main/java/.../model/configuration/MqttAutoPublishConfig.java` | NEW — singleton config model; MODIFIED — added data lake retention fields |
 | `streampipes-storage-api/src/main/java/.../storage/api/core/INoSqlStorage.java` | MODIFIED — added `getMqttAutoPublishConfigStorage()` + `getDeviceStorage()` |
 | `streampipes-storage-api/src/main/java/.../storage/api/system/IMqttAutoPublishConfigStorage.java` | NEW |
-| `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired MQTT config storage + device storage |
-| `streampipes-storage-couchdb/src/main/java/.../impl/system/MqttAutoPublishConfigStorageImpl.java` | NEW — CouchDB db `mqtt-auto-publish-config` |
-| `streampipes-connect-management/src/main/java/.../compact/MqttPublisherPipelineHandler.java` | NEW — builds CompactPipeline with dynamic topic |
-| `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — null-safe `findAssetByMqttTopic`; fallback transform uses `utils.addTimestamp(event)` |
-| `streampipes-extensions/.../sink/MqttPublisherSink.java` | MODIFIED — dynamic topic via `getStaticPropertyByName` |
-| `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | NEW — reusable PLC device registry model |
-| `streampipes-storage-api/src/main/java/.../storage/api/connect/ISpDeviceStorage.java` | NEW — storage contract for PLC devices |
-| `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW — CouchDB db `devices` |
-| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices` + adapter prefill endpoint; Checkstyle import fix this session |
-| `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — default transform uses `utils.addTimestamp(event)` |
+| `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired MQTT config + device storage |
+| `streampipes-storage-couchdb/src/main/java/.../impl/system/MqttAutoPublishConfigStorageImpl.java` | NEW |
+| `streampipes-connect-management/src/main/java/.../compact/MqttPublisherPipelineHandler.java` | NEW |
+| `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — null-safe `findAssetByMqttTopic` |
+| `streampipes-extensions/streampipes-connectors-mqtt/.../shared/MqttConnectUtils.java` | MODIFIED — TOPIC_MODE constants + factory methods |
+| `streampipes-extensions/streampipes-connectors-mqtt/.../sink/MqttPublisherSink.java` | MODIFIED — dynamic topic via `getStaticPropertyByName` |
+| `streampipes-extensions/streampipes-connectors-mqtt/.../shared/MqttPublisher.java` | MODIFIED — `publish(Event, String)` overload |
+| `streampipes-extensions/streampipes-processors-enricher-jvm/.../assethierarchy/AssetHierarchyEnrichmentProcessor.java` | NEW |
+| `streampipes-extensions/streampipes-processors-enricher-jvm/.../EnricherExtensionModuleExport.java` | MODIFIED — registered new processor |
+| `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | NEW |
+| `streampipes-storage-api/src/main/java/.../storage/api/connect/ISpDeviceStorage.java` | NEW |
+| `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices`; Checkstyle import fix applied |
+| `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — `utils.addTimestamp(event)` in default transform |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/AbstractAdapterResource.java` | MODIFIED — `applyRetentionToMeasure()` called after Data Lake pipeline start |
 
 ### Frontend (Angular)
 
 | File | Change |
 |---|---|
-| `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | MODIFIED — `saveMapping()` uses JSON POST |
+| `ui/projects/streampipes/platform-services/src/lib/apis/asset-management.service.ts` | MODIFIED — `importMaximoAssets(file)` |
+| `ui/projects/streampipes/platform-services/src/lib/apis/adapter.service.ts` | MODIFIED — `uploadAdapterConfig(file)` |
+| `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | NEW — `getAllMappings()`, `saveMapping()`, `uploadMappingCsv()` |
 | `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | NEW — `getConfig()` / `updateConfig()`; MODIFIED — added data lake retention fields |
-| `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | NEW — device registry API client |
-| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports mqtt config service, device service |
+| `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | NEW |
+| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports mqtt config, device, adapter-asset-mapping services |
+| `ui/src/app/assets/components/asset-overview/asset-overview.component.html` | MODIFIED — Maximo import + Adapter Mappings buttons |
+| `ui/src/app/assets/components/asset-overview/asset-overview.component.ts` | MODIFIED — `triggerMaximoImport()` |
+| `ui/src/app/assets/assets.routes.ts` | MODIFIED — added `/assets/mappings` route |
+| `ui/src/app/assets/components/adapter-asset-mappings/adapter-asset-mappings.component.ts` | NEW |
+| `ui/src/app/assets/components/adapter-asset-mappings/adapter-asset-mappings.component.html` | NEW |
 | `ui/src/app/configuration/configuration-sections.providers.ts` | MODIFIED — added Automation section |
 | `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.ts` | NEW — automation config page; MODIFIED — Data Lake retention null-safe init |
-| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.html` | NEW — automation config page; MODIFIED — Data Lake retention toggle + days + interval fields |
-| `ui/src/app/connect/components/device-registry/device-registry.component.ts` | NEW — device registry page |
-| `ui/src/app/connect/components/device-registry/device-registry.component.html` | NEW — device registry template |
-| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.ts` | NEW — adapter-prefill dialog |
-| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | NEW — adapter-prefill dialog template |
+| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.html` | NEW — automation config page; MODIFIED — Data Lake retention toggle + days + interval |
+| `ui/src/app/connect/components/device-registry/device-registry.component.ts` | NEW |
+| `ui/src/app/connect/components/device-registry/device-registry.component.html` | NEW |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.ts` | NEW |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | NEW |
 | `ui/src/app/connect/connect.routes.ts` | MODIFIED — added `/connect/devices` route |
-| `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — added Device Registry navigation button |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box: `searchTerm`, `onSearchChange()`, updated `applyMeasurementFilters`; imports `SpTableFilterDirective` |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — search field moved into `sp-table` toolbar via `ng-template[spTableFilter]` |
-| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-actions/sp-table-filter.directive.ts` | NEW — `SpTableFilterDirective` for projecting filter content into sp-table toolbar |
-| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.ts` | MODIFIED — `@ContentChild(SpTableFilterDirective)` filterTemplate |
-| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.html` | MODIFIED — renders filterTemplate on left of grouping toolbar |
-| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.scss` | MODIFIED — `.grouping-toolbar__filter` flex + form-field margin |
+| `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — Device Registry navigation button |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box; `SpTableFilterDirective` import |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — `ng-template[spTableFilter]` inside `sp-table` |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-actions/sp-table-filter.directive.ts` | NEW |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.ts` | MODIFIED — `@ContentChild(SpTableFilterDirective)` |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.html` | MODIFIED — renders filterTemplate in toolbar |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.scss` | MODIFIED — `.grouping-toolbar__filter` styles |
 | `ui/projects/streampipes/shared-ui/src/public-api.ts` | MODIFIED — exports `SpTableFilterDirective` |
 
 ---
 
 ## Key Technical Decisions
 
-### Checkstyle: Import Order Rule (IMPORTANT — always check when adding imports)
-- Checkstyle enforces **strict alphabetical order** within each import group.
-- Groups: `org.apache.streampipes` → `*` → `jakarta` → `javax` → `java` → `scala`, then static imports at the bottom.
-- Within each package prefix sub-group (e.g. `org.apache.streampipes.storage.api.system.*`), imports must also be alphabetical by the simple class name.
-- **Gotcha**: when adding a new import to a file, it must be inserted at the correct alphabetical position — appending it at the end of its group is wrong and will fail Checkstyle.
-- Example: `IMqttAutoPublishConfigStorage` (M) must come before `ISpCoreConfigurationStorage` (S), not after `ITransformationScriptTemplateStorage`.
-- Quick verification: `mvn -pl <module> checkstyle:check` — exit 0 means clean.
+### Checkstyle: Import Order (always check when adding Java imports)
+- Groups: `org.apache.streampipes` → `*` → `jakarta` → `javax` → `java` → `scala`, static imports last.
+- Imports must be **strictly alphabetical** within each group — appending at the end of a group fails the build.
+- Quick check: `mvn -pl <module> checkstyle:check`
 
 ### MQTT Auto-Publish Pipeline
-- Global config stored as a singleton CouchDB document (`_id = "mqtt-auto-publish-config"`)
-- `MqttPublisherPipelineHandler` mirrors `PersistPipelineHandler` pattern, builds `CompactPipeline` directly without needing a template
-- If adapter schema has a `topic` field (added by `AdapterAssetEnrichmentService`), dynamic mode is used automatically with selector `"s0::topic"`
-- For `StaticPropertyAlternatives` config in `PipelineElementTemplateVisitor`: put the alternative ID AND nested property keys in the **same** config map (e.g., `Map.of(TOPIC_MODE, DYNAMIC_TOPIC_ALTERNATIVE, TOPIC_FIELD, "s0::topic")`)
-- Errors in auto-pipeline creation are caught and logged as warnings; the adapter creation itself still succeeds
+- Singleton CouchDB document (`_id = "mqtt-auto-publish-config"`)
+- `MqttPublisherPipelineHandler` mirrors `PersistPipelineHandler`; builds `CompactPipeline` directly
+- If adapter schema has a `topic` field, dynamic mode is used automatically with selector `"s0::topic"`
+- For `StaticPropertyAlternatives` in `PipelineElementTemplateVisitor`: put the alternative ID AND nested keys in the **same** config map (e.g., `Map.of(TOPIC_MODE, DYNAMIC_TOPIC_ALTERNATIVE, TOPIC_FIELD, "s0::topic")`)
+- Errors in auto-pipeline creation are logged as warnings; adapter creation still succeeds
 
 ### Asset Linking
-- `findAssetByMqttTopic` now guards against `null` `additionalData` and `null` `assets` list — both can be null when CouchDB deserializes old documents via `UnsafeAllocator` (field initializers don't run)
-- Direct JSON POST to `/api/v2/connect/adapter-asset-mappings` is more reliable than CSV round-trip
+- `findAssetByMqttTopic` guards against null `additionalData` and null `assets` list — CouchDB deserializes old documents via `UnsafeAllocator` (field initializers don't run)
+- JSON POST to `/api/v2/connect/adapter-asset-mappings` is more reliable than CSV round-trip
 
-### Dynamic MQTT Topic Bug (fixed)
+### Dynamic MQTT Topic
 - `mappingPropertyValue()` only iterates top-level static properties — misses `MappingPropertyUnary` inside `StaticPropertyAlternative`
-- `getStaticPropertyByName(internalName, MappingPropertyUnary.class)` recurses correctly
+- Fix: `getStaticPropertyByName(TOPIC_FIELD, MappingPropertyUnary.class)` recurses correctly
+
+### Maximo Import
+- Root nodes: any location whose composite key (`SITEID:LOCATION`) is not referenced as PARENT in the batch
+- Zone detection regex: `^[A-Za-z]+-\d{7}$`
+- MQTT topic from ROUTE: `route.replace("; ", "/").replace(";", "/").trim()`
+- Use `SpAsset` (not `SpAssetModel`) for the `setAssets()` list type
+
+### Asset Hierarchy Enrichment Processor
+- `onPipelineStarted` uses the 3-param signature
+- Use `SO.TEXT` (not `XSD.STRING` URI) in `EpProperties.stringEp()`
 
 ### PLC Device Registry
-- `DeviceResource` must extend `AbstractAdapterResource` (not `AbstractAuthGuardedRestResource`) because the latter does not expose `hasReadAuthority()` / `hasWriteAuthority()` for `@PreAuthorize`
-- `CRUDStorage` exposes `persist`, `updateElement`, and `deleteElement` — there is no generic `createElement` method on the API contract
-- Default/fallback transform scripts now call `utils.addTimestamp(event)` so timestamp logic stays centralized in the registered GraalJS helper
+- `DeviceResource` extends `AbstractAdapterResource` (not `AbstractAuthGuardedRestResource`) to get `hasReadAuthority()` / `hasWriteAuthority()`
+- `CRUDStorage` exposes `persist`, `updateElement`, `deleteElement` — no generic `createElement`
+- Default transform scripts call `utils.addTimestamp(event)`
+
+### YAML Upload with Pre-defined Schema
+- `AdapterSchemaGenerator.apply()` skips live `getSampleData()` when `compactAdapter.schema()` is non-null/non-empty
+- Default `runtimeType` = `XSD double` URI (fits Modbus/energy meter registers)
+
+### Data Lake Retention (automation pipeline)
+- `applyRetentionToMeasure()` runs after `createAndStartPersistPipeline` when retention is enabled
+- `DataLakeMeasure` is registered asynchronously by the extensions service; if not yet present on first invocation the method logs debug and does nothing — set retention manually from the Datasets page on first deploy
+
+### sp-table Filter Slot
+- `SpTableFilterDirective` follows the exact `SpTableActionsDirective` pattern — bare `@Directive({ selector: 'ng-template[spTableFilter]' })` picked up via `@ContentChild(SpTableFilterDirective, { read: TemplateRef })`
+- Template content is compiled in the **parent** component's context, so `MatFormField`, `MatInput`, `FormsModule` must be imported in the consuming component
 
 ---
 
@@ -179,137 +175,8 @@ No outstanding work. Smoke-test checklist:
 # Backend — full build
 mvn clean package -DskipTests
 
-# Frontend — quick dev build (no i18n validation)
-cd ui && npm run build-dev
-
-# Redeploy
-docker compose build backend ui && docker compose up -d backend ui
-```
-
-
-> **Maintenance:** Update this file at the end of every session. The workflow is defined in `.github/copilot-instructions.md` under "Session Workflow".
-
-## Project Goal
-Extend Apache StreamPipes for Industrial IoT use cases with:
-1. Import asset hierarchies from Maximo JSON exports
-2. Upload adapter configs via YAML file
-3. Enrich datapoint streams with asset hierarchy metadata
-4. Dynamic MQTT topics derived from event fields
-5. Frontend UI for import/upload features
-
----
-
-## Status
-
-| Feature | Status | Notes |
-|---|---|---|
-| Dynamic MQTT topic support | ✅ Done | Backend compile-verified |
-| Maximo asset import (service + REST) | ✅ Done | Backend compile-verified |
-| YAML adapter upload endpoint | ✅ Done | Backend compile-verified |
-| Asset hierarchy enrichment processor | ✅ Done | Backend compile-verified |
-| Platform-services API methods | ✅ Done | `importMaximoAssets()` + `uploadAdapterConfig()` |
-| Frontend: Maximo import button (assets) | ✅ Done | Angular build passes |
-| Frontend: YAML upload button (connect) | ✅ Done | Angular build passes |
-| **Angular build verification** | ✅ Done | Build passes — only pre-existing CommonJS warnings |
-| Adapter-to-asset topic mapping (backend) | ✅ Done | CouchDB `adapter-asset-mappings` db; enrichment + asset linking service |
-| Asset linking fix | ✅ Done | `findAssetByPath` replaced with `findAssetByMqttTopic` matching on `additionalData["mqtt_topic"]` |
-| Dynamic MQTT topic fix | ✅ Done | Use `getStaticPropertyByName` instead of `mappingPropertyValue` to find nested `MappingPropertyUnary` |
-| Adapter-to-asset mapping UI page | ✅ Done | `/assets/mappings` route; table + add form + CSV upload |
-| Upload error handling fix | ✅ Done | Separate catches for `JsonProcessingException` vs `WorkerAdapterException` |
-| Routing fix for mappings button | ✅ Done | Fixed absolute routerLink; added "Asset Mappings" button to connect page |
-| YAML upload with pre-defined schema | ✅ Done | Skip live device guessing when `schema` block is present in YAML |
-
----
-
-## Status: All Features Complete ✅
-
-All features implemented, compile-verified (backend), build-verified (frontend), and deployed against a live instance.
-Each feature has its own git commit on branch `copilot-cli`.
-
-## Next Steps (if any)
-
-- Push `copilot-cli` branch and open a pull request
-- Consider adding Cypress E2E tests for the new UI buttons and mapping page
-
----
-
-## All Modified/Created Files
-
-### Backend (Java/Maven)
-
-| File | Change |
-|---|---|
-| `streampipes-resource-management/src/main/java/.../maximo/MaximoLocation.java` | NEW — Maximo JSON POJO |
-| `streampipes-resource-management/src/main/java/.../maximo/MaximoImportResult.java` | NEW — result DTO |
-| `streampipes-resource-management/src/main/java/.../maximo/MaximoAssetImportService.java` | NEW — business logic: JSON → SpAssetModel tree |
-| `streampipes-rest/src/main/java/.../rest/impl/MaximoAssetImportResource.java` | NEW — `POST /api/v2/assets/import/maximo` (multipart) |
-| `streampipes-rest/src/main/java/.../rest/impl/connect/CompactAdapterResource.java` | MODIFIED — added `POST /api/v2/connect/compact-adapters/upload` (multipart YAML) |
-| `streampipes-extensions/streampipes-connectors-mqtt/.../shared/MqttConnectUtils.java` | MODIFIED — TOPIC_MODE constants + factory methods |
-| `streampipes-extensions/streampipes-connectors-mqtt/.../sink/MqttPublisherSink.java` | MODIFIED — static/dynamic topic alternatives |
-| `streampipes-extensions/streampipes-connectors-mqtt/.../shared/MqttPublisher.java` | MODIFIED — `publish(Event, String)` overload |
-| `streampipes-extensions/streampipes-connectors-mqtt/.../resources/.../strings.en` | MODIFIED — new topic-mode labels |
-| `streampipes-extensions/streampipes-processors-enricher-jvm/.../assethierarchy/AssetHierarchyEnrichmentProcessor.java` | NEW — pipeline element processor |
-| `streampipes-extensions/streampipes-processors-enricher-jvm/.../assethierarchy/strings.en` | NEW — localization |
-| `streampipes-extensions/streampipes-processors-enricher-jvm/.../assethierarchy/documentation.md` | NEW — user docs |
-| `streampipes-extensions/streampipes-processors-enricher-jvm/.../EnricherExtensionModuleExport.java` | MODIFIED — registered new processor |
-
-### Frontend (Angular)
-
-| File | Change |
-|---|---|
-| `ui/projects/streampipes/platform-services/src/lib/apis/asset-management.service.ts` | MODIFIED — `importMaximoAssets(file)` |
-| `ui/projects/streampipes/platform-services/src/lib/apis/adapter.service.ts` | MODIFIED — `uploadAdapterConfig(file)` |
-| `ui/src/app/assets/components/asset-overview/asset-overview.component.html` | MODIFIED — "Import from Maximo" button + "Adapter Mappings" nav button |
-| `ui/src/app/assets/components/asset-overview/asset-overview.component.ts` | MODIFIED — `triggerMaximoImport()`, `RouterLink` added |
-| `ui/src/app/assets/assets.routes.ts` | MODIFIED — added `/assets/mappings` route |
-| `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | NEW — `getAllMappings()`, `saveMapping()`, `uploadMappingCsv()` |
-| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports `adapter-asset-mapping.service` |
-| `ui/src/app/assets/components/adapter-asset-mappings/adapter-asset-mappings.component.ts` | NEW — mapping management page component |
-| `ui/src/app/assets/components/adapter-asset-mappings/adapter-asset-mappings.component.html` | NEW — template |
-
----
-
-## Key Technical Decisions
-
-### MQTT Dynamic Topics
-- Uses `Alternatives` in `MqttPublisherSink` — static text param OR mapping property selector
-- `extractDataSinkParams()` passes `""` (not `null`) as topic when dynamic mode selected
-- `MqttPublisher.publish(Event, String overrideTopic)` overload added for dynamic dispatch
-- In `onEvent()`: resolves field from `dynamicTopicFieldSelector`, falls back to empty string if null
-
-### Maximo Import
-- Root nodes: any location whose composite key (`SITEID:LOCATION`) is not referenced as a PARENT within the batch
-- Zone detection regex: `^[A-Za-z]+-\d{7}$`
-- MQTT topic from ROUTE: `route.replace("; ", "/").replace(";", "/").trim()`
-- `SpAsset` (not `SpAssetModel`) used as list type for `setAssets()` — important for Java generics
-- Errors collected per-asset; partial import success is possible (returned in `MaximoImportResult`)
-
-### Asset Hierarchy Enrichment Processor
-- `onPipelineStarted(IDataProcessorParameters, SpOutputCollector, EventProcessorRuntimeContext)` — 3-param signature
-- Use `SO.TEXT` (String constant from `org.apache.streampipes.vocabulary.SO`), NOT `XSD.STRING` (URI) in `EpProperties.stringEp()`
-- No storage access — all config is static text params set at pipeline design time
-
-### Dynamic MQTT Topic Bug (fixed)
-- `mappingPropertyValue(internalName)` only iterates `sepaElement.getStaticProperties()` at the top level — it will **never** find a `MappingPropertyUnary` that lives inside a `StaticPropertyAlternative`
-- `getStaticPropertyByName(internalName)` already recurses into the selected alternative (the correct behaviour)
-- Fix: call `getStaticPropertyByName(TOPIC_FIELD, MappingPropertyUnary.class)` then call `getSelectedProperty()` on the result
-
-### Asset Linking Bug (fixed)
-- `findAssetByPath` matched by `assetName` (Maximo LOCATION code), but the mapping DB topic is derived from Maximo ROUTE — a completely different field
-- Fix: replaced with `findAssetByMqttTopic` that searches `additionalData["mqtt_topic"]` (set by `MaximoAssetImportService`) for an exact topic match
-
-- `AdapterSchemaGenerator.apply()` previously **always** called `getSampleData()` → required a live device connection
-- Now: if `compactAdapter.schema()` is non-null/non-empty, skip live-device calls and build `EventSchema` directly from schema keys
-- Default `runtimeType` = `XSD double` URI (fits Modbus/energy meter registers)
-- Live-device path still used when no schema is provided (existing behaviour)
-
----
-
-## Build Commands
-
-```powershell
-# Backend — verify affected modules
-mvn -pl streampipes-extensions/streampipes-connectors-mqtt,streampipes-extensions/streampipes-processors-enricher-jvm,streampipes-resource-management,streampipes-rest -am -q test -DskipTests
+# Backend — targeted module (fast)
+mvn -pl <module> -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
 
 # Frontend — quick dev build (no i18n validation)
 cd ui && npm run build-dev
@@ -317,15 +184,14 @@ cd ui && npm run build-dev
 # Frontend — full production build
 cd ui && npm run build
 
-# Frontend — lint only
-cd ui && npm run lint
+# Redeploy after changes
+docker compose build backend ui && docker compose up -d backend ui
 ```
 
 ---
 
-## Potential Follow-up Issues to Watch
+## Potential Follow-up Issues
 
-1. **Angular `MatTooltip` import** — both modified components use `matTooltip`; verify it's in `imports[]` array (already confirmed for asset-overview; verify for existing-adapters)
-2. **`ConfirmDialogComponent` usage in asset-overview** — used via `MatDialog.open()` (not `DialogService`); this is intentional to show a plain confirmation after import
-3. **`SpExceptionDetailsDialogComponent` in existing-adapters** — used for error display; already imported via `@streampipes/shared-ui`
-4. **`public-api.ts` exports** — if `uploadAdapterConfig` or `importMaximoAssets` need to be exported from the library, check `ui/projects/streampipes/platform-services/src/public-api.ts`
+1. **Angular `MatTooltip` import** — components using `matTooltip` must have it in their `imports[]` array
+2. **`public-api.ts` exports** — any new service consumed outside the library must be exported from both `platform-services` and `shared-ui` `public-api.ts` as appropriate
+3. **Data Lake retention timing** — retention is applied on pipeline start; if the measure doesn't exist yet (first deploy), set it manually from the Datasets page
