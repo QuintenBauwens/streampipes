@@ -36,7 +36,11 @@
 
 import { Component, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DeviceAdapterRequest, SpDevice } from '@streampipes/platform-services';
+import {
+    AdapterDescription,
+    DeviceAdapterRequest,
+    SpDevice,
+} from '@streampipes/platform-services';
 import {
     DialogRef,
     FormFieldComponent,
@@ -51,6 +55,17 @@ import { MatButton } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatDialog } from '@angular/material/dialog';
+import { OpcuaBrowseService } from '../opcua-browse.service';
+import {
+    OpcuaBrowseDialogComponent,
+    OpcuaBrowseDialogData,
+} from './opcua-browse-dialog/opcua-browse-dialog.component';
+import {
+    FlexDirective,
+    LayoutAlignDirective,
+    LayoutDirective,
+} from '@ngbracket/ngx-layout/flex';
 
 const DEFAULT_TRANSFORM_SCRIPT = `function transform(event, out, ctx) {
     // You can use utils like utils.addTimestamp(event) for basic transformations
@@ -83,6 +98,9 @@ export const ADAPTER_TYPE_OPTIONS = [
         MatDivider,
         MatIcon,
         MatSlideToggle,
+        LayoutDirective,
+        LayoutAlignDirective,
+        FlexDirective,
         TranslatePipe,
         SplitSectionComponent,
         FormFieldComponent,
@@ -93,6 +111,8 @@ export class AddAdapterDialogComponent {
     @Input() device: SpDevice;
 
     private dialogRef = inject<DialogRef<AddAdapterDialogComponent>>(DialogRef);
+    private matDialog = inject(MatDialog);
+    private browseService = inject(OpcuaBrowseService);
 
     readonly adapterTypeOptions = ADAPTER_TYPE_OPTIONS;
 
@@ -108,6 +128,8 @@ export class AddAdapterDialogComponent {
 
     // Type-specific: OPC-UA
     opcuaNodeBlock = '';
+    /** Node internal names selected via the tree browser. */
+    selectedOpcuaNodes: string[] = [];
 
     // Transformation
     transformationScript = DEFAULT_TRANSFORM_SCRIPT;
@@ -118,6 +140,11 @@ export class AddAdapterDialogComponent {
     reduceEventRate = false;
     reduceEventRateMs = 1000;
 
+    // OPC-UA adapter description (lazy loaded on first browse)
+    private opcuaDescription: AdapterDescription | null = null;
+    browseLoading = false;
+    browseError = '';
+
     get isPlc4x(): boolean {
         return this.adapterType?.includes('plc4x') ?? false;
     }
@@ -127,13 +154,7 @@ export class AddAdapterDialogComponent {
     }
 
     get hasOpcuaSettings(): boolean {
-        if (!this.device?.opcuaEnabled) {
-            return false;
-        }
-        if (this.device.opcuaServerMode === 'host') {
-            return !!this.device.opcuaHost?.trim();
-        }
-        return !!this.device.opcuaEndpointUrl?.trim();
+        return !!(this.device?.opcuaEnabled && this.device.host?.trim());
     }
 
     get isValid(): boolean {
@@ -146,6 +167,50 @@ export class AddAdapterDialogComponent {
         return true;
     }
 
+    openNodeBrowser(): void {
+        this.browseLoading = true;
+        this.browseError = '';
+
+        const openDialog = (desc: AdapterDescription) => {
+            this.browseLoading = false;
+            const data: OpcuaBrowseDialogData = {
+                device: this.device,
+                description: desc,
+                selectedNodeNames: this.selectedOpcuaNodes,
+            };
+            this.matDialog
+                .open(OpcuaBrowseDialogComponent, {
+                    width: '600px',
+                    maxHeight: '80vh',
+                    data,
+                })
+                .afterClosed()
+                .subscribe((result: string[] | null) => {
+                    if (result !== null && result !== undefined) {
+                        this.selectedOpcuaNodes = result;
+                        this.opcuaNodeBlock = result.join('\n');
+                    }
+                });
+        };
+
+        if (this.opcuaDescription) {
+            openDialog(this.opcuaDescription);
+        } else {
+            this.browseService.loadAdapterDescription().subscribe({
+                next: desc => {
+                    this.opcuaDescription = desc;
+                    openDialog(desc);
+                },
+                error: err => {
+                    this.browseLoading = false;
+                    this.browseError =
+                        err?.error?.message ??
+                        'Could not load OPC-UA adapter description.';
+                },
+            });
+        }
+    }
+
     confirm(): void {
         if (!this.isValid) {
             return;
@@ -156,7 +221,10 @@ export class AddAdapterDialogComponent {
             adapterType: this.adapterType,
             description: this.description.trim() || undefined,
             plcCodeBlock: this.plcCodeBlock.trim() || undefined,
-            opcuaNodeBlock: this.opcuaNodeBlock.trim() || undefined,
+            opcuaNodeBlock:
+                this.selectedOpcuaNodes.length > 0
+                    ? this.selectedOpcuaNodes.join('\n')
+                    : this.opcuaNodeBlock.trim() || undefined,
             transformationScript: this.transformationScript.trim() || undefined,
             removeDuplicatesMs: this.removeDuplicates
                 ? this.removeDuplicatesMs

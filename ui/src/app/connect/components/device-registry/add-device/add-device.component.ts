@@ -91,16 +91,13 @@ export class AddDeviceComponent implements OnInit {
         if (!this.model.name?.trim()) {
             return false;
         }
-        if (this.model.opcuaEnabled) {
-            if (this.model.opcuaServerMode === 'host') {
-                return (
-                    !!this.model.opcuaHost?.trim() &&
-                    (this.model.opcuaPort ?? 0) > 0
-                );
-            }
-            return !!this.model.opcuaEndpointUrl?.trim();
+        if (!this.model.host?.trim()) {
+            return false;
         }
-        return !!this.model.host?.trim() && this.model.pollingIntervalMs > 0;
+        if (this.model.opcuaEnabled) {
+            return (this.model.opcuaPort ?? 0) > 0;
+        }
+        return this.model.pollingIntervalMs > 0;
     }
 
     save(): void {

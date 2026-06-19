@@ -25,18 +25,17 @@ import { PlatformServicesCommons } from './commons.service';
 export interface SpDevice {
     elementId?: string;
     name: string;
+    /** IP address or hostname of the device. */
     host: string;
+    /** Device-level TCP port for reachability checks (0 = default 80). */
+    port?: number;
     pollingIntervalMs: number;
     /** @deprecated adapterType is now specified per-adapter in DeviceAdapterRequest */
     adapterType?: string;
-    /** ElementIds of adapters created from this device via the device registry. */
     adapterIds?: string[];
     // ── OPC-UA settings ──────────────────────────────────────────────────────
     opcuaEnabled?: boolean;
-    /** 'url' (default) | 'host' */
-    opcuaServerMode?: string;
-    opcuaEndpointUrl?: string;
-    opcuaHost?: string;
+    /** OPC-UA server port (default 4840). Host is shared from the device's main host field. */
     opcuaPort?: number;
     /** 'SUBSCRIPTION_MODE' (default) | 'PULL_MODE' */
     opcuaAdapterMode?: string;
@@ -125,11 +124,10 @@ export class DeviceService {
         return {
             name: '',
             host: '',
+            port: 0,
             pollingIntervalMs: 1000,
+            adapterIds: [],
             opcuaEnabled: false,
-            opcuaServerMode: 'url',
-            opcuaEndpointUrl: '',
-            opcuaHost: '',
             opcuaPort: 4840,
             opcuaAdapterMode: 'SUBSCRIPTION_MODE',
             opcuaPullIntervalMs: 1000,

@@ -210,29 +210,31 @@
                                 <span class="text-xs sp-color-accent">{{
                                     'Supported protocols:' | translate
                                 }}</span>
-                                <mat-chip-set>
+                                <div class="protocol-chip-set">
                                     @if (device.host) {
-                                        <mat-chip
+                                        <span
+                                            class="protocol-chip protocol-chip--plc4x"
                                             [matTooltip]="
                                                 device.host +
+                                                (device.port
+                                                    ? ':' + device.port
+                                                    : '') +
                                                 ' · ' +
                                                 device.pollingIntervalMs +
                                                 'ms'
                                             "
                                         >
-                                            <mat-icon>memory</mat-icon
-                                            >&nbsp;PLC4x S7
-                                        </mat-chip>
+                                            <mat-icon>memory</mat-icon>
+                                            PLC4x S7
+                                        </span>
                                     }
                                     @if (device.opcuaEnabled) {
-                                        <mat-chip
+                                        <span
+                                            class="protocol-chip protocol-chip--opcua"
                                             [matTooltip]="
-                                                (device.opcuaServerMode ===
-                                                'host'
-                                                    ? device.opcuaHost +
-                                                      ':' +
-                                                      device.opcuaPort
-                                                    : device.opcuaEndpointUrl) +
+                                                device.host +
+                                                ':' +
+                                                (device.opcuaPort ?? 4840) +
                                                 ' · ' +
                                                 (device.opcuaAdapterMode ===
                                                 'PULL_MODE'
@@ -240,10 +242,11 @@
                                                     : 'Subscription')
                                             "
                                         >
-                                            <mat-icon>hub</mat-icon>&nbsp;OPC-UA
-                                        </mat-chip>
+                                            <mat-icon>hub</mat-icon>
+                                            OPC-UA
+                                        </span>
                                     }
-                                </mat-chip-set>
+                                </div>
                             </div>
                         }
 

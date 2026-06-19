@@ -120,11 +120,7 @@
                 >
                     <sp-form-field [level]="3" [label]="'Server' | translate">
                         <div class="text-sm">
-                            @if (device.opcuaServerMode === 'host') {
-                                {{ device.opcuaHost }}:{{ device.opcuaPort }}
-                            } @else {
-                                {{ device.opcuaEndpointUrl }}
-                            }
+                            {{ device.host }}:{{ device.opcuaPort ?? 4840 }}
                         </div>
                     </sp-form-field>
 
@@ -172,13 +168,47 @@
                 [level]="3"
                 [title]="'OPC-UA Node Definitions' | translate"
                 [subtitle]="
-                    'Define the OPC-UA nodes to read, one per line (e.g. temperature=ns=2;s=Device1.Temperature). Leave blank to let the adapter browse all available nodes.'
+                    'Select OPC-UA nodes via the tree browser, or enter node IDs manually (one per line). Leave blank to read all available nodes.'
                         | translate
                 "
             >
+                <!-- Browse button -->
+                <sp-form-field [level]="3" [label]="'Node Browser' | translate">
+                    <div
+                        fxLayout="row"
+                        fxLayoutAlign="start center"
+                        fxLayoutGap="8px"
+                    >
+                        <button
+                            mat-flat-button
+                            [disabled]="!hasOpcuaSettings || browseLoading"
+                            (click)="openNodeBrowser()"
+                        >
+                            <mat-icon>account_tree</mat-icon>
+                            {{ 'Browse Nodes' | translate }}
+                        </button>
+                        @if (browseLoading) {
+                            <span class="text-sm sp-color-muted">{{
+                                'Loading…' | translate
+                            }}</span>
+                        }
+                        @if (selectedOpcuaNodes.length > 0) {
+                            <span class="text-sm sp-color-accent">
+                                {{ selectedOpcuaNodes.length }}
+                                {{ 'node(s) selected' | translate }}
+                            </span>
+                        }
+                    </div>
+                    @if (browseError) {
+                        <div class="sp-color-warn text-sm mt-5">
+                            {{ browseError }}
+                        </div>
+                    }
+                </sp-form-field>
+
                 <sp-form-field
                     [level]="3"
-                    [label]="'Node IDs (optional)' | translate"
+                    [label]="'Node IDs (manual, optional)' | translate"
                 >
                     <mat-form-field class="w-100">
                         <textarea

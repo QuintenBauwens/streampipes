@@ -49,6 +49,9 @@ public class SpDevice implements Storable {
   /** PLC IP address (maps to plc_ip in the PLC4x S7 adapter). */
   private String host = "";
 
+  /** Device-level TCP port used for reachability checks (0 = use default 80). */
+  private int port = 0;
+
   /** Polling interval in milliseconds (maps to plc_polling_interval, default 1000). */
   private int pollingIntervalMs = 1000;
 
@@ -61,16 +64,7 @@ public class SpDevice implements Storable {
   /** Whether OPC-UA connectivity settings are configured for this device. */
   private boolean opcuaEnabled = false;
 
-  /** OPC-UA server addressing mode: url (default) or host. */
-  private String opcuaServerMode = "url";
-
-  /** OPC-UA endpoint URL, used when opcuaServerMode = url (e.g. opc.tcp://192.168.0.10:4840). */
-  private String opcuaEndpointUrl = "";
-
-  /** OPC-UA server host, used when opcuaServerMode = host. */
-  private String opcuaHost = "";
-
-  /** OPC-UA server port, used when opcuaServerMode = host (default 4840). */
+  /** OPC-UA server port (default 4840). The host is always taken from the device's {@code host} field. */
   private int opcuaPort = 4840;
 
   /** OPC-UA adapter mode: SUBSCRIPTION_MODE (default) or PULL_MODE. */
@@ -142,6 +136,14 @@ public class SpDevice implements Storable {
     this.host = host;
   }
 
+  public int getPort() {
+    return port;
+  }
+
+  public void setPort(int port) {
+    this.port = port;
+  }
+
   public int getPollingIntervalMs() {
     return pollingIntervalMs;
   }
@@ -172,30 +174,6 @@ public class SpDevice implements Storable {
 
   public void setOpcuaEnabled(boolean opcuaEnabled) {
     this.opcuaEnabled = opcuaEnabled;
-  }
-
-  public String getOpcuaServerMode() {
-    return opcuaServerMode;
-  }
-
-  public void setOpcuaServerMode(String opcuaServerMode) {
-    this.opcuaServerMode = opcuaServerMode;
-  }
-
-  public String getOpcuaEndpointUrl() {
-    return opcuaEndpointUrl;
-  }
-
-  public void setOpcuaEndpointUrl(String opcuaEndpointUrl) {
-    this.opcuaEndpointUrl = opcuaEndpointUrl;
-  }
-
-  public String getOpcuaHost() {
-    return opcuaHost;
-  }
-
-  public void setOpcuaHost(String opcuaHost) {
-    this.opcuaHost = opcuaHost;
   }
 
   public int getOpcuaPort() {

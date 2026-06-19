@@ -53,9 +53,43 @@
     }
 }
 
-// Expanded panel body
-// Uses class="p-10" (10px padding) which is the project standard for
-// expansion panel body content (see pipeline-details-expansion-panel).
+// Protocol capability chips
+.protocol-chip-set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 0;
+}
+
+.protocol-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    border: 1px solid transparent;
+
+    mat-icon {
+        font-size: 14px;
+        height: 14px;
+        width: 14px;
+    }
+
+    &--plc4x {
+        background-color: rgba(0, 150, 136, 0.12);
+        color: #009688;
+        border-color: rgba(0, 150, 136, 0.35);
+    }
+
+    &--opcua {
+        background-color: rgba(33, 150, 243, 0.12);
+        color: #1976d2;
+        border-color: rgba(33, 150, 243, 0.35);
+    }
+}
 
 // Metadata grid — icon + label/value pairs in a horizontal row
 .device-meta-grid {

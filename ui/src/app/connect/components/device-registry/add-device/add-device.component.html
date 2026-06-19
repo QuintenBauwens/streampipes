@@ -31,12 +31,31 @@
         </sp-split-section>
 
         <sp-split-section [level]="3" [title]="'Connection' | translate">
-            <sp-form-field [level]="3" [label]="'PLC IP Address' | translate">
+            <sp-form-field
+                [level]="3"
+                [label]="'IP Address / Host' | translate"
+            >
                 <mat-form-field class="w-100">
                     <input
                         matInput
                         [(ngModel)]="model.host"
                         [placeholder]="'e.g. 192.168.0.10' | translate"
+                    />
+                </mat-form-field>
+            </sp-form-field>
+
+            <sp-form-field
+                [level]="3"
+                [label]="'Port (default: 80)' | translate"
+            >
+                <mat-form-field class="w-100">
+                    <input
+                        matInput
+                        type="number"
+                        min="1"
+                        max="65535"
+                        [(ngModel)]="model.port"
+                        [placeholder]="'80' | translate"
                     />
                 </mat-form-field>
             </sp-form-field>
@@ -71,53 +90,38 @@
             </sp-form-field>
 
             @if (model.opcuaEnabled) {
-                <!-- OPC Server -->
-                <sp-form-field [level]="3" [label]="'OPC Server' | translate">
-                    <mat-form-field class="sp-select-field w-100">
-                        <mat-select [(ngModel)]="model.opcuaServerMode">
-                            <mat-option value="url">{{
-                                'URL' | translate
-                            }}</mat-option>
-                            <mat-option value="host">{{
-                                'Host / Port' | translate
-                            }}</mat-option>
-                        </mat-select>
+                <!-- OPC Server — host is shared from the Connection section -->
+                <sp-form-field
+                    [level]="3"
+                    [label]="'OPC Server Host' | translate"
+                >
+                    <mat-form-field class="w-100">
+                        <input
+                            matInput
+                            [value]="model.host || '(set IP Address above)'"
+                            readonly
+                        />
+                        <mat-hint>{{
+                            'Shared from the IP Address field above' | translate
+                        }}</mat-hint>
                     </mat-form-field>
                 </sp-form-field>
 
-                @if (model.opcuaServerMode !== 'host') {
-                    <sp-form-field [level]="3" [label]="'URL' | translate">
-                        <mat-form-field class="w-100">
-                            <input
-                                matInput
-                                [(ngModel)]="model.opcuaEndpointUrl"
-                                [placeholder]="
-                                    'opc.tcp://192.168.0.10:4840' | translate
-                                "
-                            />
-                        </mat-form-field>
-                    </sp-form-field>
-                } @else {
-                    <sp-form-field [level]="3" [label]="'Host' | translate">
-                        <mat-form-field class="w-100">
-                            <input
-                                matInput
-                                [(ngModel)]="model.opcuaHost"
-                                [placeholder]="'e.g. 192.168.0.10' | translate"
-                            />
-                        </mat-form-field>
-                    </sp-form-field>
-
-                    <sp-form-field [level]="3" [label]="'Port' | translate">
-                        <mat-form-field class="w-100">
-                            <input
-                                matInput
-                                type="number"
-                                [(ngModel)]="model.opcuaPort"
-                            />
-                        </mat-form-field>
-                    </sp-form-field>
-                }
+                <sp-form-field [level]="3" [label]="'OPC-UA Port' | translate">
+                    <mat-form-field class="w-100">
+                        <input
+                            matInput
+                            type="number"
+                            min="1"
+                            max="65535"
+                            [(ngModel)]="model.opcuaPort"
+                            placeholder="4840"
+                        />
+                        <mat-hint>{{
+                            'Default OPC-UA port is 4840' | translate
+                        }}</mat-hint>
+                    </mat-form-field>
+                </sp-form-field>
 
                 <!-- Adapter Type -->
                 <sp-form-field [level]="3" [label]="'Adapter Type' | translate">

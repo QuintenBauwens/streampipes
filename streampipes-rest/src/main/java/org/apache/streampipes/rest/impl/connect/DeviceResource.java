@@ -161,17 +161,8 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
       return badRequest("Device not found: " + deviceId);
     }
     try {
-      String host = device.getHost();
-      int port = 102;
-      if (host != null && host.contains(":")) {
-        var parts = host.split(":", 2);
-        host = parts[0];
-        try {
-          port = Integer.parseInt(parts[1]);
-        } catch (NumberFormatException ignored) {
-          // keep default S7 port
-        }
-      }
+      var host = device.getHost() != null ? device.getHost().trim() : "";
+      var port = device.getPort() > 0 ? device.getPort() : 80;
       try (var socket = new Socket()) {
         socket.connect(new InetSocketAddress(host, port), 2000);
         return ok(Map.of("reachable", true));
@@ -252,18 +243,11 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
    */
   private void buildOpcUaConfig(SpDevice device, DeviceAdapterRequest request,
                                 List<Map<String, Object>> config) {
-    // Connection (both keys must be in the same map entry for the alternatives visitor)
+    // Connection — always Host/Port mode; the host is shared from the device's main IP field
     var connectionEntry = new HashMap<String, Object>();
-    if ("host".equals(device.getOpcuaServerMode())) {
-      connectionEntry.put("OPC_HOST_OR_URL", "OPC_HOST");
-      connectionEntry.put("OPC_SERVER_HOST",
-          device.getOpcuaHost() != null ? device.getOpcuaHost() : "");
-      connectionEntry.put("OPC_SERVER_PORT", device.getOpcuaPort());
-    } else {
-      connectionEntry.put("OPC_HOST_OR_URL", "OPC_URL");
-      connectionEntry.put("OPC_SERVER_URL",
-          device.getOpcuaEndpointUrl() != null ? device.getOpcuaEndpointUrl() : "");
-    }
+    connectionEntry.put("OPC_HOST_OR_URL", "OPC_HOST");
+    connectionEntry.put("OPC_SERVER_HOST", device.getHost() != null ? device.getHost() : "");
+    connectionEntry.put("OPC_SERVER_PORT", device.getOpcuaPort() > 0 ? device.getOpcuaPort() : 4840);
     config.add(connectionEntry);
 
     // Security mode and policy
