@@ -118,21 +118,51 @@
                             | translate
                     "
                 >
-                    <sp-form-field
-                        [level]="3"
-                        [label]="'Endpoint URL' | translate"
-                    >
+                    <sp-form-field [level]="3" [label]="'Server' | translate">
                         <div class="text-sm">
-                            {{ device.opcuaEndpointUrl }}
+                            @if (device.opcuaServerMode === 'host') {
+                                {{ device.opcuaHost }}:{{ device.opcuaPort }}
+                            } @else {
+                                {{ device.opcuaEndpointUrl }}
+                            }
                         </div>
                     </sp-form-field>
 
                     <sp-form-field
                         [level]="3"
-                        [label]="'Security Mode' | translate"
+                        [label]="'Adapter Type' | translate"
                     >
                         <div class="text-sm">
-                            {{ device.opcuaSecurityMode }}
+                            {{
+                                (device.opcuaAdapterMode === 'PULL_MODE'
+                                    ? 'Pull mode'
+                                    : 'Subscription mode'
+                                ) | translate
+                            }}
+                        </div>
+                    </sp-form-field>
+
+                    <sp-form-field [level]="3" [label]="'Security' | translate">
+                        <div class="text-sm">
+                            {{ device.opcuaSecurityMode }} /
+                            {{ device.opcuaSecurityPolicy }}
+                        </div>
+                    </sp-form-field>
+
+                    <sp-form-field
+                        [level]="3"
+                        [label]="'Authentication' | translate"
+                    >
+                        <div class="text-sm">
+                            @if (device.opcuaAuthMethod === 'USERNAME_GROUP') {
+                                {{ 'Username & Password' | translate }}
+                            } @else if (
+                                device.opcuaAuthMethod === 'x509Group'
+                            ) {
+                                {{ 'X.509 Certificate' | translate }}
+                            } @else {
+                                {{ 'Anonymous' | translate }}
+                            }
                         </div>
                     </sp-form-field>
                 </sp-split-section>

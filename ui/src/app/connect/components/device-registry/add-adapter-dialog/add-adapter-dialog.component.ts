@@ -127,9 +127,13 @@ export class AddAdapterDialogComponent {
     }
 
     get hasOpcuaSettings(): boolean {
-        return !!(
-            this.device?.opcuaEnabled && this.device?.opcuaEndpointUrl?.trim()
-        );
+        if (!this.device?.opcuaEnabled) {
+            return false;
+        }
+        if (this.device.opcuaServerMode === 'host') {
+            return !!this.device.opcuaHost?.trim();
+        }
+        return !!this.device.opcuaEndpointUrl?.trim();
     }
 
     get isValid(): boolean {

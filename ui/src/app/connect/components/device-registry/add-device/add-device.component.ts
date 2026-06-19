@@ -92,10 +92,14 @@ export class AddDeviceComponent implements OnInit {
             return false;
         }
         if (this.model.opcuaEnabled) {
-            // OPC-UA device: endpoint URL is required
+            if (this.model.opcuaServerMode === 'host') {
+                return (
+                    !!this.model.opcuaHost?.trim() &&
+                    (this.model.opcuaPort ?? 0) > 0
+                );
+            }
             return !!this.model.opcuaEndpointUrl?.trim();
         }
-        // PLC/generic device: host and polling interval are required
         return !!this.model.host?.trim() && this.model.pollingIntervalMs > 0;
     }
 

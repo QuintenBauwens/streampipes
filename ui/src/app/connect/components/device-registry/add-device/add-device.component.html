@@ -71,18 +71,105 @@
             </sp-form-field>
 
             @if (model.opcuaEnabled) {
-                <sp-form-field [level]="3" [label]="'Endpoint URL' | translate">
-                    <mat-form-field class="w-100">
-                        <input
-                            matInput
-                            [(ngModel)]="model.opcuaEndpointUrl"
-                            [placeholder]="
-                                'opc.tcp://192.168.0.10:4840' | translate
-                            "
-                        />
+                <!-- OPC Server -->
+                <sp-form-field [level]="3" [label]="'OPC Server' | translate">
+                    <mat-form-field class="sp-select-field w-100">
+                        <mat-select [(ngModel)]="model.opcuaServerMode">
+                            <mat-option value="url">{{
+                                'URL' | translate
+                            }}</mat-option>
+                            <mat-option value="host">{{
+                                'Host / Port' | translate
+                            }}</mat-option>
+                        </mat-select>
                     </mat-form-field>
                 </sp-form-field>
 
+                @if (model.opcuaServerMode !== 'host') {
+                    <sp-form-field [level]="3" [label]="'URL' | translate">
+                        <mat-form-field class="w-100">
+                            <input
+                                matInput
+                                [(ngModel)]="model.opcuaEndpointUrl"
+                                [placeholder]="
+                                    'opc.tcp://192.168.0.10:4840' | translate
+                                "
+                            />
+                        </mat-form-field>
+                    </sp-form-field>
+                } @else {
+                    <sp-form-field [level]="3" [label]="'Host' | translate">
+                        <mat-form-field class="w-100">
+                            <input
+                                matInput
+                                [(ngModel)]="model.opcuaHost"
+                                [placeholder]="'e.g. 192.168.0.10' | translate"
+                            />
+                        </mat-form-field>
+                    </sp-form-field>
+
+                    <sp-form-field [level]="3" [label]="'Port' | translate">
+                        <mat-form-field class="w-100">
+                            <input
+                                matInput
+                                type="number"
+                                [(ngModel)]="model.opcuaPort"
+                            />
+                        </mat-form-field>
+                    </sp-form-field>
+                }
+
+                <!-- Adapter Type -->
+                <sp-form-field [level]="3" [label]="'Adapter Type' | translate">
+                    <mat-form-field class="sp-select-field w-100">
+                        <mat-select [(ngModel)]="model.opcuaAdapterMode">
+                            <mat-option value="SUBSCRIPTION_MODE">{{
+                                'Subscription mode' | translate
+                            }}</mat-option>
+                            <mat-option value="PULL_MODE">{{
+                                'Pull mode' | translate
+                            }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </sp-form-field>
+
+                @if (model.opcuaAdapterMode === 'PULL_MODE') {
+                    <sp-form-field
+                        [level]="3"
+                        [label]="'Pull Interval (ms)' | translate"
+                    >
+                        <mat-form-field class="w-100">
+                            <input
+                                matInput
+                                type="number"
+                                min="100"
+                                [(ngModel)]="model.opcuaPullIntervalMs"
+                            />
+                        </mat-form-field>
+                    </sp-form-field>
+
+                    <sp-form-field
+                        [level]="3"
+                        [label]="'Incomplete Events' | translate"
+                    >
+                        <mat-form-field class="sp-select-field w-100">
+                            <mat-select
+                                [(ngModel)]="model.opcuaIncompleteEvents"
+                            >
+                                <mat-option value="ignore-event">{{
+                                    'Ignore (only complete messages are sent)'
+                                        | translate
+                                }}</mat-option>
+                                <mat-option value="send-event">{{
+                                    'Send (incomplete messages are sent)'
+                                        | translate
+                                }}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </sp-form-field>
+                }
+
+                <!-- Security -->
                 <sp-form-field
                     [level]="3"
                     [label]="'Security Mode' | translate"
@@ -104,28 +191,95 @@
 
                 <sp-form-field
                     [level]="3"
-                    [label]="'Username (optional)' | translate"
+                    [label]="'Security Policy' | translate"
                 >
-                    <mat-form-field class="w-100">
-                        <input
-                            matInput
-                            [(ngModel)]="model.opcuaUsername"
-                            [placeholder]="
-                                'Leave blank for anonymous access' | translate
-                            "
-                        />
+                    <mat-form-field class="sp-select-field w-100">
+                        <mat-select [(ngModel)]="model.opcuaSecurityPolicy">
+                            <mat-option value="None">None</mat-option>
+                            <mat-option value="Basic128Rsa15"
+                                >Basic128Rsa15</mat-option
+                            >
+                            <mat-option value="Basic256">Basic256</mat-option>
+                            <mat-option value="Basic256Sha256"
+                                >Basic256Sha256</mat-option
+                            >
+                            <mat-option value="Aes128_Sha256_RsaOaep"
+                                >Aes128_Sha256_RsaOaep</mat-option
+                            >
+                            <mat-option value="Aes256_Sha256_RsaPss"
+                                >Aes256_Sha256_RsaPss</mat-option
+                            >
+                        </mat-select>
                     </mat-form-field>
                 </sp-form-field>
 
-                <sp-form-field [level]="3" [label]="'Password' | translate">
-                    <mat-form-field class="w-100">
-                        <input
-                            matInput
-                            type="password"
-                            [(ngModel)]="model.opcuaPassword"
-                        />
+                <!-- Authentication -->
+                <sp-form-field
+                    [level]="3"
+                    [label]="'User Authentication' | translate"
+                >
+                    <mat-form-field class="sp-select-field w-100">
+                        <mat-select [(ngModel)]="model.opcuaAuthMethod">
+                            <mat-option value="anonymous">{{
+                                'Anonymous' | translate
+                            }}</mat-option>
+                            <mat-option value="USERNAME_GROUP">{{
+                                'Username & Password' | translate
+                            }}</mat-option>
+                            <mat-option value="x509Group">{{
+                                'X.509 Certificate' | translate
+                            }}</mat-option>
+                        </mat-select>
                     </mat-form-field>
                 </sp-form-field>
+
+                @if (model.opcuaAuthMethod === 'USERNAME_GROUP') {
+                    <sp-form-field [level]="3" [label]="'Username' | translate">
+                        <mat-form-field class="w-100">
+                            <input matInput [(ngModel)]="model.opcuaUsername" />
+                        </mat-form-field>
+                    </sp-form-field>
+
+                    <sp-form-field [level]="3" [label]="'Password' | translate">
+                        <mat-form-field class="w-100">
+                            <input
+                                matInput
+                                type="password"
+                                [(ngModel)]="model.opcuaPassword"
+                            />
+                        </mat-form-field>
+                    </sp-form-field>
+                } @else if (model.opcuaAuthMethod === 'x509Group') {
+                    <sp-form-field
+                        [level]="3"
+                        [label]="'Private Key (PEM)' | translate"
+                    >
+                        <mat-form-field class="w-100">
+                            <textarea
+                                matInput
+                                [(ngModel)]="model.opcuaX509PrivateKey"
+                                rows="4"
+                                style="font-family: monospace; font-size: 13px"
+                                placeholder="-----BEGIN PRIVATE KEY-----"
+                            ></textarea>
+                        </mat-form-field>
+                    </sp-form-field>
+
+                    <sp-form-field
+                        [level]="3"
+                        [label]="'Public Key (PEM)' | translate"
+                    >
+                        <mat-form-field class="w-100">
+                            <textarea
+                                matInput
+                                [(ngModel)]="model.opcuaX509PublicKey"
+                                rows="4"
+                                style="font-family: monospace; font-size: 13px"
+                                placeholder="-----BEGIN CERTIFICATE-----"
+                            ></textarea>
+                        </mat-form-field>
+                    </sp-form-field>
+                }
             }
         </sp-split-section>
 

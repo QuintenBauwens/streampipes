@@ -72,6 +72,7 @@ import {
 } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatDivider } from '@angular/material/divider';
+import { MatChipSet, MatChip } from '@angular/material/chips';
 import { SpConnectRoutes } from '../../connect.breadcrumb';
 import { AddAdapterDialogComponent } from './add-adapter-dialog/add-adapter-dialog.component';
 import { AddDeviceComponent } from './add-device/add-device.component';
@@ -102,6 +103,8 @@ import { AddDeviceComponent } from './add-device/add-device.component';
         MatPrefix,
         MatInput,
         MatDivider,
+        MatChipSet,
+        MatChip,
         TranslatePipe,
     ],
 })

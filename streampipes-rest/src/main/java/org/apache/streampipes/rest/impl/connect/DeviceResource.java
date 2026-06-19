@@ -252,38 +252,56 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
    */
   private void buildOpcUaConfig(SpDevice device, DeviceAdapterRequest request,
                                 List<Map<String, Object>> config) {
-    // Connection URL (both keys must be in the same map entry for alternatives visitor)
+    // Connection (both keys must be in the same map entry for the alternatives visitor)
     var connectionEntry = new HashMap<String, Object>();
-    connectionEntry.put("OPC_HOST_OR_URL", "OPC_URL");
-    connectionEntry.put("OPC_SERVER_URL",
-        device.getOpcuaEndpointUrl() != null ? device.getOpcuaEndpointUrl() : "");
+    if ("host".equals(device.getOpcuaServerMode())) {
+      connectionEntry.put("OPC_HOST_OR_URL", "OPC_HOST");
+      connectionEntry.put("OPC_SERVER_HOST",
+          device.getOpcuaHost() != null ? device.getOpcuaHost() : "");
+      connectionEntry.put("OPC_SERVER_PORT", device.getOpcuaPort());
+    } else {
+      connectionEntry.put("OPC_HOST_OR_URL", "OPC_URL");
+      connectionEntry.put("OPC_SERVER_URL",
+          device.getOpcuaEndpointUrl() != null ? device.getOpcuaEndpointUrl() : "");
+    }
     config.add(connectionEntry);
 
-    // Security mode (None / Sign / SignAndEncrypt)
-    var securityMode = device.getOpcuaSecurityMode() != null ? device.getOpcuaSecurityMode() : "None";
-    config.add(Map.of("securityMode", securityMode));
-    // Security policy — Basic256Sha256 for signed modes, None otherwise
-    var securityPolicy = "None".equals(securityMode) ? "None" : "Basic256Sha256";
-    config.add(Map.of("securityPolicy", securityPolicy));
+    // Security mode and policy
+    config.add(Map.of("securityMode",
+        device.getOpcuaSecurityMode() != null ? device.getOpcuaSecurityMode() : "None"));
+    config.add(Map.of("securityPolicy",
+        device.getOpcuaSecurityPolicy() != null ? device.getOpcuaSecurityPolicy() : "None"));
 
-    // Authentication
-    if (device.getOpcuaUsername() != null && !device.getOpcuaUsername().isBlank()) {
-      var authEntry = new HashMap<String, Object>();
-      authEntry.put("userAuthentication", "USERNAME_GROUP");
-      authEntry.put("USERNAME", device.getOpcuaUsername());
+    // Authentication — all auth keys in the same map entry for the alternatives visitor
+    var authMethod = device.getOpcuaAuthMethod() != null ? device.getOpcuaAuthMethod() : "anonymous";
+    var authEntry = new HashMap<String, Object>();
+    authEntry.put("userAuthentication", authMethod);
+    if ("USERNAME_GROUP".equals(authMethod)) {
+      authEntry.put("USERNAME", device.getOpcuaUsername() != null ? device.getOpcuaUsername() : "");
       authEntry.put("PASSWORD", device.getOpcuaPassword() != null ? device.getOpcuaPassword() : "");
-      config.add(authEntry);
-    } else {
-      config.add(Map.of("userAuthentication", "anonymous"));
+    } else if ("x509Group".equals(authMethod)) {
+      authEntry.put("x509PrivateKeyPem",
+          device.getOpcuaX509PrivateKey() != null ? device.getOpcuaX509PrivateKey() : "");
+      authEntry.put("x509PublicKeyPem",
+          device.getOpcuaX509PublicKey() != null ? device.getOpcuaX509PublicKey() : "");
     }
+    config.add(authEntry);
 
-    // Adapter mode — subscription is preferred for OPC-UA
-    config.add(Map.of("ADAPTER_TYPE", "SUBSCRIPTION_MODE"));
+    // Adapter mode — pull mode params must be in the same map entry as ADAPTER_TYPE
+    var adapterMode = device.getOpcuaAdapterMode() != null ? device.getOpcuaAdapterMode() : "SUBSCRIPTION_MODE";
+    var adapterTypeEntry = new HashMap<String, Object>();
+    adapterTypeEntry.put("ADAPTER_TYPE", adapterMode);
+    if ("PULL_MODE".equals(adapterMode)) {
+      adapterTypeEntry.put("PULLING_INTERVAL", device.getOpcuaPullIntervalMs());
+      adapterTypeEntry.put("incomplete-event-handling",
+          device.getOpcuaIncompleteEvents() != null ? device.getOpcuaIncompleteEvents() : "ignore-event");
+    }
+    config.add(adapterTypeEntry);
 
-    // Naming strategy — use display name by default
+    // Naming strategy — display name by default
     config.add(Map.of("NAMING_STRATEGY", "DISPLAY_NAME"));
 
-    // Node selection (optional — empty means adapter will use all browsable nodes)
+    // Node selection (optional)
     var nodeIds = parseOpcUaNodeIds(request.opcuaNodeBlock());
     if (!nodeIds.isEmpty()) {
       config.add(Map.of("AVAILABLE_NODES", nodeIds));

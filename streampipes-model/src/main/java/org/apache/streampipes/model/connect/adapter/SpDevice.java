@@ -61,17 +61,47 @@ public class SpDevice implements Storable {
   /** Whether OPC-UA connectivity settings are configured for this device. */
   private boolean opcuaEnabled = false;
 
-  /** OPC-UA endpoint URL (e.g. opc.tcp://192.168.0.10:4840). */
+  /** OPC-UA server addressing mode: url (default) or host. */
+  private String opcuaServerMode = "url";
+
+  /** OPC-UA endpoint URL, used when opcuaServerMode = url (e.g. opc.tcp://192.168.0.10:4840). */
   private String opcuaEndpointUrl = "";
 
-  /** OPC-UA security mode: None, Sign, or SignAndEncrypt. */
+  /** OPC-UA server host, used when opcuaServerMode = host. */
+  private String opcuaHost = "";
+
+  /** OPC-UA server port, used when opcuaServerMode = host (default 4840). */
+  private int opcuaPort = 4840;
+
+  /** OPC-UA adapter mode: SUBSCRIPTION_MODE (default) or PULL_MODE. */
+  private String opcuaAdapterMode = "SUBSCRIPTION_MODE";
+
+  /** Pull interval in milliseconds (only relevant when opcuaAdapterMode = PULL_MODE). */
+  private int opcuaPullIntervalMs = 1000;
+
+  /** How incomplete events are handled in pull mode: ignore-event (default) or send-event. */
+  private String opcuaIncompleteEvents = "ignore-event";
+
+  /** OPC-UA security mode: None (default), Sign, or SignAndEncrypt. */
   private String opcuaSecurityMode = "None";
+
+  /** OPC-UA security policy (e.g. None, Basic256Sha256). */
+  private String opcuaSecurityPolicy = "None";
+
+  /** Authentication method: anonymous (default), USERNAME_GROUP, or x509Group. */
+  private String opcuaAuthMethod = "anonymous";
 
   /** OPC-UA username for UsernamePassword authentication (blank = anonymous). */
   private String opcuaUsername = "";
 
   /** OPC-UA password for UsernamePassword authentication. */
   private String opcuaPassword = "";
+
+  /** X.509 private key PEM, used when opcuaAuthMethod = x509Group. */
+  private String opcuaX509PrivateKey = "";
+
+  /** X.509 public key PEM, used when opcuaAuthMethod = x509Group. */
+  private String opcuaX509PublicKey = "";
 
   public SpDevice() {
   }
@@ -144,6 +174,14 @@ public class SpDevice implements Storable {
     this.opcuaEnabled = opcuaEnabled;
   }
 
+  public String getOpcuaServerMode() {
+    return opcuaServerMode;
+  }
+
+  public void setOpcuaServerMode(String opcuaServerMode) {
+    this.opcuaServerMode = opcuaServerMode;
+  }
+
   public String getOpcuaEndpointUrl() {
     return opcuaEndpointUrl;
   }
@@ -152,12 +190,68 @@ public class SpDevice implements Storable {
     this.opcuaEndpointUrl = opcuaEndpointUrl;
   }
 
+  public String getOpcuaHost() {
+    return opcuaHost;
+  }
+
+  public void setOpcuaHost(String opcuaHost) {
+    this.opcuaHost = opcuaHost;
+  }
+
+  public int getOpcuaPort() {
+    return opcuaPort;
+  }
+
+  public void setOpcuaPort(int opcuaPort) {
+    this.opcuaPort = opcuaPort;
+  }
+
+  public String getOpcuaAdapterMode() {
+    return opcuaAdapterMode;
+  }
+
+  public void setOpcuaAdapterMode(String opcuaAdapterMode) {
+    this.opcuaAdapterMode = opcuaAdapterMode;
+  }
+
+  public int getOpcuaPullIntervalMs() {
+    return opcuaPullIntervalMs;
+  }
+
+  public void setOpcuaPullIntervalMs(int opcuaPullIntervalMs) {
+    this.opcuaPullIntervalMs = opcuaPullIntervalMs;
+  }
+
+  public String getOpcuaIncompleteEvents() {
+    return opcuaIncompleteEvents;
+  }
+
+  public void setOpcuaIncompleteEvents(String opcuaIncompleteEvents) {
+    this.opcuaIncompleteEvents = opcuaIncompleteEvents;
+  }
+
   public String getOpcuaSecurityMode() {
     return opcuaSecurityMode;
   }
 
   public void setOpcuaSecurityMode(String opcuaSecurityMode) {
     this.opcuaSecurityMode = opcuaSecurityMode;
+  }
+
+  public String getOpcuaSecurityPolicy() {
+    return opcuaSecurityPolicy;
+  }
+
+  public void setOpcuaSecurityPolicy(String opcuaSecurityPolicy) {
+    this.opcuaSecurityPolicy = opcuaSecurityPolicy;
+  }
+
+  public String getOpcuaAuthMethod() {
+    return opcuaAuthMethod;
+  }
+
+  public void setOpcuaAuthMethod(String opcuaAuthMethod) {
+    this.opcuaAuthMethod = opcuaAuthMethod;
   }
 
   public String getOpcuaUsername() {
@@ -174,5 +268,21 @@ public class SpDevice implements Storable {
 
   public void setOpcuaPassword(String opcuaPassword) {
     this.opcuaPassword = opcuaPassword;
+  }
+
+  public String getOpcuaX509PrivateKey() {
+    return opcuaX509PrivateKey;
+  }
+
+  public void setOpcuaX509PrivateKey(String opcuaX509PrivateKey) {
+    this.opcuaX509PrivateKey = opcuaX509PrivateKey;
+  }
+
+  public String getOpcuaX509PublicKey() {
+    return opcuaX509PublicKey;
+  }
+
+  public void setOpcuaX509PublicKey(String opcuaX509PublicKey) {
+    this.opcuaX509PublicKey = opcuaX509PublicKey;
   }
 }

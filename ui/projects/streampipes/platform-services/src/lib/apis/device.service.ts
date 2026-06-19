@@ -31,16 +31,28 @@ export interface SpDevice {
     adapterType?: string;
     /** ElementIds of adapters created from this device via the device registry. */
     adapterIds?: string[];
-    /** Whether OPC-UA connectivity settings are configured for this device. */
+    // ── OPC-UA settings ──────────────────────────────────────────────────────
     opcuaEnabled?: boolean;
-    /** OPC-UA endpoint URL (e.g. opc.tcp://192.168.0.10:4840). */
+    /** 'url' (default) | 'host' */
+    opcuaServerMode?: string;
     opcuaEndpointUrl?: string;
-    /** OPC-UA security mode: None, Sign, or SignAndEncrypt. */
+    opcuaHost?: string;
+    opcuaPort?: number;
+    /** 'SUBSCRIPTION_MODE' (default) | 'PULL_MODE' */
+    opcuaAdapterMode?: string;
+    opcuaPullIntervalMs?: number;
+    /** 'ignore-event' (default) | 'send-event' */
+    opcuaIncompleteEvents?: string;
+    /** 'None' | 'Sign' | 'SignAndEncrypt' */
     opcuaSecurityMode?: string;
-    /** OPC-UA username (blank = anonymous). */
+    /** 'None' | 'Basic128Rsa15' | 'Basic256' | 'Basic256Sha256' | 'Aes128_Sha256_RsaOaep' | 'Aes256_Sha256_RsaPss' */
+    opcuaSecurityPolicy?: string;
+    /** 'anonymous' (default) | 'USERNAME_GROUP' | 'x509Group' */
+    opcuaAuthMethod?: string;
     opcuaUsername?: string;
-    /** OPC-UA password. */
     opcuaPassword?: string;
+    opcuaX509PrivateKey?: string;
+    opcuaX509PublicKey?: string;
 }
 
 export interface DeviceAdapterRequest {
@@ -115,10 +127,20 @@ export class DeviceService {
             host: '',
             pollingIntervalMs: 1000,
             opcuaEnabled: false,
+            opcuaServerMode: 'url',
             opcuaEndpointUrl: '',
+            opcuaHost: '',
+            opcuaPort: 4840,
+            opcuaAdapterMode: 'SUBSCRIPTION_MODE',
+            opcuaPullIntervalMs: 1000,
+            opcuaIncompleteEvents: 'ignore-event',
             opcuaSecurityMode: 'None',
+            opcuaSecurityPolicy: 'None',
+            opcuaAuthMethod: 'anonymous',
             opcuaUsername: '',
             opcuaPassword: '',
+            opcuaX509PrivateKey: '',
+            opcuaX509PublicKey: '',
         };
     }
 }
