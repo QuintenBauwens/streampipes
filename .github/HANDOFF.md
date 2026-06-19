@@ -99,23 +99,19 @@ No outstanding work. Smoke-test checklist:
 | `streampipes-rest/src/main/java/.../rest/impl/connect/CompactAdapterResource.java` | MODIFIED — YAML upload + MQTT auto-pipeline hook |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/AdapterAssetMappingResource.java` | MODIFIED — JSON `@PostMapping` + CSV header fix |
 | `streampipes-rest/src/main/java/.../rest/impl/admin/AutoMqttConfigResource.java` | NEW — `GET/PUT /api/v2/config/mqtt-auto-publish` |
-| `streampipes-model/src/main/java/.../model/configuration/MqttAutoPublishConfig.java` | NEW — singleton config model |
-| `streampipes-storage-api/src/main/java/.../storage/api/core/INoSqlStorage.java` | MODIFIED — added `getMqttAutoPublishConfigStorage()` |
+| `streampipes-model/src/main/java/.../model/configuration/MqttAutoPublishConfig.java` | NEW — singleton config model; MODIFIED — added `dataLakeRetentionEnabled`, `dataLakeOlderThanDays`, `dataLakeRetentionInterval` |
+| `streampipes-storage-api/src/main/java/.../storage/api/core/INoSqlStorage.java` | MODIFIED — added `getMqttAutoPublishConfigStorage()` + `getDeviceStorage()` |
 | `streampipes-storage-api/src/main/java/.../storage/api/system/IMqttAutoPublishConfigStorage.java` | NEW |
-| `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired new storage impl |
+| `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired MQTT config storage + device storage |
 | `streampipes-storage-couchdb/src/main/java/.../impl/system/MqttAutoPublishConfigStorageImpl.java` | NEW — CouchDB db `mqtt-auto-publish-config` |
 | `streampipes-connect-management/src/main/java/.../compact/MqttPublisherPipelineHandler.java` | NEW — builds CompactPipeline with dynamic topic |
-| `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — null-safe `findAssetByMqttTopic` |
+| `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — null-safe `findAssetByMqttTopic`; fallback transform uses `utils.addTimestamp(event)` |
 | `streampipes-extensions/.../sink/MqttPublisherSink.java` | MODIFIED — dynamic topic via `getStaticPropertyByName` |
 | `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | NEW — reusable PLC device registry model |
 | `streampipes-storage-api/src/main/java/.../storage/api/connect/ISpDeviceStorage.java` | NEW — storage contract for PLC devices |
-| `streampipes-storage-api/src/main/java/.../storage/api/core/INoSqlStorage.java` | MODIFIED — added `getDeviceStorage()` |
 | `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW — CouchDB db `devices` |
-| `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired device storage |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices` + adapter prefill endpoint; Checkstyle import fix this session |
-| `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — default transform now uses `utils.addTimestamp(event)` |
-| `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — fallback transform now uses `utils.addTimestamp(event)` |
-| `streampipes-model/src/main/java/.../model/configuration/MqttAutoPublishConfig.java` | MODIFIED — added `dataLakeRetentionEnabled`, `dataLakeOlderThanDays`, `dataLakeRetentionInterval` fields |
+| `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — default transform uses `utils.addTimestamp(event)` |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/AbstractAdapterResource.java` | MODIFIED — `applyRetentionToMeasure()` called after Data Lake pipeline start |
 
 ### Frontend (Angular)
@@ -123,23 +119,25 @@ No outstanding work. Smoke-test checklist:
 | File | Change |
 |---|---|
 | `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | MODIFIED — `saveMapping()` uses JSON POST |
-| `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | MODIFIED — added `dataLakeRetentionEnabled/OlderThanDays/Interval` to interface + defaults |
-| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports new service |
-| `ui/src/app/configuration/configuration-sections.providers.ts` | MODIFIED — added MQTT section |
-| `ui/src/app/configuration/mqtt-configuration/mqtt-configuration.component.ts` | NEW |
-| `ui/src/app/configuration/mqtt-configuration/mqtt-configuration.component.html` | NEW |
+| `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | NEW — `getConfig()` / `updateConfig()`; MODIFIED — added data lake retention fields |
 | `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | NEW — device registry API client |
-| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports `device.service` |
+| `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports mqtt config service, device service |
+| `ui/src/app/configuration/configuration-sections.providers.ts` | MODIFIED — added Automation section |
+| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.ts` | NEW — automation config page; MODIFIED — Data Lake retention null-safe init |
+| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.html` | NEW — automation config page; MODIFIED — Data Lake retention toggle + days + interval fields |
 | `ui/src/app/connect/components/device-registry/device-registry.component.ts` | NEW — device registry page |
 | `ui/src/app/connect/components/device-registry/device-registry.component.html` | NEW — device registry template |
 | `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.ts` | NEW — adapter-prefill dialog |
 | `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | NEW — adapter-prefill dialog template |
 | `ui/src/app/connect/connect.routes.ts` | MODIFIED — added `/connect/devices` route |
 | `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — added Device Registry navigation button |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box: `searchTerm`, `onSearchChange()`, updated `applyMeasurementFilters` |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — search input in header |
-| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.html` | MODIFIED — Data Lake retention toggle + days + interval fields |
-| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.ts` | MODIFIED — null-safe init of new retention fields |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box: `searchTerm`, `onSearchChange()`, updated `applyMeasurementFilters`; imports `SpTableFilterDirective` |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — search field moved into `sp-table` toolbar via `ng-template[spTableFilter]` |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-actions/sp-table-filter.directive.ts` | NEW — `SpTableFilterDirective` for projecting filter content into sp-table toolbar |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.ts` | MODIFIED — `@ContentChild(SpTableFilterDirective)` filterTemplate |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.html` | MODIFIED — renders filterTemplate on left of grouping toolbar |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.scss` | MODIFIED — `.grouping-toolbar__filter` flex + form-field margin |
+| `ui/projects/streampipes/shared-ui/src/public-api.ts` | MODIFIED — exports `SpTableFilterDirective` |
 
 ---
 
