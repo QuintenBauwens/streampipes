@@ -46,6 +46,7 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Duplicate search boxes removed | ✅ Done | `sp-connect-filter-toolbar` removed from adapter page nav; external search removed from adapter-asset-mappings page |
 | Delete dataset tooltip | ✅ Done | `matTooltip` on disabled "Delete dataset" menu item explains active pipeline constraint |
 | OPC-UA device settings + adapter creation | ✅ Done | `SpDevice` extended with `opcuaEnabled/EndpointUrl/SecurityMode/Username/Password`; `DeviceResource` routes to OPC-UA config builder when adapter type is opcua; add-device panel has OPC-UA section; add-adapter dialog has OPC-UA option with warning when settings missing |
+| Device registry overhaul (IP/Port split, simplified OPC-UA, chips, node browser) | ✅ Done | Split host/port fields; removed opcuaServerMode/Url/Host; OPC-UA always uses device.host; colored protocol chips; OpcuaBrowseService + OpcuaBrowseDialogComponent with mat-tree for node selection |
 
 ---
 
@@ -53,11 +54,11 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 
 No outstanding work. Smoke-test checklist:
 - `docker compose build && docker compose up -d`
-- **OPC-UA device**: add a device, enable OPC-UA toggle, fill endpoint URL → save succeeds; edit device shows OPC-UA fields
-- **OPC-UA adapter**: add adapter for device → OPC-UA option appears in protocol dropdown; without OPC-UA settings on device, OPC-UA option shows warning and Create button is disabled; with settings, node block textarea is shown
-- **sp-table search**: every page using `sp-table` shows search input; typing filters rows; grouped mode also filters correctly
-- **Execute button**: on Pipelines page, select rows and check the execute button shows "Execute" label
-- **Duplicate search removed**: Adapters page nav has no search box; Asset Mappings page has only one search (inside sp-table)
+- **Device add**: enter IP Address + Port separately; save device
+- **OPC-UA device**: enable OPC-UA toggle; OPC Server Host shows device IP read-only; set OPC-UA Port; save succeeds
+- **OPC-UA adapter**: click "Browse Nodes" → tree loads from live server; checkboxes select nodes; Apply stores selection
+- **Protocol chips**: PLC4x chip is teal, OPC-UA chip is blue; tooltips show connection details
+- **sp-table search**: every page using `sp-table` shows search input; typing filters rows
 - **Dataset delete tooltip**: when a dataset is in active pipeline, hovering the disabled Delete menu item shows tooltip
 - **Auto-link on adapter create**: create adapter that matches a mapping → adapter appears in the matched asset's Asset Context column
 
@@ -88,8 +89,8 @@ No outstanding work. Smoke-test checklist:
 | `streampipes-extensions/streampipes-connectors-mqtt/.../shared/MqttPublisher.java` | MODIFIED — `publish(Event, String)` overload |
 | `streampipes-extensions/streampipes-processors-enricher-jvm/.../assethierarchy/AssetHierarchyEnrichmentProcessor.java` | NEW |
 | `streampipes-extensions/streampipes-processors-enricher-jvm/.../EnricherExtensionModuleExport.java` | MODIFIED — registered new processor |
-| `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | MODIFIED — added `opcuaEnabled`, `opcuaEndpointUrl`, `opcuaSecurityMode`, `opcuaUsername`, `opcuaPassword` fields with getters/setters |
-| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | MODIFIED — `buildCompactAdapter` routes to OPC-UA branch; `buildOpcUaConfig()`, `parseOpcUaNodeIds()`, `buildSchemaFromOpcUaNodeBlock()` added; `DeviceAdapterRequest` extended with `opcuaNodeBlock` |
+| `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | MODIFIED — added `port` field (device port, default 0=80); removed `opcuaServerMode/EndpointUrl/Host`; kept `opcuaPort`; full OPC-UA fields |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | MODIFIED — `checkReachable()` uses `device.getPort()` (default 80); `buildOpcUaConfig()` always uses OPC_HOST mode with `device.getHost()` + `device.getOpcuaPort()` |
 | `streampipes-storage-api/src/main/java/.../storage/api/connect/ISpDeviceStorage.java` | NEW |
 | `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices`; Checkstyle import fix applied |
@@ -104,11 +105,17 @@ No outstanding work. Smoke-test checklist:
 | `ui/projects/streampipes/platform-services/src/lib/apis/adapter.service.ts` | MODIFIED — `uploadAdapterConfig(file)` |
 | `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | NEW — `getAllMappings()`, `saveMapping()`, `uploadMappingCsv()` |
 | `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | NEW — `getConfig()` / `updateConfig()`; MODIFIED — added data lake retention fields |
-| `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | MODIFIED — `SpDevice` extended with OPC-UA fields; `DeviceAdapterRequest` extended with `opcuaNodeBlock`; `emptyDevice()` initialises OPC-UA defaults |
-| `ui/src/app/connect/components/device-registry/add-device/add-device.component.ts` | MODIFIED — added `MatSlideToggle/MatSelect/MatOption` imports; `isValid` updated for OPC-UA |
-| `ui/src/app/connect/components/device-registry/add-device/add-device.component.html` | MODIFIED — added OPC-UA section (enable toggle, endpoint URL, security mode, username/password) |
-| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.ts` | MODIFIED — OPC-UA option added; `isOpcUa`, `hasOpcuaSettings`, `isValid` getters; `opcuaNodeBlock` field; `MatIcon` import |
-| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | MODIFIED — OPC-UA section with warning banner + connection info display + node IDs textarea |
+| `ui/projects/streampipes/platform-services/src/lib/apis/device.service.ts` | MODIFIED — `SpDevice`: added `port`; removed `opcuaServerMode/EndpointUrl/Host`; `emptyDevice()` updated; full OPC-UA fields retained |
+| `ui/src/app/connect/components/device-registry/add-device/add-device.component.ts` | MODIFIED — `isValid` updated (host + port required for OPC-UA) |
+| `ui/src/app/connect/components/device-registry/add-device/add-device.component.html` | MODIFIED — 'IP Address / Host' + 'Port' fields; OPC-UA section: read-only host ref + opcuaPort only |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.ts` | MODIFIED — `openNodeBrowser()` + `OpcuaBrowseService` integration; `MatDialog` for browse dialog; `selectedOpcuaNodes[]` |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | MODIFIED — Browse Nodes button + selected count badge; manual node IDs textarea still available |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/opcua-browse-dialog/opcua-browse-dialog.component.ts` | NEW — `MatDialog`-based OPC-UA node tree browser with lazy child loading and checkbox selection |
+| `ui/src/app/connect/components/device-registry/add-adapter-dialog/opcua-browse-dialog/opcua-browse-dialog.component.html` | NEW |
+| `ui/src/app/connect/components/device-registry/opcua-browse.service.ts` | NEW — `loadAdapterDescription()` + `browseNodes()` (pre-fills static properties from device settings); `prefillProperties()` traversal handles Alternatives/OneOf/FreeText |
+| `ui/src/app/connect/components/device-registry/device-registry.component.ts` | MODIFIED — removed `MatChipSet/MatChip` imports (chips replaced with custom `<span>` elements) |
+| `ui/src/app/connect/components/device-registry/device-registry.component.html` | MODIFIED — protocol chips use `.protocol-chip--plc4x` and `.protocol-chip--opcua` classes; tooltip shows `host:port` |
+| `ui/src/app/connect/components/device-registry/device-registry.component.scss` | MODIFIED — `.protocol-chip`, `.protocol-chip--plc4x` (teal), `.protocol-chip--opcua` (blue) styles |
 | `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports mqtt config, device, adapter-asset-mapping services |
 | `ui/src/app/assets/components/asset-overview/asset-overview.component.html` | MODIFIED — Maximo import + Adapter Mappings buttons |
 | `ui/src/app/assets/components/asset-overview/asset-overview.component.ts` | MODIFIED — `triggerMaximoImport()` |
@@ -166,10 +173,18 @@ No outstanding work. Smoke-test checklist:
 - `onPipelineStarted` uses the 3-param signature
 - Use `SO.TEXT` (not `XSD.STRING` URI) in `EpProperties.stringEp()`
 
-### PLC Device Registry
-- `DeviceResource` extends `AbstractAdapterResource` (not `AbstractAuthGuardedRestResource`) to get `hasReadAuthority()` / `hasWriteAuthority()`
-- `CRUDStorage` exposes `persist`, `updateElement`, `deleteElement` — no generic `createElement`
-- Default transform scripts call `utils.addTimestamp(event)`
+### Device Registry — IP/Port Split & OPC-UA Simplification
+- `SpDevice.host` = IP only (no port suffix); `SpDevice.port` = device-level TCP port (0 = use default 80 for reachability)
+- `SpDevice.opcuaPort` = OPC-UA server port (default 4840); `opcuaServerMode/opcuaEndpointUrl/opcuaHost` removed
+- `buildOpcUaConfig()` always uses `OPC_HOST` mode with `device.getHost()` + `device.getOpcuaPort()` — no URL mode anymore
+- `checkReachable()` uses `device.getPort() > 0 ? device.getPort() : 80`
+
+### OPC-UA Node Browser (Runtime-Resolvable API)
+- GET `/api/v2/connect/master/description/{appId}` to load the adapter template (lazy, cached in component)
+- POST `/api/v2/connect/master/resolvable/{uuid}/configurations` with `RuntimeOptionsRequest`; `adapterId` path var is ignored by the worker — any UUID works
+- `request.appId = OPCUA_APP_ID`, `request.requestId = 'AVAILABLE_NODES'`, `request.staticProperties` = pre-filled template
+- `prefillProperties()` traverses `StaticPropertyAlternatives` (OPC_HOST_OR_URL, ADAPTER_TYPE, userAuthentication), `OneOfStaticProperty` (securityMode, securityPolicy), `FreeTextStaticProperty` by internalName
+- Sub-node lazy loading: set `sp.nextBaseNodeToResolve = node.internalNodeName` before re-calling; the response contains only that subtree
 
 ### YAML Upload with Pre-defined Schema
 - `AdapterSchemaGenerator.apply()` skips live `getSampleData()` when `compactAdapter.schema()` is non-null/non-empty
