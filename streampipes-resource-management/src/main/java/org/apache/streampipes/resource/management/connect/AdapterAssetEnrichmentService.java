@@ -126,6 +126,26 @@ public class AdapterAssetEnrichmentService {
     }
   }
 
+  /**
+   * Links a DataLakeMeasure to the same asset as the given adapter if a mapping exists.
+   * Uses the measure's CouchDB elementId as the resource ID so the asset filter in the
+   * Datasets page (which filters by {@code measurement} link type) resolves it correctly.
+   * Safe to call when no mapping exists — silently does nothing.
+   */
+  public void linkMeasurementToAsset(String measureElementId, String measureName, String adapterName) {
+    try {
+      var mapping = StorageDispatcher.INSTANCE.getNoSqlStore()
+                                              .getAdapterAssetMappingStorage()
+                                              .getElementById(adapterName);
+      if (mapping == null || mapping.getTopic() == null || mapping.getTopic().isBlank()) {
+        return;
+      }
+      linkResourceToAsset(measureElementId, measureName, "measurement", mapping.getTopic());
+    } catch (Exception e) {
+      LOG.warn("Failed to link measurement '{}' to asset: {}", measureName, e.getMessage());
+    }
+  }
+
   private void linkToAsset(AdapterDescription adapter, String topic) {
     if (topic == null || topic.isBlank()) {
       return;

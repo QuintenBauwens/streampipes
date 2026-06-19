@@ -125,30 +125,33 @@ public class AbstractAdapterResource<T> extends AbstractAuthGuardedRestResource 
         LOG.info("Auto-deployed data lake pipeline for adapter '{}'", adapter.getName());
         new AdapterAssetEnrichmentService()
             .linkPipelineToAsset(status.getPipelineId(), status.getPipelineName(), adapter.getName());
-        if (config.isDataLakeRetentionEnabled()) {
-          applyRetentionToMeasure(adapter.getName(), config);
-        }
+        applyMeasurePostProcessing(adapter.getName(), config);
       }
     } catch (Exception e) {
       LOG.warn("Could not auto-deploy pipeline for adapter '{}': {}", adapter.getName(), e.getMessage());
     }
   }
 
-  private void applyRetentionToMeasure(String measureName, MqttAutoPublishConfig config) {
+  private void applyMeasurePostProcessing(String adapterName, MqttAutoPublishConfig config) {
     try {
-      var measure = getNoSqlStorage().getDataLakeStorage().getByMeasureName(measureName);
+      var measure = getNoSqlStorage().getDataLakeStorage().getByMeasureName(adapterName);
       if (measure != null) {
-        var interval = RetentionInterval.valueOf(config.getDataLakeRetentionInterval());
-        var dataRetentionConfig = new DataRetentionConfig(interval, config.getDataLakeOlderThanDays(), RetentionAction.DELETE);
-        measure.setRetentionTime(new RetentionTimeConfig(dataRetentionConfig, null));
-        getNoSqlStorage().getDataLakeStorage().updateElement(measure);
-        LOG.info("Applied data retention ({} days, {}) to measure '{}'",
-            config.getDataLakeOlderThanDays(), config.getDataLakeRetentionInterval(), measureName);
+        new AdapterAssetEnrichmentService()
+            .linkMeasurementToAsset(measure.getElementId(), adapterName, adapterName);
+        if (config.isDataLakeRetentionEnabled()) {
+          var interval = RetentionInterval.valueOf(config.getDataLakeRetentionInterval());
+          var dataRetentionConfig =
+              new DataRetentionConfig(interval, config.getDataLakeOlderThanDays(), RetentionAction.DELETE);
+          measure.setRetentionTime(new RetentionTimeConfig(dataRetentionConfig, null));
+          getNoSqlStorage().getDataLakeStorage().updateElement(measure);
+          LOG.info("Applied data retention ({} days, {}) to measure '{}'",
+              config.getDataLakeOlderThanDays(), config.getDataLakeRetentionInterval(), adapterName);
+        }
       } else {
-        LOG.debug("DataLakeMeasure '{}' not yet registered; retention will be applied on next pipeline restart", measureName);
+        LOG.debug("DataLakeMeasure '{}' not yet registered; post-processing deferred", adapterName);
       }
     } catch (Exception e) {
-      LOG.warn("Could not apply retention config to measure '{}': {}", measureName, e.getMessage());
+      LOG.warn("Could not apply post-processing to measure '{}': {}", adapterName, e.getMessage());
     }
   }
 }
