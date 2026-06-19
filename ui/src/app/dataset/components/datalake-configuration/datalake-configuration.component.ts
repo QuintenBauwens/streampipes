@@ -49,6 +49,8 @@ import {
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
+    ConfirmDialogComponent,
+    ConfirmDialogData,
     CurrentUserService,
     DataDownloadDialogComponent,
     DialogRef,
@@ -95,6 +97,10 @@ import { MatMenuItem } from '@angular/material/menu';
 import { FormsModule } from '@angular/forms';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { SelectionModel } from '@angular/cdk/collections';
+import { forkJoin } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -141,6 +147,7 @@ import { Subscription } from 'rxjs';
         SpAlertBannerComponent,
         SpTableActionsDirective,
         SpTableFilterDirective,
+        MatCheckbox,
     ],
 })
 export class DatalakeConfigurationComponent
@@ -154,6 +161,7 @@ export class DatalakeConfigurationComponent
     private datalakeRestService = inject(DatalakeRestService);
     private dataViewDataExplorerService = inject(ChartService);
     private dialogService = inject(DialogService);
+    private matDialog = inject(MatDialog);
     private breadcrumbService = inject(SpBreadcrumbService);
     private exportProviderRestService = inject(ExportProviderService);
     private translateService = inject(TranslateService);
@@ -174,6 +182,7 @@ export class DatalakeConfigurationComponent
         new MatTableDataSource([]);
 
     displayedColumns: string[] = [
+        'select',
         'name',
         'assetContext',
         'pipeline',
@@ -193,6 +202,8 @@ export class DatalakeConfigurationComponent
     ];
 
     private localStorageService = inject(LocalStorageService);
+
+    selection = new SelectionModel<DataLakeConfigurationEntry>(true, []);
 
     pageSize = this.localStorageService.get('paginator-page-size', 10);
     pageIndex = 0;
@@ -249,6 +260,7 @@ export class DatalakeConfigurationComponent
 
     loadAvailableMeasurements() {
         this.availableMeasurements = [];
+        this.selection.clear();
         // get all available measurements that are stored in the data lake
         this.datalakeRestService
             .getAllMeasurementSeries()
@@ -323,6 +335,54 @@ export class DatalakeConfigurationComponent
 
     onSearchChange(): void {
         this.applyMeasurementFilters(this.currentFilterIds);
+    }
+
+    isAllSelected(): boolean {
+        return (
+            this.selection.selected.length === this.filteredMeasurements.length
+        );
+    }
+
+    masterToggle(): void {
+        if (this.isAllSelected()) {
+            this.selection.clear();
+        } else {
+            this.filteredMeasurements.forEach(row =>
+                this.selection.select(row),
+            );
+        }
+    }
+
+    bulkDeleteDatasets(): void {
+        const deletable = this.selection.selected.filter(e => e.remove);
+        if (deletable.length === 0) {
+            return;
+        }
+        const dialogRef = this.matDialog.open(ConfirmDialogComponent, {
+            data: {
+                title: this.translateService.instant('Delete datasets'),
+                subtitle: this.translateService.instant(
+                    'Do you really want to delete {{count}} selected dataset(s)?',
+                    { count: deletable.length },
+                ),
+                confirmTitle: this.translateService.instant('Delete'),
+                cancelTitle: this.translateService.instant('Cancel'),
+            } as ConfirmDialogData,
+        });
+        dialogRef.afterClosed().subscribe(result => {
+            if (result === 'confirm') {
+                forkJoin(
+                    deletable.map(e =>
+                        this.datalakeRestService.dropSingleMeasurementSeries(
+                            e.name,
+                        ),
+                    ),
+                ).subscribe(() => {
+                    this.selection.clear();
+                    this.loadAvailableMeasurements();
+                });
+            }
+        });
     }
 
     updatePaginatorAfterFiltering(): void {

@@ -67,18 +67,63 @@
                 data-cy="datalake-settings"
             >
                 <ng-template spTableFilter>
-                    <mat-form-field color="accent" style="width: 260px">
-                        <mat-label>{{
-                            'Search datasets' | translate
-                        }}</mat-label>
-                        <input
-                            matInput
-                            [(ngModel)]="searchTerm"
-                            (ngModelChange)="onSearchChange()"
-                            data-cy="datasets-search-input"
-                        />
-                    </mat-form-field>
+                    <div
+                        fxLayout="row"
+                        fxLayoutAlign="start center"
+                        fxLayoutGap="10px"
+                    >
+                        <mat-form-field color="accent" style="width: 260px">
+                            <mat-label>{{
+                                'Search datasets' | translate
+                            }}</mat-label>
+                            <input
+                                matInput
+                                [(ngModel)]="searchTerm"
+                                (ngModelChange)="onSearchChange()"
+                                data-cy="datasets-search-input"
+                            />
+                        </mat-form-field>
+                        @if (writeAccess && selection.selected.length > 0) {
+                            <button
+                                color="warn"
+                                mat-flat-button
+                                data-cy="bulk-delete-datasets-btn"
+                                (click)="bulkDeleteDatasets()"
+                            >
+                                <mat-icon>delete</mat-icon>
+                                {{
+                                    'Delete selected (' +
+                                        selection.selected.length +
+                                        ')'
+                                }}
+                            </button>
+                        }
+                    </div>
                 </ng-template>
+
+                <ng-container matColumnDef="select">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <mat-checkbox
+                            color="accent"
+                            [checked]="selection.hasValue() && isAllSelected()"
+                            [indeterminate]="
+                                selection.hasValue() && !isAllSelected()
+                            "
+                            (change)="masterToggle()"
+                            data-cy="datasets-select-all"
+                        >
+                        </mat-checkbox>
+                    </th>
+                    <td mat-cell *matCellDef="let row">
+                        <mat-checkbox
+                            color="accent"
+                            [checked]="selection.isSelected(row)"
+                            (change)="selection.toggle(row)"
+                            data-cy="dataset-row-checkbox"
+                        >
+                        </mat-checkbox>
+                    </td>
+                </ng-container>
 
                 <ng-container matColumnDef="name">
                     <th mat-header-cell mat-sort-header *matHeaderCellDef>
