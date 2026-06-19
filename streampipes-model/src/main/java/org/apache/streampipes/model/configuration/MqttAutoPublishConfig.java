@@ -89,6 +89,21 @@ public class MqttAutoPublishConfig implements Storable {
    */
   private String staticTopic = "";
 
+  /** When {@code true}, data retention is applied to the auto-created Data Lake measurement. */
+  private boolean dataLakeRetentionEnabled = false;
+
+  /**
+   * Number of days after which data is deleted when Data Lake retention is enabled.
+   * Default: 30 days.
+   */
+  private int dataLakeOlderThanDays = 30;
+
+  /**
+   * Cleanup schedule interval for Data Lake retention. One of: DAILY, WEEKLY, MONTHLY.
+   * Corresponds to {@code RetentionInterval} enum values.
+   */
+  private String dataLakeRetentionInterval = "DAILY";
+
   public MqttAutoPublishConfig() {
   }
 
@@ -246,5 +261,29 @@ public class MqttAutoPublishConfig implements Storable {
 
   public void setStaticTopic(String staticTopic) {
     this.staticTopic = staticTopic;
+  }
+
+  public boolean isDataLakeRetentionEnabled() {
+    return dataLakeRetentionEnabled;
+  }
+
+  public void setDataLakeRetentionEnabled(boolean dataLakeRetentionEnabled) {
+    this.dataLakeRetentionEnabled = dataLakeRetentionEnabled;
+  }
+
+  public int getDataLakeOlderThanDays() {
+    return dataLakeOlderThanDays;
+  }
+
+  public void setDataLakeOlderThanDays(int dataLakeOlderThanDays) {
+    this.dataLakeOlderThanDays = dataLakeOlderThanDays;
+  }
+
+  public String getDataLakeRetentionInterval() {
+    return dataLakeRetentionInterval;
+  }
+
+  public void setDataLakeRetentionInterval(String dataLakeRetentionInterval) {
+    this.dataLakeRetentionInterval = dataLakeRetentionInterval;
   }
 }

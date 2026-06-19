@@ -57,6 +57,12 @@ export interface MqttAutoPublishConfig {
      * When empty (default), the topic is read dynamically from the adapter's `topic` event field.
      */
     staticTopic: string;
+    /** When true, data retention is applied to the auto-created Data Lake measurement. */
+    dataLakeRetentionEnabled: boolean;
+    /** Number of days after which data is deleted when Data Lake retention is enabled. */
+    dataLakeOlderThanDays: number;
+    /** Cleanup schedule: 'DAILY' | 'WEEKLY' | 'MONTHLY'. */
+    dataLakeRetentionInterval: string;
 }
 
 @Injectable({
@@ -99,6 +105,9 @@ export class MqttAutoPublishConfigService {
             pipelineLabelIds: [],
             adapterLabelIds: [],
             staticTopic: '',
+            dataLakeRetentionEnabled: false,
+            dataLakeOlderThanDays: 30,
+            dataLakeRetentionInterval: 'DAILY',
         };
     }
 }

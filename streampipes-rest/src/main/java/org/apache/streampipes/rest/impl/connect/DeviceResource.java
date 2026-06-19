@@ -21,11 +21,13 @@ package org.apache.streampipes.rest.impl.connect;
 import org.apache.streampipes.model.connect.ReduceEventRateRule;
 import org.apache.streampipes.model.connect.RemoveDuplicateRule;
 import org.apache.streampipes.model.connect.TransformationConfig;
+import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.connect.adapter.SpDevice;
 import org.apache.streampipes.model.connect.adapter.compact.CompactAdapter;
 import org.apache.streampipes.model.connect.adapter.compact.CompactEventProperty;
 import org.apache.streampipes.model.connect.adapter.compact.CreateOptions;
 import org.apache.streampipes.model.message.Notifications;
+import org.apache.streampipes.model.staticproperty.FreeTextStaticProperty;
 import org.apache.streampipes.storage.api.connect.ISpDeviceStorage;
 import org.apache.streampipes.storage.management.StorageDispatcher;
 
@@ -41,9 +43,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import org.apache.streampipes.model.connect.adapter.AdapterDescription;
-import org.apache.streampipes.model.staticproperty.FreeTextStaticProperty;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;

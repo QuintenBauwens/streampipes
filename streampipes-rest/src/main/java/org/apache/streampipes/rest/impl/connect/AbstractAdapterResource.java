@@ -24,6 +24,10 @@ import org.apache.streampipes.manager.pipeline.compact.CompactPipelineManagement
 import org.apache.streampipes.model.client.user.DefaultPrivilege;
 import org.apache.streampipes.model.configuration.MqttAutoPublishConfig;
 import org.apache.streampipes.model.connect.adapter.AdapterDescription;
+import org.apache.streampipes.model.datalake.DataRetentionConfig;
+import org.apache.streampipes.model.datalake.RetentionAction;
+import org.apache.streampipes.model.datalake.RetentionInterval;
+import org.apache.streampipes.model.datalake.RetentionTimeConfig;
 import org.apache.streampipes.resource.management.connect.AdapterAssetEnrichmentService;
 import org.apache.streampipes.rest.core.base.impl.AbstractAuthGuardedRestResource;
 import org.apache.streampipes.storage.management.StorageDispatcher;
@@ -117,9 +121,30 @@ public class AbstractAdapterResource<T> extends AbstractAuthGuardedRestResource 
             getAuthenticatedUserSid()
         ).createAndStartPersistPipeline(adapter, config.getPipelineLabelIds(), requestManager);
         LOG.info("Auto-deployed data lake pipeline for adapter '{}'", adapter.getName());
+        if (config.isDataLakeRetentionEnabled()) {
+          applyRetentionToMeasure(adapter.getName(), config);
+        }
       }
     } catch (Exception e) {
       LOG.warn("Could not auto-deploy pipeline for adapter '{}': {}", adapter.getName(), e.getMessage());
+    }
+  }
+
+  private void applyRetentionToMeasure(String measureName, MqttAutoPublishConfig config) {
+    try {
+      var measure = getNoSqlStorage().getDataLakeStorage().getByMeasureName(measureName);
+      if (measure != null) {
+        var interval = RetentionInterval.valueOf(config.getDataLakeRetentionInterval());
+        var dataRetentionConfig = new DataRetentionConfig(interval, config.getDataLakeOlderThanDays(), RetentionAction.DELETE);
+        measure.setRetentionTime(new RetentionTimeConfig(dataRetentionConfig, null));
+        getNoSqlStorage().getDataLakeStorage().updateElement(measure);
+        LOG.info("Applied data retention ({} days, {}) to measure '{}'",
+            config.getDataLakeOlderThanDays(), config.getDataLakeRetentionInterval(), measureName);
+      } else {
+        LOG.debug("DataLakeMeasure '{}' not yet registered; retention will be applied on next pipeline restart", measureName);
+      }
+    } catch (Exception e) {
+      LOG.warn("Could not apply retention config to measure '{}': {}", measureName, e.getMessage());
     }
   }
 }

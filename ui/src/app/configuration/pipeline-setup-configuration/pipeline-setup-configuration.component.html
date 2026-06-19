@@ -480,21 +480,111 @@
                                         </div>
                                     }
 
-                                    <!-- ── Data Lake: no extra config ────────── -->
+                                    <!-- ── Data Lake: retention config ──────── -->
                                     @if (selectedSink === 'data-lake') {
+                                        <mat-divider></mat-divider>
+
                                         <div
-                                            fxLayout="row"
-                                            fxLayoutAlign="start center"
-                                            fxLayoutGap="8px"
-                                            class="text-sm"
+                                            fxLayout="column"
+                                            fxLayoutGap="16px"
                                         >
-                                            <mat-icon class="sp-color-accent"
-                                                >info</mat-icon
+                                            <div
+                                                fxLayout="row"
+                                                fxLayoutAlign="start center"
+                                                fxLayoutGap="8px"
+                                                class="text-sm"
                                             >
-                                            <span>{{
-                                                'Events will be persisted directly in the StreamPipes data lake. No additional configuration required.'
-                                                    | translate
-                                            }}</span>
+                                                <mat-icon
+                                                    class="sp-color-accent"
+                                                    >info</mat-icon
+                                                >
+                                                <span>{{
+                                                    'Events will be persisted directly in the StreamPipes data lake.'
+                                                        | translate
+                                                }}</span>
+                                            </div>
+
+                                            <mat-slide-toggle
+                                                [(ngModel)]="
+                                                    config.dataLakeRetentionEnabled
+                                                "
+                                                color="accent"
+                                                (ngModelChange)="clearStatus()"
+                                            >
+                                                {{
+                                                    'Enable data retention'
+                                                        | translate
+                                                }}
+                                            </mat-slide-toggle>
+
+                                            @if (
+                                                config.dataLakeRetentionEnabled
+                                            ) {
+                                                <div
+                                                    fxLayout="row"
+                                                    fxLayoutGap="16px"
+                                                >
+                                                    <mat-form-field
+                                                        color="accent"
+                                                        fxFlex="50"
+                                                    >
+                                                        <mat-label>{{
+                                                            'Delete data older than (days)'
+                                                                | translate
+                                                        }}</mat-label>
+                                                        <input
+                                                            matInput
+                                                            type="number"
+                                                            min="1"
+                                                            [(ngModel)]="
+                                                                config.dataLakeOlderThanDays
+                                                            "
+                                                            (ngModelChange)="
+                                                                clearStatus()
+                                                            "
+                                                        />
+                                                    </mat-form-field>
+                                                    <mat-form-field
+                                                        color="accent"
+                                                        fxFlex="50"
+                                                    >
+                                                        <mat-label>{{
+                                                            'Cleanup interval'
+                                                                | translate
+                                                        }}</mat-label>
+                                                        <mat-select
+                                                            [(ngModel)]="
+                                                                config.dataLakeRetentionInterval
+                                                            "
+                                                            (ngModelChange)="
+                                                                clearStatus()
+                                                            "
+                                                        >
+                                                            <mat-option
+                                                                value="DAILY"
+                                                                >{{
+                                                                    'Daily'
+                                                                        | translate
+                                                                }}</mat-option
+                                                            >
+                                                            <mat-option
+                                                                value="WEEKLY"
+                                                                >{{
+                                                                    'Weekly'
+                                                                        | translate
+                                                                }}</mat-option
+                                                            >
+                                                            <mat-option
+                                                                value="MONTHLY"
+                                                                >{{
+                                                                    'Monthly'
+                                                                        | translate
+                                                                }}</mat-option
+                                                            >
+                                                        </mat-select>
+                                                    </mat-form-field>
+                                                </div>
+                                            }
                                         </div>
                                     }
                                 }

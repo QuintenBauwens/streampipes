@@ -124,6 +124,15 @@ export class PipelineSetupConfigurationComponent implements OnInit {
                 if (this.config.staticTopic == null) {
                     this.config.staticTopic = '';
                 }
+                if (this.config.dataLakeRetentionEnabled == null) {
+                    this.config.dataLakeRetentionEnabled = false;
+                }
+                if (this.config.dataLakeOlderThanDays == null) {
+                    this.config.dataLakeOlderThanDays = 30;
+                }
+                if (this.config.dataLakeRetentionInterval == null) {
+                    this.config.dataLakeRetentionInterval = 'DAILY';
+                }
                 this.topicMode = this.config.staticTopic ? 'static' : 'dynamic';
                 this.isLoading = false;
             },
