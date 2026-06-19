@@ -41,6 +41,7 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Auto-deployed pipeline linked to adapter asset | ✅ Done | Both MQTT and Data Lake pipelines get `AssetLink(linkType="pipeline")` on the same asset node as the adapter |
 | DataLakeMeasure linked to asset | ✅ Done | `linkMeasurementToAsset()` adds `AssetLink(linkType="measurement")`; `applyMeasurePostProcessing()` consolidates measure linking + retention |
 | Multi-select + bulk delete for datasets | ✅ Done | Checkbox column, select-all, bulk delete button with `ConfirmDialogComponent`; `forkJoin` parallel delete |
+| Built-in search filter in SpTableComponent | ✅ Done | `[showSearchFilter]="true"` on all 18 sp-table usages; filters `MatTableDataSource` via built-in predicate |
 
 ---
 
@@ -48,7 +49,8 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 
 No outstanding work. Smoke-test checklist:
 - `docker compose build && docker compose up -d`
-- **Datasets search**: Data Explorer → Datasets; search input in toolbar filters by measurement name; stacks with asset filter
+- **Built-in search**: every page using `sp-table` (adapters, pipelines, datasets, assets, dashboards, charts, security, labels, files, functions, certificates, sites) should show a search input in the table toolbar; typing filters rows instantly
+- **Datasets search**: Data Explorer → Datasets; search stacks with asset filter (asset filter uses data source directly, built-in search uses `dataSource.filter`)
 - **Automation Data Lake retention**: Configuration → Automation → Pipelines tab; select Data Lake sink; enable retention toggle; set days + interval; save and verify persisted
 - **Label grouping**: adapter overview → Group by Label → adapters with automation-assigned labels appear under their label group
 - **Adapter preview**: click any adapter row → preview shows "Asset context" and "Labels" chips
@@ -111,11 +113,11 @@ No outstanding work. Smoke-test checklist:
 | `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | NEW |
 | `ui/src/app/connect/connect.routes.ts` | MODIFIED — added `/connect/devices` route |
 | `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — Device Registry navigation button |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box; `SpTableFilterDirective` import; `SelectionModel`; `bulkDeleteDatasets()`; `masterToggle()`; `isAllSelected()` |
-| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — `ng-template[spTableFilter]` with search + bulk delete button; `select` checkbox column |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — removed custom search; uses built-in `[showSearchFilter]`; `SpTableMultiActionsDirective`; `bulkDeleteDatasets()`; `canBulkDelete()` |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — `[showSearchFilter]="true"` + `ng-template[spTableMultiActions]` bulk delete button; removed custom `spTableFilter` slot |
 | `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-actions/sp-table-filter.directive.ts` | NEW |
-| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.ts` | MODIFIED — `@ContentChild(SpTableFilterDirective)` |
-| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.html` | MODIFIED — renders filterTemplate in toolbar |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.ts` | MODIFIED — `@Input() showSearchFilter`; `builtInSearchTerm`; `onBuiltInSearchChange()`; `shouldShowToolbar` getter; `MatLabel/MatPrefix/MatInput/FormsModule` imports |
+| `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.html` | MODIFIED — standalone toolbar condition updated to `shouldShowToolbar`; search input added to both standalone and selection toolbars; grouping controls gated on `shouldShowGroupingControls` |
 | `ui/projects/streampipes/shared-ui/src/lib/components/sp-table/sp-table.component.scss` | MODIFIED — `.grouping-toolbar__filter` styles |
 | `ui/projects/streampipes/shared-ui/src/public-api.ts` | MODIFIED — exports `SpTableFilterDirective` |
 
@@ -171,9 +173,12 @@ No outstanding work. Smoke-test checklist:
 - `applyRetentionToMeasure()` runs after `createAndStartPersistPipeline` when retention is enabled
 - `DataLakeMeasure` is registered asynchronously by the extensions service; if not yet present on first invocation the method logs debug and does nothing — set retention manually from the Datasets page on first deploy
 
-### sp-table Filter Slot
-- `SpTableFilterDirective` follows the exact `SpTableActionsDirective` pattern — bare `@Directive({ selector: 'ng-template[spTableFilter]' })` picked up via `@ContentChild(SpTableFilterDirective, { read: TemplateRef })`
-- Template content is compiled in the **parent** component's context, so `MatFormField`, `MatInput`, `FormsModule` must be imported in the consuming component
+### Built-in SpTable Search Filter
+- `@Input() showSearchFilter = false` on `SpTableComponent` — set to `true` on all 18 usages
+- `onBuiltInSearchChange()` sets `dataSource.filter = builtInSearchTerm.toLowerCase().trim()` which triggers the default `MatTableDataSource` filter predicate (concatenates all string properties)
+- `shouldShowToolbar` getter returns true when `assetContextConfig`, `showSearchFilter`, or `filterTemplate` is set — drives toolbar visibility
+- Grouping controls (list/grouped toggle + group-by select) only render when `shouldShowGroupingControls` (i.e. `!!assetContextConfig`) is true — they are asset-context-only features
+- Search input appears in both the standalone toolbar (no checkboxes) and the selection toolbar (with checkboxes active)
 
 ---
 
