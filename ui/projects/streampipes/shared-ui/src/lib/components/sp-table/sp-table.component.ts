@@ -182,6 +182,7 @@ export class SpTableComponent<T>
     @Input() showSearchFilter = false;
     @Input() showSelectionCheckboxes = false;
     @Input() showMultiActionsExecuteButton = false;
+    @Input() multiActionsExecuteLabel = 'Execute';
     @Input() multiActionsExecuteDisabled = false;
     @Input() multiActionsSelectLabel = 'Action';
     @Input() multiActionOptions: SpTableMultiActionOption[] = [];
@@ -362,6 +363,10 @@ export class SpTableComponent<T>
             this.dataSource.filter = this.builtInSearchTerm
                 .toLowerCase()
                 .trim();
+            if (this.paginator) {
+                this.paginator.firstPage();
+            }
+            this.refreshRenderedRows();
         }
     }
 

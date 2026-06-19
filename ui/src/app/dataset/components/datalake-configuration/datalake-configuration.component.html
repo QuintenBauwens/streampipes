@@ -329,6 +329,12 @@
                             mat-menu-item
                             data-cy="datalake-delete-btn"
                             [disabled]="!element.remove"
+                            [matTooltip]="
+                                !element.remove
+                                    ? ('Cannot delete: dataset is actively used in a pipeline'
+                                      | translate)
+                                    : ''
+                            "
                             (click)="deleteDatalakeIndex(element.name)"
                         >
                             <mat-icon>delete</mat-icon>

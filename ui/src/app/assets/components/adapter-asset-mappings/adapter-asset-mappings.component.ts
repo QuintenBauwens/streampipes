@@ -114,7 +114,6 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
     dataSource = new MatTableDataSource<AdapterAssetMapping>();
     displayedColumns = ['adapterName', 'assetLocation', 'actions'];
 
-    searchText = '';
     selectedRows: AdapterAssetMapping[] = [];
 
     newAdapterName = '';
@@ -149,10 +148,6 @@ export class SpAdapterAssetMappingsComponent implements OnInit {
                 this.dataSource.data = [];
             },
         });
-    }
-
-    onSearchChange(): void {
-        this.dataSource.filter = this.searchText.trim();
     }
 
     onSelectionChanged(rows: AdapterAssetMapping[]): void {

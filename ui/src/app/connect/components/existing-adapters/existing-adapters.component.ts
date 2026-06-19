@@ -78,7 +78,6 @@ import {
 } from '@ngbracket/ngx-layout/flex';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { SpConnectFilterToolbarComponent } from '../filter-toolbar/filter-toolbar.component';
 import { MatTooltip } from '@angular/material/tooltip';
 import { AdapterStatusLightComponent } from './adapter-status-light/adapter-status-light.component';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -98,7 +97,6 @@ import { RouterLink } from '@angular/router';
         LayoutGapDirective,
         MatButton,
         MatIcon,
-        SpConnectFilterToolbarComponent,
         MatIconButton,
         MatTooltip,
         SpBasicHeaderTitleComponent,
@@ -124,7 +122,7 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
     existingAdapters: AdapterDescription[] = [];
     filteredAdapters: AdapterDescription[] = [];
 
-    currentFilter: AdapterFilterSettingsModel;
+    currentFilter: AdapterFilterSettingsModel = { textFilter: '' };
     operationInProgressAdapterId: string | undefined;
 
     @ViewChild(MatSort)
@@ -455,13 +453,6 @@ export class ExistingAdaptersComponent implements OnInit, OnDestroy {
                 this.getAdaptersRunning();
             }
         });
-    }
-
-    applyFilter(filter: AdapterFilterSettingsModel) {
-        this.currentFilter = filter;
-        if (this.dataSource) {
-            this.applyAdapterFilters(this.currentFilterIds);
-        }
     }
 
     navigateToDetailsOverviewPage(adapter: AdapterDescription): void {

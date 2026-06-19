@@ -126,21 +126,7 @@
                 fxLayoutAlign="start center"
                 fxLayoutGap="10px"
                 section-actions
-            >
-                <mat-form-field appearance="outline" class="form-field-small">
-                    <mat-label>{{ 'Search' | translate }}</mat-label>
-                    <mat-icon matPrefix>search</mat-icon>
-                    <input
-                        matInput
-                        [(ngModel)]="searchText"
-                        (ngModelChange)="onSearchChange()"
-                        placeholder="{{
-                            'Filter by adapter or location' | translate
-                        }}"
-                        data-cy="mapping-search-input"
-                    />
-                </mat-form-field>
-            </div>
+            ></div>
 
             @if (uploadResult) {
                 <p class="sp-subtitle-2 mb-10">
