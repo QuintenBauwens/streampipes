@@ -326,12 +326,15 @@
                             <span>{{ 'Truncate data' | translate }}</span>
                         </button>
                         <span
+                            style="display: block; pointer-events: auto"
                             [matTooltip]="
                                 !element.remove
                                     ? ('Cannot delete: dataset is actively used in a pipeline'
                                       | translate)
-                                    : ''
+                                    : null
                             "
+                            [matTooltipDisabled]="!!element.remove"
+                            matTooltipPosition="left"
                         >
                             <button
                                 mat-menu-item
