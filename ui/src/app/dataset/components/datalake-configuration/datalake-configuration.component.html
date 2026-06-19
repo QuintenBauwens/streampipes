@@ -325,21 +325,24 @@
                             <mat-icon>local_fire_department</mat-icon>
                             <span>{{ 'Truncate data' | translate }}</span>
                         </button>
-                        <button
-                            mat-menu-item
-                            data-cy="datalake-delete-btn"
-                            [disabled]="!element.remove"
+                        <span
                             [matTooltip]="
                                 !element.remove
                                     ? ('Cannot delete: dataset is actively used in a pipeline'
                                       | translate)
                                     : ''
                             "
-                            (click)="deleteDatalakeIndex(element.name)"
                         >
-                            <mat-icon>delete</mat-icon>
-                            <span>{{ 'Delete dataset' | translate }}</span>
-                        </button>
+                            <button
+                                mat-menu-item
+                                data-cy="datalake-delete-btn"
+                                [disabled]="!element.remove"
+                                (click)="deleteDatalakeIndex(element.name)"
+                            >
+                                <mat-icon>delete</mat-icon>
+                                <span>{{ 'Delete dataset' | translate }}</span>
+                            </button>
+                        </span>
                         <button
                             mat-menu-item
                             data-cy="open-manage-permissions"
