@@ -28,6 +28,15 @@
                 [title]="'Datasets' | translate"
             ></sp-basic-header-title-component>
             <span fxFlex></span>
+            <mat-form-field color="accent" fxFlex="0 0 250px" class="mr-sm">
+                <mat-label>{{ 'Search datasets' | translate }}</mat-label>
+                <input
+                    matInput
+                    [(ngModel)]="searchTerm"
+                    (ngModelChange)="onSearchChange()"
+                    data-cy="datasets-search-input"
+                />
+            </mat-form-field>
             @if (writeAccess) {
                 <button
                     color="accent"

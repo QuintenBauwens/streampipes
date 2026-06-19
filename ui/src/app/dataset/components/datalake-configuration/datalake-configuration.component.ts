@@ -91,6 +91,9 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { DatePipe, DecimalPipe, NgStyle } from '@angular/common';
 import { StyleDirective } from '@ngbracket/ngx-layout/extended';
 import { MatMenuItem } from '@angular/material/menu';
+import { FormsModule } from '@angular/forms';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -126,6 +129,10 @@ import { Subscription } from 'rxjs';
         DecimalPipe,
         DatePipe,
         TranslatePipe,
+        FormsModule,
+        MatFormField,
+        MatLabel,
+        MatInput,
         SpLabelComponent,
         SpTableComponent,
         SpBasicHeaderTitleComponent,
@@ -191,6 +198,7 @@ export class DatalakeConfigurationComponent
     writeAccess = false;
     assetFilter$: Subscription;
     currentFilterIds: Set<string> = new Set<string>();
+    searchTerm = '';
 
     ngOnInit(): void {
         this.assetFilterService.applyAssetLinkType('measurement');
@@ -282,16 +290,25 @@ export class DatalakeConfigurationComponent
 
     applyMeasurementFilters(elementIds: Set<string>) {
         this.currentFilterIds = elementIds;
+        let filtered: DataLakeConfigurationEntry[];
         if (elementIds === undefined) {
-            this.filteredMeasurements = [];
+            filtered = [];
         } else if (elementIds.size === 0) {
-            this.filteredMeasurements = this.availableMeasurements;
+            filtered = this.availableMeasurements;
         } else {
-            this.filteredMeasurements = this.availableMeasurements.filter(
-                measurement => elementIds.has(measurement.elementId),
+            filtered = this.availableMeasurements.filter(measurement =>
+                elementIds.has(measurement.elementId),
             );
         }
 
+        if (this.searchTerm?.trim()) {
+            const term = this.searchTerm.trim().toLowerCase();
+            filtered = filtered.filter(m =>
+                m.name.toLowerCase().includes(term),
+            );
+        }
+
+        this.filteredMeasurements = filtered;
         this.dataSource.data = this.filteredMeasurements;
         this.updatePaginatorAfterFiltering();
         this.receiveMeasurementSizes(this.pageIndex);
@@ -300,6 +317,10 @@ export class DatalakeConfigurationComponent
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
         });
+    }
+
+    onSearchChange(): void {
+        this.applyMeasurementFilters(this.currentFilterIds);
     }
 
     updatePaginatorAfterFiltering(): void {
