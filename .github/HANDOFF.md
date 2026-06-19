@@ -72,14 +72,17 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Asset grouping unaffected by row-level labels | ✅ Done | `fix(labels): keep asset/label grouping asset-only, row labels are display-only` |
 | Label grouping now correctly groups by row labelIds | ✅ Done | `feat(connect): fix label grouping and add labels/asset context to adapter preview` |
 | Adapter preview shows labels + asset context | ✅ Done | same commit |
+| **Datasets page search box** | ✅ Done | `feat(datasets): add search box to datasets page` |
+| **Data Lake retention config in automation pipeline** | ✅ Done | `feat(automation): add data retention config for Data Lake sink in automation pipeline` |
 
 ## First Thing To Do Next Session
 
 No outstanding work. Smoke-test checklist:
 - `docker compose build && docker compose up -d`
+- **Datasets search**: navigate to Data Explorer → Datasets; search input in header should filter the table by measurement name in real time; search stacks with the asset filter
+- **Automation Data Lake retention**: go to Configuration → Automation → Pipelines tab; select Data Lake sink; "Enable data retention" toggle appears; enable it → days + interval fields appear; save and verify persisted
 - **Label grouping**: adapter overview → Group by Label → adapters with automation-assigned labels should appear under their label group (not Unassigned)
-- **Adapter preview**: click any adapter row → preview panel should show "Asset context" chips (site + asset) and "Labels" chips if automation labels were assigned
-- **Asset grouping**: adapters linked to deep sub-assets should group under the **immediate parent** asset (e.g. `B-3151200`), not the root
+- **Adapter preview**: click any adapter row → preview panel should show "Asset context" chips and "Labels" chips
 
 ---
 
@@ -109,16 +112,18 @@ No outstanding work. Smoke-test checklist:
 | `streampipes-storage-api/src/main/java/.../storage/api/core/INoSqlStorage.java` | MODIFIED — added `getDeviceStorage()` |
 | `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW — CouchDB db `devices` |
 | `streampipes-storage-couchdb/src/main/java/.../CouchDbStorageManager.java` | MODIFIED — wired device storage |
-| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices` + adapter prefill endpoint |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices` + adapter prefill endpoint; Checkstyle import fix this session |
 | `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — default transform now uses `utils.addTimestamp(event)` |
 | `streampipes-resource-management/src/main/java/.../connect/AdapterAssetEnrichmentService.java` | MODIFIED — fallback transform now uses `utils.addTimestamp(event)` |
+| `streampipes-model/src/main/java/.../model/configuration/MqttAutoPublishConfig.java` | MODIFIED — added `dataLakeRetentionEnabled`, `dataLakeOlderThanDays`, `dataLakeRetentionInterval` fields |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/AbstractAdapterResource.java` | MODIFIED — `applyRetentionToMeasure()` called after Data Lake pipeline start |
 
 ### Frontend (Angular)
 
 | File | Change |
 |---|---|
 | `ui/projects/streampipes/platform-services/src/lib/apis/adapter-asset-mapping.service.ts` | MODIFIED — `saveMapping()` uses JSON POST |
-| `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | NEW — `getConfig()` / `updateConfig()` |
+| `ui/projects/streampipes/platform-services/src/lib/apis/mqtt-auto-publish-config.service.ts` | MODIFIED — added `dataLakeRetentionEnabled/OlderThanDays/Interval` to interface + defaults |
 | `ui/projects/streampipes/platform-services/src/public-api.ts` | MODIFIED — exports new service |
 | `ui/src/app/configuration/configuration-sections.providers.ts` | MODIFIED — added MQTT section |
 | `ui/src/app/configuration/mqtt-configuration/mqtt-configuration.component.ts` | NEW |
@@ -131,6 +136,10 @@ No outstanding work. Smoke-test checklist:
 | `ui/src/app/connect/components/device-registry/add-adapter-dialog/add-adapter-dialog.component.html` | NEW — adapter-prefill dialog template |
 | `ui/src/app/connect/connect.routes.ts` | MODIFIED — added `/connect/devices` route |
 | `ui/src/app/connect/components/existing-adapters/existing-adapters.component.html` | MODIFIED — added Device Registry navigation button |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.ts` | MODIFIED — search box: `searchTerm`, `onSearchChange()`, updated `applyMeasurementFilters` |
+| `ui/src/app/dataset/components/datalake-configuration/datalake-configuration.component.html` | MODIFIED — search input in header |
+| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.html` | MODIFIED — Data Lake retention toggle + days + interval fields |
+| `ui/src/app/configuration/pipeline-setup-configuration/pipeline-setup-configuration.component.ts` | MODIFIED — null-safe init of new retention fields |
 
 ---
 
