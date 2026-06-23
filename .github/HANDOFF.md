@@ -49,13 +49,14 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Device registry overhaul (IP/Port split, simplified OPC-UA, chips, node browser) | ✅ Done | Split host/port fields; removed opcuaServerMode/Url/Host; OPC-UA always uses device.host; colored protocol chips; OpcuaBrowseService + OpcuaBrowseDialogComponent with mat-tree for node selection |
 | OPC-UA node browser fix + device form defaults | ✅ Done | Fixed two URL bugs in OpcuaBrowseService; prefill port=80; added `(default=X)` labels; endpoint URL shown in browse dialog |
 | OPC-UA node tree expand + node names | ✅ Done | Fixed `treeControl.isExpanded()` → `tree.isExpanded()` (ViewChild MatTree API); fixed `node.label` → `node.nodeName`; folder/folder_open icons; `@if` children visibility |
+| OPC-UA adapter start (NAMING_STRATEGY crash) | ✅ Done | `PipelineElementTemplateVisitor.visit(OneOfStaticProperty)` now matches by `option.internalName` in addition to `option.name`; fixes `NoSuchElementException` when starting OPC-UA adapter via device registry |
 
 ---
 
 ## First Thing To Do Next Session
 
 No outstanding work. Smoke-test checklist:
-- `docker compose build && docker compose up -d`
+- `docker compose build backend && docker compose up -d backend` (rebuild needed — pipeline-management fix)
 - **Device add**: Port field pre-fills 80; Polling Interval shows 1000; labels show `(default=X)`
 - **OPC-UA device**: enable OPC-UA toggle; OPC-UA Port shows `(default=4840)` with 4840 pre-filled
 - **OPC-UA adapter**: click "Browse Nodes" → dialog shows `opc.tcp://host:4840`; tree loads from live server; checkboxes select nodes; Apply stores selection
