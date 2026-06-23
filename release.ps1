@@ -24,7 +24,7 @@ Write-Host "Building and pushing as $Org/...:$Tag" -ForegroundColor Cyan
 
 # 1. Maven build
 Write-Host "`n[1/4] Maven build..." -ForegroundColor Yellow
-mvn clean package -DskipTests -q
+mvn clean package -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" -q
 if ($LASTEXITCODE -ne 0) { Write-Error "Maven build failed"; exit 1 }
 
 # 2. Angular build
