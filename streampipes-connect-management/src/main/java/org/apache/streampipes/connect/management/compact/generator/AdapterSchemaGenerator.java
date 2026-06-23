@@ -62,9 +62,9 @@ public class AdapterSchemaGenerator implements AdapterModelGenerator {
 
     if (compactAdapter.transformationConfig() != null && compactAdapter.transformationConfig()
                                                                       .getScript() != null) {
-      adapterDescription.getTransformationConfig()
-                        .setScript(compactAdapter.transformationConfig()
-                                                 .getScript());
+      var tc = compactAdapter.transformationConfig();
+      adapterDescription.getTransformationConfig().setScript(tc.getScript());
+      adapterDescription.getTransformationConfig().setScriptActive(tc.isScriptActive());
     }
 
     setDefaultScriptIfNotSet(adapterDescription);
