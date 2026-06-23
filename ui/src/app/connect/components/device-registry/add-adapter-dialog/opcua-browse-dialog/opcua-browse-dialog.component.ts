@@ -129,9 +129,9 @@ export class OpcuaBrowseDialogComponent implements OnInit {
             });
     }
 
-    loadChildren(node: TreeInputNode, expanded: boolean): void {
-        if (!expanded || node.children?.length > 0) {
-            return;
+    loadChildren(node: TreeInputNode): void {
+        if (node.children != null) {
+            return; // already fetched (may be empty)
         }
         this.browseService
             .browseNodes(
@@ -147,7 +147,7 @@ export class OpcuaBrowseDialogComponent implements OnInit {
                     this.dataSource.data = data;
                 },
                 error: () => {
-                    // silently ignore child load errors
+                    node.children = []; // mark as fetched to prevent infinite retries
                 },
             });
     }
