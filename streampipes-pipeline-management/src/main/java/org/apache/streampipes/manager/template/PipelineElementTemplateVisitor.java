@@ -163,8 +163,8 @@ public class PipelineElementTemplateVisitor implements StaticPropertyVisitor {
       String value = getConfigValueAsString(oneOfStaticProperty);
       oneOfStaticProperty.getOptions()
                          .forEach(option ->
-                                      option.setSelected(option.getName()
-                                                               .equals(value)));
+                                      option.setSelected(option.getName().equals(value)
+                                          || value.equals(option.getInternalName())));
       if (oneOfStaticProperty instanceof RuntimeResolvableOneOfStaticProperty
           && oneOfStaticProperty.getOptions()
                                 .isEmpty()) {
