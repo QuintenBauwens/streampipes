@@ -60,24 +60,28 @@
 
         @if (treeNodes.length > 0) {
             <mat-tree
+                #tree
                 [dataSource]="dataSource"
                 [childrenAccessor]="childrenAccessor"
                 class="opcua-node-tree"
             >
-                <!-- Leaf node (data node — no children) -->
-                <mat-tree-node *matTreeNodeDef="let node">
-                    <button
-                        mat-icon-button
-                        disabled
-                        style="visibility: hidden"
-                    ></button>
-                    <mat-checkbox
-                        [checked]="isSelected(node)"
-                        (change)="toggleNode(node)"
-                        class="mr-5"
-                    >
-                        {{ node.label || node.internalNodeName }}
-                    </mat-checkbox>
+                <!-- Leaf node (data node — selectable) -->
+                <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
+                    <div fxLayout="row" fxLayoutAlign="start center">
+                        <button
+                            mat-icon-button
+                            disabled
+                            style="visibility: hidden"
+                        ></button>
+                        <mat-icon class="mr-5 sp-color-muted">wifi</mat-icon>
+                        <mat-checkbox
+                            [checked]="isSelected(node)"
+                            (change)="toggleNode(node)"
+                            class="mr-5"
+                        >
+                            {{ node.nodeName || node.internalNodeName }}
+                        </mat-checkbox>
+                    </div>
                 </mat-tree-node>
 
                 <!-- Non-leaf node (expandable folder) -->
@@ -92,27 +96,30 @@
                         <button
                             mat-icon-button
                             matTreeNodeToggle
-                            (click)="onToggleExpand(node)"
+                            (click)="loadChildren(node, tree.isExpanded(node))"
                         >
                             <mat-icon>
                                 {{
-                                    treeControl.isExpanded(node)
+                                    tree.isExpanded(node)
                                         ? 'expand_more'
                                         : 'chevron_right'
                                 }}
                             </mat-icon>
                         </button>
-                        <mat-icon class="folder-icon mr-5">folder</mat-icon>
+                        <mat-icon class="mr-5">
+                            {{
+                                tree.isExpanded(node) ? 'folder_open' : 'folder'
+                            }}
+                        </mat-icon>
                         <span class="text-sm">{{
-                            node.label || node.internalNodeName
+                            node.nodeName || node.internalNodeName
                         }}</span>
                     </div>
-                    <div
-                        [class.tree-invisible]="!treeControl.isExpanded(node)"
-                        role="group"
-                    >
-                        <ng-container matTreeNodeOutlet></ng-container>
-                    </div>
+                    @if (tree.isExpanded(node)) {
+                        <div role="group">
+                            <ng-container matTreeNodeOutlet></ng-container>
+                        </div>
+                    }
                 </mat-nested-tree-node>
             </mat-tree>
         }

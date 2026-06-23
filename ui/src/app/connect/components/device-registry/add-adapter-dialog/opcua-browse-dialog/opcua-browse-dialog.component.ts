@@ -16,7 +16,7 @@
  *
  */
 
-import { Component, inject, Inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {
     AdapterDescription,
@@ -38,7 +38,6 @@ import {
     MatTreeNodeOutlet,
     MatTreeNodeToggle,
 } from '@angular/material/tree';
-import { NestedTreeControl } from '@angular/cdk/tree';
 import {
     FlexDirective,
     LayoutAlignDirective,
@@ -81,6 +80,8 @@ export class OpcuaBrowseDialogComponent implements OnInit {
 
     data: OpcuaBrowseDialogData = inject(MAT_DIALOG_DATA);
 
+    @ViewChild('tree') tree: MatTree<TreeInputNode>;
+
     treeNodes: TreeInputNode[] = [];
     loading = false;
     errorMessage = '';
@@ -88,16 +89,11 @@ export class OpcuaBrowseDialogComponent implements OnInit {
 
     selectedNodeNames: Set<string> = new Set();
 
-    childrenAccessor = (node: TreeInputNode) => (node as any).children ?? [];
-
-    treeControl = new NestedTreeControl<TreeInputNode>(
-        node => (node as any).children ?? [],
-    );
+    childrenAccessor = (node: TreeInputNode) => node.children ?? [];
 
     dataSource = new MatTreeNestedDataSource<TreeInputNode>();
 
-    hasChild = (_: number, node: TreeInputNode) =>
-        ((node as any).children?.length ?? 0) > 0 || !(node as any).dataNode;
+    hasChild = (_: number, node: TreeInputNode) => !node.dataNode;
 
     ngOnInit(): void {
         if (this.data.selectedNodeNames?.length) {
@@ -133,42 +129,35 @@ export class OpcuaBrowseDialogComponent implements OnInit {
             });
     }
 
-    onToggleExpand(node: TreeInputNode): void {
-        if (
-            this.treeControl.isExpanded(node) &&
-            !((node as any).children?.length > 0)
-        ) {
-            this.loadChildren(node);
+    loadChildren(node: TreeInputNode, expanded: boolean): void {
+        if (!expanded || node.children?.length > 0) {
+            return;
         }
-    }
-
-    loadChildren(parentNode: TreeInputNode): void {
         this.browseService
             .browseNodes(
                 this.data.description,
                 this.data.device,
-                (parentNode as any).internalNodeName,
+                node.internalNodeName,
             )
             .subscribe({
                 next: children => {
-                    (parentNode as any).children = children;
-                    // Refresh the tree datasource
+                    node.children = children;
                     const data = this.dataSource.data.slice();
                     this.dataSource.data = [];
                     this.dataSource.data = data;
                 },
                 error: () => {
-                    // ignore child load errors silently
+                    // silently ignore child load errors
                 },
             });
     }
 
     isSelected(node: TreeInputNode): boolean {
-        return this.selectedNodeNames.has((node as any).internalNodeName);
+        return this.selectedNodeNames.has(node.internalNodeName);
     }
 
     toggleNode(node: TreeInputNode): void {
-        const id: string = (node as any).internalNodeName;
+        const id = node.internalNodeName;
         if (this.selectedNodeNames.has(id)) {
             this.selectedNodeNames.delete(id);
         } else {
