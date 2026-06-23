@@ -65,9 +65,15 @@
                 [childrenAccessor]="childrenAccessor"
                 class="opcua-node-tree"
             >
-                <!-- Leaf node (data node — selectable) -->
+                <!-- Leaf / data node — selectable via checkbox -->
                 <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
-                    <div fxLayout="row" fxLayoutAlign="start center">
+                    <div
+                        fxLayout="row"
+                        fxLayoutAlign="start center"
+                        class="node-row-clickable"
+                        style="width: 100%"
+                        (click)="showPreview(node)"
+                    >
                         <button
                             mat-icon-button
                             disabled
@@ -77,6 +83,7 @@
                         <mat-checkbox
                             [checked]="isSelected(node)"
                             (change)="toggleNode(node)"
+                            (click)="$event.stopPropagation()"
                             class="mr-5"
                         >
                             {{ node.nodeName || node.internalNodeName }}
@@ -84,19 +91,24 @@
                     </div>
                 </mat-tree-node>
 
-                <!-- Non-leaf node (expandable folder) -->
+                <!-- Non-leaf / folder node — expandable -->
                 <mat-nested-tree-node
                     *matTreeNodeDef="let node; when: hasChild"
                 >
                     <div
                         fxLayout="row"
                         fxLayoutAlign="start center"
-                        class="tree-node-row"
+                        class="node-row-clickable"
+                        style="width: 100%"
+                        (click)="showPreview(node)"
                     >
                         <button
                             mat-icon-button
                             matTreeNodeToggle
-                            (click)="loadChildren(node, tree.isExpanded(node))"
+                            (click)="
+                                loadChildren(node, tree.isExpanded(node));
+                                $event.stopPropagation()
+                            "
                         >
                             <mat-icon>
                                 {{
@@ -123,6 +135,37 @@
                 </mat-nested-tree-node>
             </mat-tree>
         }
+
+        <!-- Node details preview -->
+        @if (previewNode) {
+            <div class="node-preview mt-10">
+                <div
+                    fxLayout="row"
+                    fxLayoutAlign="space-between center"
+                    class="mb-5"
+                >
+                    <strong class="text-sm">{{
+                        previewNode.nodeName || previewNode.internalNodeName
+                    }}</strong>
+                    <span class="text-sm sp-color-muted"
+                        >{{ previewNode.internalNodeName }}
+                    </span>
+                </div>
+                @if (previewNode.nodeMetadata) {
+                    <div class="preview-metadata text-sm">
+                        @for (
+                            entry of previewNode.nodeMetadata | keyvalue;
+                            track entry.key
+                        ) {
+                            <span class="node-preview-key">{{
+                                entry.key
+                            }}</span>
+                            <span>{{ entry.value }}</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
     </div>
 
     <mat-divider></mat-divider>
@@ -130,10 +173,10 @@
     <div class="sp-dialog-actions">
         <button
             mat-flat-button
-            [disabled]="selectedNodeNames.size === 0"
+            [disabled]="selectedNodes.size === 0"
             (click)="confirm()"
         >
-            {{ 'Apply (' + selectedNodeNames.size + ' selected)' | translate }}
+            {{ 'Apply (' + selectedNodes.size + ' selected)' | translate }}
         </button>
         <button mat-flat-button class="mat-basic" (click)="cancel()">
             {{ 'Cancel' | translate }}

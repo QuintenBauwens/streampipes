@@ -44,17 +44,53 @@ import {
     LayoutDirective,
 } from '@ngbracket/ngx-layout/flex';
 import { TranslatePipe } from '@ngx-translate/core';
+import { KeyValuePipe } from '@angular/common';
 
 export interface OpcuaBrowseDialogData {
     device: SpDevice;
     description: AdapterDescription;
-    /** Previously selected node names (to pre-check) */
+    /** Previously selected node entries — either "nodeName=id" or bare node IDs. */
     selectedNodeNames?: string[];
 }
 
 @Component({
     selector: 'sp-opcua-browse-dialog',
     templateUrl: './opcua-browse-dialog.component.html',
+    styles: [
+        `
+            .opcua-node-tree .mat-nested-tree-node div[role='group'] {
+                padding-left: 20px;
+            }
+            .opcua-node-tree div[role='group'] > .mat-tree-node {
+                padding-left: 20px;
+            }
+            .opcua-node-tree .mat-nested-tree-node {
+                min-height: 30px;
+            }
+            .node-preview {
+                background: var(--color-bg-2, #f5f5f5);
+                border-top: 1px solid var(--color-bg-3, #e0e0e0);
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+            .node-preview-key {
+                color: var(--fg-muted, #888);
+                min-width: 100px;
+            }
+            .preview-metadata {
+                display: grid;
+                grid-template-columns: minmax(8rem, 12rem) 1fr;
+                gap: 2px 8px;
+                margin-top: 6px;
+            }
+            .node-row-clickable {
+                cursor: pointer;
+            }
+            .node-row-clickable:hover {
+                background: var(--color-bg-2, #f5f5f5);
+            }
+        `,
+    ],
     imports: [
         MatProgressSpinner,
         MatDivider,
@@ -72,6 +108,7 @@ export interface OpcuaBrowseDialogData {
         LayoutAlignDirective,
         FlexDirective,
         TranslatePipe,
+        KeyValuePipe,
     ],
 })
 export class OpcuaBrowseDialogComponent implements OnInit {
@@ -87,12 +124,20 @@ export class OpcuaBrowseDialogComponent implements OnInit {
     errorMessage = '';
     errorDetail = '';
 
-    selectedNodeNames: Set<string> = new Set();
+    /**
+     * Key = internalNodeName, Value = nodeName (human readable).
+     * confirm() emits "nodeName=internalNodeName" so the backend parseOpcUaNodeIds
+     * splits on the first '=' and gets the full node ID (e.g. ns=2;i=4).
+     */
+    selectedNodes = new Map<string, string>();
 
-    /** Tracks which node IDs have already had children fetched. */
+    /** Node currently shown in the details preview panel. */
+    previewNode: TreeInputNode | null = null;
+
+    /** Tracks which node IDs have had children fetched already. */
     private fetchedNodeIds = new Set<string>();
 
-    /** Must return node.children directly (no ?? []) so MatTree distinguishes null from empty. */
+    /** Return node.children directly so MatTree can distinguish null (unfetched) from [] (empty). */
     childrenAccessor = (node: TreeInputNode) => node.children;
 
     dataSource = new MatTreeNestedDataSource<TreeInputNode>();
@@ -100,8 +145,20 @@ export class OpcuaBrowseDialogComponent implements OnInit {
     hasChild = (_: number, node: TreeInputNode) => !node.dataNode;
 
     ngOnInit(): void {
-        if (this.data.selectedNodeNames?.length) {
-            this.selectedNodeNames = new Set(this.data.selectedNodeNames);
+        for (const entry of this.data.selectedNodeNames ?? []) {
+            if (this.isRawNodeId(entry)) {
+                this.selectedNodes.set(entry, entry);
+            } else {
+                const eq = entry.indexOf('=');
+                if (eq > 0) {
+                    this.selectedNodes.set(
+                        entry.substring(eq + 1),
+                        entry.substring(0, eq),
+                    );
+                } else {
+                    this.selectedNodes.set(entry, entry);
+                }
+            }
         }
         this.loadRootNodes();
     }
@@ -133,9 +190,8 @@ export class OpcuaBrowseDialogComponent implements OnInit {
     }
 
     /**
-     * Called on expand button click — mirrors StaticTreeInputBrowseNodesComponent exactly.
-     * matTreeNodeToggle fires before (click), so tree.isExpanded(node) is already the
-     * new state when this handler runs.
+     * Mirrors StaticTreeInputBrowseNodesComponent: matTreeNodeToggle HostListener fires
+     * before the template (click) handler, so tree.isExpanded(node) is the NEW state.
      */
     loadChildren(node: TreeInputNode, expanded: boolean): void {
         if (!expanded) {
@@ -169,24 +225,38 @@ export class OpcuaBrowseDialogComponent implements OnInit {
         this.dataSource.data = data;
     }
 
+    showPreview(node: TreeInputNode): void {
+        this.previewNode = node;
+    }
+
     isSelected(node: TreeInputNode): boolean {
-        return this.selectedNodeNames.has(node.internalNodeName);
+        return this.selectedNodes.has(node.internalNodeName);
     }
 
     toggleNode(node: TreeInputNode): void {
         const id = node.internalNodeName;
-        if (this.selectedNodeNames.has(id)) {
-            this.selectedNodeNames.delete(id);
+        if (this.selectedNodes.has(id)) {
+            this.selectedNodes.delete(id);
         } else {
-            this.selectedNodeNames.add(id);
+            this.selectedNodes.set(id, node.nodeName || id);
         }
+        this.previewNode = node;
     }
 
+    /** Emits "nodeName=internalNodeName" strings — backend splits on first '='. */
     confirm(): void {
-        this.dialogRef.close([...this.selectedNodeNames]);
+        const result = [...this.selectedNodes.entries()].map(
+            ([id, name]) => `${name}=${id}`,
+        );
+        this.dialogRef.close(result);
     }
 
     cancel(): void {
         this.dialogRef.close(null);
+    }
+
+    /** Detects bare OPC-UA node IDs (ns=, i=, s=, g=, b=, nsu= prefixes or contains ;). */
+    private isRawNodeId(s: string): boolean {
+        return s.includes(';') || /^(ns|i|s|g|b|nsu)=/.test(s);
     }
 }
