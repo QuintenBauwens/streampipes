@@ -96,7 +96,7 @@
                         <button
                             mat-icon-button
                             matTreeNodeToggle
-                            (click)="loadChildren(node)"
+                            (click)="loadChildren(node, tree.isExpanded(node))"
                         >
                             <mat-icon>
                                 {{

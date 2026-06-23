@@ -89,7 +89,11 @@ export class OpcuaBrowseDialogComponent implements OnInit {
 
     selectedNodeNames: Set<string> = new Set();
 
-    childrenAccessor = (node: TreeInputNode) => node.children ?? [];
+    /** Tracks which node IDs have already had children fetched. */
+    private fetchedNodeIds = new Set<string>();
+
+    /** Must return node.children directly (no ?? []) so MatTree distinguishes null from empty. */
+    childrenAccessor = (node: TreeInputNode) => node.children;
 
     dataSource = new MatTreeNestedDataSource<TreeInputNode>();
 
@@ -115,7 +119,6 @@ export class OpcuaBrowseDialogComponent implements OnInit {
                 },
                 error: err => {
                     const body = err?.error;
-                    // Backend returns SpLogMessage with title + detail fields
                     this.errorMessage =
                         body?.title ??
                         body?.detail ??
@@ -129,10 +132,19 @@ export class OpcuaBrowseDialogComponent implements OnInit {
             });
     }
 
-    loadChildren(node: TreeInputNode): void {
-        if (node.children != null) {
-            return; // already fetched (may be empty)
+    /**
+     * Called on expand button click — mirrors StaticTreeInputBrowseNodesComponent exactly.
+     * matTreeNodeToggle fires before (click), so tree.isExpanded(node) is already the
+     * new state when this handler runs.
+     */
+    loadChildren(node: TreeInputNode, expanded: boolean): void {
+        if (!expanded) {
+            return;
         }
+        if (this.fetchedNodeIds.has(node.internalNodeName)) {
+            return;
+        }
+        this.fetchedNodeIds.add(node.internalNodeName);
         this.browseService
             .browseNodes(
                 this.data.description,
@@ -142,14 +154,19 @@ export class OpcuaBrowseDialogComponent implements OnInit {
             .subscribe({
                 next: children => {
                     node.children = children;
-                    const data = this.dataSource.data.slice();
-                    this.dataSource.data = [];
-                    this.dataSource.data = data;
+                    this.refreshTree();
                 },
                 error: () => {
-                    node.children = []; // mark as fetched to prevent infinite retries
+                    node.children = [];
+                    this.refreshTree();
                 },
             });
+    }
+
+    refreshTree(): void {
+        const data = this.dataSource.data.slice();
+        this.dataSource.data = [];
+        this.dataSource.data = data;
     }
 
     isSelected(node: TreeInputNode): boolean {
