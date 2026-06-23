@@ -47,6 +47,8 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | Delete dataset tooltip | ✅ Done | `matTooltip` on disabled "Delete dataset" menu item explains active pipeline constraint |
 | OPC-UA device settings + adapter creation | ✅ Done | `SpDevice` extended with `opcuaEnabled/EndpointUrl/SecurityMode/Username/Password`; `DeviceResource` routes to OPC-UA config builder when adapter type is opcua; add-device panel has OPC-UA section; add-adapter dialog has OPC-UA option with warning when settings missing |
 | Device registry overhaul (IP/Port split, simplified OPC-UA, chips, node browser) | ✅ Done | Split host/port fields; removed opcuaServerMode/Url/Host; OPC-UA always uses device.host; colored protocol chips; OpcuaBrowseService + OpcuaBrowseDialogComponent with mat-tree for node selection |
+| OPC-UA node browser fix + device form defaults | ✅ Done | Fixed two URL bugs in OpcuaBrowseService; prefill port=80; added `(default=X)` labels; endpoint URL shown in browse dialog |
+| OPC-UA node tree expand + node names | ✅ Done | Fixed `treeControl.isExpanded()` → `tree.isExpanded()` (ViewChild MatTree API); fixed `node.label` → `node.nodeName`; folder/folder_open icons; `@if` children visibility |
 
 ---
 
@@ -54,9 +56,9 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 
 No outstanding work. Smoke-test checklist:
 - `docker compose build && docker compose up -d`
-- **Device add**: enter IP Address + Port separately; save device
-- **OPC-UA device**: enable OPC-UA toggle; OPC Server Host shows device IP read-only; set OPC-UA Port; save succeeds
-- **OPC-UA adapter**: click "Browse Nodes" → tree loads from live server; checkboxes select nodes; Apply stores selection
+- **Device add**: Port field pre-fills 80; Polling Interval shows 1000; labels show `(default=X)`
+- **OPC-UA device**: enable OPC-UA toggle; OPC-UA Port shows `(default=4840)` with 4840 pre-filled
+- **OPC-UA adapter**: click "Browse Nodes" → dialog shows `opc.tcp://host:4840`; tree loads from live server; checkboxes select nodes; Apply stores selection
 - **Protocol chips**: PLC4x chip is teal, OPC-UA chip is blue; tooltips show connection details
 - **sp-table search**: every page using `sp-table` shows search input; typing filters rows
 - **Dataset delete tooltip**: when a dataset is in active pipeline, hovering the disabled Delete menu item shows tooltip
