@@ -116,6 +116,7 @@ export class OpcuaBrowseService {
     ): StaticProperty[] {
         const cloned = JSON.parse(JSON.stringify(props)) as StaticProperty[];
         this.applyValues(cloned, device);
+        this.ensureOneOfSelectionsValid(cloned);
         return cloned;
     }
 
@@ -124,6 +125,33 @@ export class OpcuaBrowseService {
     private applyValues(props: StaticProperty[], device: SpDevice): void {
         for (const sp of props) {
             this.applySingleProperty(sp, device);
+        }
+    }
+
+    /** Recursively ensure every OneOfStaticProperty has at least one selected option. */
+    private ensureOneOfSelectionsValid(props: any[]): void {
+        for (const sp of props) {
+            const cls: string = sp['@class'] ?? '';
+            if (cls.includes('OneOfStaticProperty')) {
+                if (
+                    sp.options?.length > 0 &&
+                    !sp.options.some((o: any) => o.selected)
+                ) {
+                    sp.options[0].selected = true;
+                }
+            } else if (cls.includes('StaticPropertyGroup')) {
+                if (sp.staticProperties) {
+                    this.ensureOneOfSelectionsValid(sp.staticProperties);
+                }
+            } else if (cls.includes('StaticPropertyAlternatives')) {
+                for (const alt of sp.alternatives ?? []) {
+                    if (alt.staticProperty?.staticProperties) {
+                        this.ensureOneOfSelectionsValid(
+                            alt.staticProperty.staticProperties,
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -211,16 +239,30 @@ export class OpcuaBrowseService {
         if (!sp.options) {
             return;
         }
-        // Security policy options have internalName=null; if nothing matches
-        // by internalName, leave the template defaults unchanged.
-        const hasMatch = sp.options.some(
+        // Try exact internalName match first (e.g. securityMode, NAMING_STRATEGY)
+        const byInternalName = sp.options.some(
             (opt: any) => opt.internalName === optionInternalName,
         );
-        if (!hasMatch) {
+        if (byInternalName) {
+            for (const opt of sp.options) {
+                opt.selected = opt.internalName === optionInternalName;
+            }
             return;
         }
-        for (const opt of sp.options) {
-            opt.selected = opt.internalName === optionInternalName;
+        // Fall back to name match (securityPolicy options have internalName=null)
+        const byName = sp.options.some(
+            (opt: any) => opt.name === optionInternalName,
+        );
+        if (byName) {
+            for (const opt of sp.options) {
+                opt.selected = opt.name === optionInternalName;
+            }
+            return;
+        }
+        // Nothing matched — ensure at least the first option is selected so the
+        // backend extractor never receives a null value from selectedSingleValue.
+        if (!sp.options.some((opt: any) => opt.selected)) {
+            sp.options[0].selected = true;
         }
     }
 
