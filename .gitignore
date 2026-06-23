@@ -160,3 +160,6 @@ __pycache__
 
 # Develocity
 .mvn/.develocity
+
+# Local deployment config
+.env
