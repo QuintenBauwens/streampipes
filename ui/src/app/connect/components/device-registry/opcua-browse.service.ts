@@ -101,6 +101,11 @@ export class OpcuaBrowseService {
                 const sp = StaticProperty.fromDataUnion(
                     response.staticProperty,
                 );
+                // When nextBaseNodeToResolve is set, children come back in
+                // latestFetchedNodes. For root browsing, they come in nodes.
+                if (nextBaseNode) {
+                    return (sp as any).latestFetchedNodes ?? [];
+                }
                 return (sp as any).nodes ?? [];
             }),
         );
