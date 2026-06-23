@@ -4,7 +4,49 @@
 
 ---
 
-## 1. Custom Features
+## 1. Developing with GitHub Copilot CLI
+
+### Starting a session
+1. Open the terminal in the repo root.
+2. Type your request in plain English — be specific about what page, endpoint, or behavior you want to change.
+3. Copilot will read `HANDOFF.md` automatically to understand prior context.
+
+### Tips for effective prompts
+| Instead of … | Say … |
+|---|---|
+| "Fix the OPC-UA thing" | "The node browser dialog doesn't load child nodes when I expand a folder — fix it" |
+| "Add a field" | "Add a `description` field to `SpDevice`, persist it in CouchDB, show it in the add-device panel" |
+| "Make it work" | "When I click Create Adapter the backend returns 500 — here is the stack trace: …" |
+
+- **Paste error logs** — Copilot uses them directly to locate the failing code.
+- **Mention the file or class** if you know it — speeds up navigation in a large monorepo.
+- **Say what you expect** — "the dialog should close and the list should refresh" is better than "it should work".
+
+### Build & deploy cycle
+```powershell
+# 1. Backend only changed
+mvn -pl streampipes-service-core -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+docker compose build backend && docker compose up -d backend
+
+# 2. Extensions only changed (adapters / processors)
+mvn -pl streampipes-extensions/streampipes-extensions-all-iiot -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
+docker compose build extensions-all-iiot && docker compose up -d extensions-all-iiot
+
+# 3. Frontend only changed
+cd ui && npm run build-dev
+docker compose build ui && docker compose up -d ui
+
+# 4. Verify backend is up
+Invoke-WebRequest -Uri "http://localhost/streampipes-backend/api/v2/setup/configured" -UseBasicParsing | Select-Object -Expand Content
+# → {"configured":true}
+```
+
+### Session end — always do this
+Ask Copilot: _"Update HANDOFF.md — we finished X, next session should start with Y"_. This keeps the handover file accurate for the next developer (or the next Copilot session).
+
+---
+
+## 2. Custom Features
 
 ### Device Registry
 A new page at **Connect → Device Registry** (`/connect/devices`) for managing industrial devices (PLC4x S7 and OPC-UA servers).
@@ -63,7 +105,7 @@ All tables using the `sp-table` shared component now have a built-in search box 
 
 ---
 
-## 2. Architecture Cheat Sheet
+## 3. Architecture Cheat Sheet
 
 | Where to add … | Module |
 |---|---|
@@ -76,48 +118,6 @@ All tables using the `sp-table` shared component now have a built-in search box 
 | New API service (frontend) | `ui/projects/streampipes/platform-services/src/lib/apis/` — export from `public-api.ts` |
 
 **Java import order** (Checkstyle-enforced): `org.apache.streampipes` → other third-party → `jakarta` → `javax` → `java`. Static imports last. Alphabetical within each group.
-
----
-
-## 3. Developing with GitHub Copilot CLI
-
-### Starting a session
-1. Open the terminal in the repo root.
-2. Type your request in plain English — be specific about what page, endpoint, or behavior you want to change.
-3. Copilot will read `HANDOFF.md` automatically to understand prior context.
-
-### Tips for effective prompts
-| Instead of … | Say … |
-|---|---|
-| "Fix the OPC-UA thing" | "The node browser dialog doesn't load child nodes when I expand a folder — fix it" |
-| "Add a field" | "Add a `description` field to `SpDevice`, persist it in CouchDB, show it in the add-device panel" |
-| "Make it work" | "When I click Create Adapter the backend returns 500 — here is the stack trace: …" |
-
-- **Paste error logs** — Copilot uses them directly to locate the failing code.
-- **Mention the file or class** if you know it — speeds up navigation in a large monorepo.
-- **Say what you expect** — "the dialog should close and the list should refresh" is better than "it should work".
-
-### Build & deploy cycle
-```powershell
-# 1. Backend only changed
-mvn -pl streampipes-service-core -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
-docker compose build backend && docker compose up -d backend
-
-# 2. Extensions only changed (adapters / processors)
-mvn -pl streampipes-extensions/streampipes-extensions-all-iiot -am -DskipTests "-Dmaven.javadoc.skip=true" "-Drat.skip=true" "-Dcheckstyle.skip=true" install -q
-docker compose build extensions-all-iiot && docker compose up -d extensions-all-iiot
-
-# 3. Frontend only changed
-cd ui && npm run build-dev
-docker compose build ui && docker compose up -d ui
-
-# 4. Verify backend is up
-Invoke-WebRequest -Uri "http://localhost/streampipes-backend/api/v2/setup/configured" -UseBasicParsing | Select-Object -Expand Content
-# → {"configured":true}
-```
-
-### Session end — always do this
-Ask Copilot: _"Update HANDOFF.md — we finished X, next session should start with Y"_. This keeps the handover file accurate for the next developer (or the next Copilot session).
 
 ---
 
