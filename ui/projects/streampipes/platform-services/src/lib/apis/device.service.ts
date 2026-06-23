@@ -124,7 +124,7 @@ export class DeviceService {
         return {
             name: '',
             host: '',
-            port: 0,
+            port: 80,
             pollingIntervalMs: 1000,
             adapterIds: [],
             opcuaEnabled: false,

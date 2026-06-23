@@ -47,10 +47,20 @@ export class OpcuaBrowseService {
     /** Loads the OPC-UA adapter description template. */
     loadAdapterDescription(): Observable<AdapterDescription> {
         return this.http
-            .get<any>(
-                `${this.baseConnectUrl}/master/description/${encodeURIComponent(OPCUA_APP_ID)}`,
-            )
-            .pipe(map(r => AdapterDescription.fromData(r)));
+            .get<any[]>(`${this.baseConnectUrl}/master/description/adapters`)
+            .pipe(
+                map(adapters => {
+                    const raw = adapters?.find(
+                        (a: any) => a.appId === OPCUA_APP_ID,
+                    );
+                    if (!raw) {
+                        throw new Error(
+                            'OPC-UA adapter not registered on the extensions service.',
+                        );
+                    }
+                    return AdapterDescription.fromData(raw);
+                }),
+            );
     }
 
     /**
@@ -77,16 +87,7 @@ export class OpcuaBrowseService {
         (request as any)['@class'] =
             'org.apache.streampipes.model.runtime.RuntimeOptionsRequest';
 
-        // Any UUID works as adapterId here — the worker ignores it and uses appId
-        const fakeAdapterId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
-            /[xy]/g,
-            c => {
-                const r = (Math.random() * 16) | 0;
-                return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-            },
-        );
-
-        const url = `${this.baseConnectUrl}/master/resolvable/${fakeAdapterId}/configurations`;
+        const url = `${this.baseConnectUrl}/master/resolvable/${encodeURIComponent(OPCUA_APP_ID)}/configurations`;
         return this.http.post<any>(url, request).pipe(
             map(resp => {
                 const response = RuntimeOptionsResponse.fromData(resp);

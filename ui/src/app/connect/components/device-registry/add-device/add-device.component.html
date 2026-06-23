@@ -46,7 +46,7 @@
 
             <sp-form-field
                 [level]="3"
-                [label]="'Port (default: 80)' | translate"
+                [label]="'Port (default=80)' | translate"
             >
                 <mat-form-field class="w-100">
                     <input
@@ -55,14 +55,14 @@
                         min="1"
                         max="65535"
                         [(ngModel)]="model.port"
-                        [placeholder]="'80' | translate"
+                        placeholder="80"
                     />
                 </mat-form-field>
             </sp-form-field>
 
             <sp-form-field
                 [level]="3"
-                [label]="'Polling Interval (ms)' | translate"
+                [label]="'Polling Interval (default=1000 ms)' | translate"
             >
                 <mat-form-field class="w-100">
                     <input
@@ -107,7 +107,10 @@
                     </mat-form-field>
                 </sp-form-field>
 
-                <sp-form-field [level]="3" [label]="'OPC-UA Port' | translate">
+                <sp-form-field
+                    [level]="3"
+                    [label]="'OPC-UA Port (default=4840)' | translate"
+                >
                     <mat-form-field class="w-100">
                         <input
                             matInput
@@ -117,9 +120,6 @@
                             [(ngModel)]="model.opcuaPort"
                             placeholder="4840"
                         />
-                        <mat-hint>{{
-                            'Default OPC-UA port is 4840' | translate
-                        }}</mat-hint>
                     </mat-form-field>
                 </sp-form-field>
 
@@ -140,7 +140,7 @@
                 @if (model.opcuaAdapterMode === 'PULL_MODE') {
                     <sp-form-field
                         [level]="3"
-                        [label]="'Pull Interval (ms)' | translate"
+                        [label]="'Pull Interval (default=1000 ms)' | translate"
                     >
                         <mat-form-field class="w-100">
                             <input

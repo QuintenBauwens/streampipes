@@ -19,8 +19,16 @@
 <div class="sp-dialog-container">
     <div class="sp-dialog-content p-15">
         <h3 class="mb-10">{{ 'Browse OPC-UA Nodes' | translate }}</h3>
-        <p class="text-sm sp-color-muted mb-15">
+        <p class="text-sm sp-color-muted mb-5">
             {{ 'Select one or more OPC-UA nodes to subscribe to.' | translate }}
+        </p>
+        <p class="text-sm mb-15">
+            <span class="sp-color-muted">{{ 'Endpoint:' | translate }} </span>
+            <code
+                >opc.tcp://{{ data.device.host }}:{{
+                    data.device.opcuaPort || 4840
+                }}</code
+            >
         </p>
 
         @if (loading) {
