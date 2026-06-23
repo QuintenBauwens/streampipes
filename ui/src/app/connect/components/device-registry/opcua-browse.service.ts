@@ -124,31 +124,24 @@ export class OpcuaBrowseService {
         const cls: string = sp['@class'] ?? '';
 
         if (cls.includes('StaticPropertyAlternatives')) {
-            // Select the right alternative based on internalName
             if (sp.internalName === 'OPC_HOST_OR_URL') {
-                this.selectAlternative(sp, 'OPC_HOST');
-                const hostAlt = (sp.alternatives as any[]).find(
-                    a => a.staticProperty?.internalName === 'OPC_HOST',
+                // Use URL alternative — one flat FreeTextProperty (OPC_SERVER_URL).
+                // OPC_HOST alternative wraps host+port in a StaticPropertyGroup
+                // (internalName="HOST_PORT"), making nested property injection fragile.
+                this.selectAlternative(sp, 'OPC_URL');
+                const urlAlt = (sp.alternatives as any[]).find(
+                    (a: any) => a.internalName === 'OPC_URL',
                 );
-                if (hostAlt?.staticProperty?.staticProperties) {
-                    const inner = hostAlt.staticProperty.staticProperties;
-                    this.setFreeText(
-                        inner,
-                        'OPC_SERVER_HOST',
-                        device.host ?? '',
-                    );
-                    this.setFreeText(
-                        inner,
-                        'OPC_SERVER_PORT',
-                        String(device.opcuaPort ?? 4840),
-                    );
+                if (urlAlt?.staticProperty) {
+                    urlAlt.staticProperty.value = `opc.tcp://${device.host}:${device.opcuaPort ?? 4840}`;
                 }
             } else if (sp.internalName === 'ADAPTER_TYPE') {
                 const mode = device.opcuaAdapterMode ?? 'SUBSCRIPTION_MODE';
                 this.selectAlternative(sp, mode);
                 if (mode === 'PULL_MODE') {
+                    // alt.internalName === 'PULL_MODE'; alt.staticProperty is the pull group
                     const pullAlt = (sp.alternatives as any[]).find(
-                        a => a.staticProperty?.internalName === 'PULL_MODE',
+                        (a: any) => a.internalName === 'PULL_MODE',
                     );
                     if (pullAlt?.staticProperty?.staticProperties) {
                         const inner = pullAlt.staticProperty.staticProperties;
@@ -164,8 +157,7 @@ export class OpcuaBrowseService {
                 this.selectAlternative(sp, authMethod);
                 if (authMethod === 'USERNAME_GROUP') {
                     const uAlt = (sp.alternatives as any[]).find(
-                        a =>
-                            a.staticProperty?.internalName === 'USERNAME_GROUP',
+                        (a: any) => a.internalName === 'USERNAME_GROUP',
                     );
                     if (uAlt?.staticProperty?.staticProperties) {
                         const inner = uAlt.staticProperty.staticProperties;
@@ -190,8 +182,6 @@ export class OpcuaBrowseService {
             } else if (sp.internalName === 'NAMING_STRATEGY') {
                 this.selectOption(sp, 'DISPLAY_NAME');
             }
-        } else if (cls.includes('FreeTextStaticProperty')) {
-            // handled in alternatives above
         } else if (cls.includes('StaticPropertyGroup')) {
             if (sp.staticProperties) {
                 this.applyValues(sp.staticProperties, device);
@@ -204,9 +194,9 @@ export class OpcuaBrowseService {
             return;
         }
         for (const alt of sp.alternatives) {
-            alt.selected =
-                (alt.staticProperty?.internalName ?? alt.internalName) ===
-                targetInternalName;
+            // alt.internalName is always the label ID of the alternative itself.
+            // alt.staticProperty.internalName is the inner group/property label — different.
+            alt.selected = alt.internalName === targetInternalName;
         }
     }
 
