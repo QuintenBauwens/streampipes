@@ -55,17 +55,40 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 
 ## First Thing To Do Next Session
 
-No outstanding work. Smoke-test checklist:
-- `docker compose build backend && docker compose up -d backend` (rebuild needed — pipeline-management fix)
-- **Device add**: Port field pre-fills 80; Polling Interval shows 1000; labels show `(default=X)`
-- **OPC-UA device**: enable OPC-UA toggle; OPC-UA Port shows `(default=4840)` with 4840 pre-filled
-- **OPC-UA adapter**: click "Browse Nodes" → dialog shows `opc.tcp://host:4840`; tree loads from live server; checkboxes select nodes; Apply stores selection
-- **Protocol chips**: PLC4x chip is teal, OPC-UA chip is blue; tooltips show connection details
-- **sp-table search**: every page using `sp-table` shows search input; typing filters rows
-- **Dataset delete tooltip**: when a dataset is in active pipeline, hovering the disabled Delete menu item shows tooltip
-- **Auto-link on adapter create**: create adapter that matches a mapping → adapter appears in the matched asset's Asset Context column
+**Continue Docker Hub release workflow.**
+
+### What was set up
+- `installer/compose/docker-compose.custom.yml` — deployment compose using `image:` references (no build required for end users)
+- `installer/compose/.env` — add `IMAGE_ORG=yourorg` and `IMAGE_TAG=latest` here
+- `release.ps1` — maintainer script: builds JARs + Angular, docker compose build, tags and pushes 3 images to Docker Hub
+
+### What still needs to happen
+1. **Finish the release build** — `release.ps1` was interrupted by a Javadoc error (now fixed). Re-run:
+   ```powershell
+   .\release.ps1
+   ```
+   This will:
+   - Build all JARs (`mvn clean package -DskipTests -Dmaven.javadoc.skip=true ...`)
+   - Build Angular frontend (`npm run build` in `ui/`)
+   - Build Docker images (`docker compose build`)
+   - Tag and push to Docker Hub as `IMAGE_ORG/streampipes-backend:latest`, `...-ui:latest`, `...-extensions:latest`
+
+2. **Verify the images are on Docker Hub** — go to hub.docker.com and confirm all 3 repos show the new tag
+
+3. **Test the end-user workflow** on a clean machine (or by pulling):
+   ```powershell
+   # Edit installer/compose/.env → set IMAGE_ORG
+   docker compose -f installer/compose/docker-compose.custom.yml pull
+   docker compose -f installer/compose/docker-compose.custom.yml up -d
+   # Check http://localhost → should reach login page
+   ```
+
+### Prerequisite
+- Docker Desktop must be running before `.\release.ps1`
+- Must be logged in to Docker Hub: `docker login`
 
 ---
+
 
 ## All Modified/Created Files
 
