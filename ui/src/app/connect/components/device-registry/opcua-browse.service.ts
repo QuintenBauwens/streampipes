@@ -84,9 +84,13 @@ export class OpcuaBrowseService {
         request.appId = OPCUA_APP_ID;
         request.requestId = AVAILABLE_NODES;
         request.staticProperties = props as any;
-        // Required: backend calls getDeploymentConfiguration().getDesiredServiceTags()
-        // with no null guard — omitting this causes NPE → 500.
-        (request as any).deploymentConfiguration = { desiredServiceTags: [] };
+        // Use deploymentConfiguration from the loaded adapter description — it
+        // already has the correct shape. Fall back to an empty config if absent.
+        (request as any).deploymentConfiguration = (description as any)
+            .deploymentConfiguration ?? {
+            desiredServiceTags: [],
+            selectedEndpointUrl: null,
+        };
         (request as any)['@class'] =
             'org.apache.streampipes.model.runtime.RuntimeOptionsRequest';
 
@@ -205,6 +209,14 @@ export class OpcuaBrowseService {
 
     private selectOption(sp: any, optionInternalName: string): void {
         if (!sp.options) {
+            return;
+        }
+        // Security policy options have internalName=null; if nothing matches
+        // by internalName, leave the template defaults unchanged.
+        const hasMatch = sp.options.some(
+            (opt: any) => opt.internalName === optionInternalName,
+        );
+        if (!hasMatch) {
             return;
         }
         for (const opt of sp.options) {
