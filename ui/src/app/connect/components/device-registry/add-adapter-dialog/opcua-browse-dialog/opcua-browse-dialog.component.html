@@ -45,7 +45,10 @@
 
         @if (errorMessage) {
             <div class="sp-color-warn text-sm mb-10">
-                {{ errorMessage | translate }}
+                <strong>{{ errorMessage }}</strong>
+                @if (errorDetail) {
+                    <div class="mt-5">{{ errorDetail }}</div>
+                }
             </div>
         }
 

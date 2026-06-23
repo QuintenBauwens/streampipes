@@ -84,6 +84,7 @@ export class OpcuaBrowseDialogComponent implements OnInit {
     treeNodes: TreeInputNode[] = [];
     loading = false;
     errorMessage = '';
+    errorDetail = '';
 
     selectedNodeNames: Set<string> = new Set();
 
@@ -117,9 +118,16 @@ export class OpcuaBrowseDialogComponent implements OnInit {
                     this.loading = false;
                 },
                 error: err => {
+                    const body = err?.error;
+                    // Backend returns SpLogMessage with title + detail fields
                     this.errorMessage =
-                        err?.error?.message ??
-                        'Could not connect to OPC-UA server.';
+                        body?.title ??
+                        body?.detail ??
+                        body?.cause ??
+                        body?.message ??
+                        `HTTP ${err?.status}: Could not connect to OPC-UA server.`;
+                    this.errorDetail =
+                        body?.title && body?.detail ? body.detail : '';
                     this.loading = false;
                 },
             });
