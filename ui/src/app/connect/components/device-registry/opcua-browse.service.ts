@@ -84,6 +84,9 @@ export class OpcuaBrowseService {
         request.appId = OPCUA_APP_ID;
         request.requestId = AVAILABLE_NODES;
         request.staticProperties = props as any;
+        // Required: backend calls getDeploymentConfiguration().getDesiredServiceTags()
+        // with no null guard — omitting this causes NPE → 500.
+        (request as any).deploymentConfiguration = { desiredServiceTags: [] };
         (request as any)['@class'] =
             'org.apache.streampipes.model.runtime.RuntimeOptionsRequest';
 
