@@ -14,8 +14,8 @@ param(
 
 # Read org from .env if not passed
 if (-not $Org) {
-    if (Test-Path .env) {
-        $Org = (Get-Content .env | Where-Object { $_ -match "^IMAGE_ORG=" }) -replace "^IMAGE_ORG=", ""
+    if (Test-Path "installer/compose/.env") {
+        $Org = (Get-Content "installer/compose/.env" | Where-Object { $_ -match "^IMAGE_ORG=" }) -replace "^IMAGE_ORG=", ""
     }
     if (-not $Org) { $Org = "yourorg" }
 }

@@ -14,12 +14,10 @@
 git clone <repo-url>
 cd streampipes
 
-# 2. Create your .env from the template
-cp .env.example .env
-# Open .env and set IMAGE_ORG to the Docker Hub org where images were pushed
+# 2. Edit installer/compose/.env → set IMAGE_ORG to your Docker Hub org
 
 # 3. Start everything
-docker compose -f docker-compose.deploy.yml up -d
+docker compose -f installer/compose/docker-compose.custom.yml up -d
 ```
 
 StreamPipes will be available at **http://localhost** after ~60 seconds.
@@ -32,14 +30,14 @@ StreamPipes will be available at **http://localhost** after ~60 seconds.
 
 ### Updating to a new release
 ```powershell
-docker compose -f docker-compose.deploy.yml pull
-docker compose -f docker-compose.deploy.yml up -d
+docker compose -f installer/compose/docker-compose.custom.yml pull
+docker compose -f installer/compose/docker-compose.custom.yml up -d
 ```
 
 ### Stopping
 ```powershell
-docker compose -f docker-compose.deploy.yml down        # stop (data preserved)
-docker compose -f docker-compose.deploy.yml down -v     # stop + wipe all data
+docker compose -f installer/compose/docker-compose.custom.yml down        # stop (data preserved)
+docker compose -f installer/compose/docker-compose.custom.yml down -v     # stop + wipe all data
 ```
 
 ---
@@ -66,7 +64,7 @@ docker login
 3. `docker compose build` — packages the three images
 4. Tags and pushes `streampipes-backend`, `streampipes-ui`, `streampipes-extensions` to Docker Hub
 
-After pushing, colleagues just run `docker compose -f docker-compose.deploy.yml pull && up -d`.
+After pushing, colleagues just run `docker compose -f installer/compose/docker-compose.custom.yml pull && up -d`.
 
 ---
 
