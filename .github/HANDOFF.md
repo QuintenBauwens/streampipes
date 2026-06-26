@@ -50,34 +50,25 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | OPC-UA node browser fix + device form defaults | ✅ Done | Fixed two URL bugs in OpcuaBrowseService; prefill port=80; added `(default=X)` labels; endpoint URL shown in browse dialog |
 | OPC-UA node tree expand + node names | ✅ Done | Fixed `treeControl.isExpanded()` → `tree.isExpanded()` (ViewChild MatTree API); fixed `node.label` → `node.nodeName`; folder/folder_open icons; `@if` children visibility |
 | OPC-UA adapter start (NAMING_STRATEGY crash) | ✅ Done | `PipelineElementTemplateVisitor.visit(OneOfStaticProperty)` now matches by `option.internalName` in addition to `option.name`; fixes `NoSuchElementException` when starting OPC-UA adapter via device registry |
+| OPC-UA adapter count in device registry | ✅ Done | `extractDeviceHostFromProperty()` recursively walks `StaticPropertyAlternatives` tree; matches both `plc_ip` (PLC4x) and `OPC_SERVER_HOST` (OPC-UA) |
+| Theme color setting (primary + accent + reset) | ✅ Done | `ThemeService` sets `--color-primary`/`--color-secondary` CSS vars; localStorage cache for hard-refresh persistence; reset to defaults button; both colors configurable under General Settings → Basic Settings |
+| Bulk ZIP export | ✅ Done | 6 checkboxes: Pipelines, Adapters, Assets, Devices, Device Mappings, General Settings; subfolders + readable slugified filenames; `POST /api/v2/export/bulk-download`; manifest.json included |
 
 ---
 
 ## First Thing To Do Next Session
 
-**Continue Docker Hub release workflow.**
+**Continue Docker Hub release workflow** (unchanged — all feature work is complete).
 
 ### What was set up
-- `installer/compose/docker-compose.custom.yml` — deployment compose using `image:` references (no build required for end users)
-- `installer/compose/.env` — add `IMAGE_ORG=yourorg` and `IMAGE_TAG=latest` here
+- `installer/compose/docker-compose.custom.yml` — deployment compose using `image:` references
+- `installer/compose/.env` — set `IMAGE_ORG=yourorg` and `IMAGE_TAG=latest` here
 - `release.ps1` — maintainer script: builds JARs + Angular, docker compose build, tags and pushes 3 images to Docker Hub
 
 ### What still needs to happen
-1. **Finish the release build** — `release.ps1` was interrupted by a Javadoc error (now fixed). Re-run:
-   ```powershell
-   .\release.ps1
-   ```
-   This will:
-   - Build all JARs (`mvn clean package -DskipTests -Dmaven.javadoc.skip=true ...`)
-   - Build Angular frontend (`npm run build` in `ui/`)
-   - Build Docker images (`docker compose build`)
-   - Tag and push to Docker Hub as `IMAGE_ORG/streampipes-backend:latest`, `...-ui:latest`, `...-extensions:latest`
-
-2. **Verify the images are on Docker Hub** — go to hub.docker.com and confirm all 3 repos show the new tag
-
-3. **Test the end-user workflow** on a clean machine (or by pulling):
-   ```powershell
-   # Edit installer/compose/.env → set IMAGE_ORG
+1. Re-run `.\release.ps1` (was interrupted by a Javadoc error, now fixed)
+2. Verify images on Docker Hub
+3. Test end-user pull workflow from a clean machine
    docker compose -f installer/compose/docker-compose.custom.yml pull
    docker compose -f installer/compose/docker-compose.custom.yml up -d
    # Check http://localhost → should reach login page
@@ -116,8 +107,25 @@ All features compile-verified (backend) and build-verified (Angular dev build). 
 | `streampipes-extensions/streampipes-processors-enricher-jvm/.../assethierarchy/AssetHierarchyEnrichmentProcessor.java` | NEW |
 | `streampipes-extensions/streampipes-processors-enricher-jvm/.../EnricherExtensionModuleExport.java` | MODIFIED — registered new processor |
 | `streampipes-model/src/main/java/.../model/connect/adapter/SpDevice.java` | MODIFIED — added `port` field (device port, default 0=80); removed `opcuaServerMode/EndpointUrl/Host`; kept `opcuaPort`; full OPC-UA fields |
-| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | MODIFIED — `checkReachable()` uses `device.getPort()` (default 80); `buildOpcUaConfig()` always uses OPC_HOST mode with `device.getHost()` + `device.getOpcuaPort()` |
-| `streampipes-storage-api/src/main/java/.../storage/api/connect/ISpDeviceStorage.java` | NEW |
+| `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | MODIFIED — recursive `extractDeviceHostFromProperty()` for OPC-UA adapter count |
+| `streampipes-model/src/main/java/.../model/configuration/GeneralConfig.java` | MODIFIED — added `themeColor`, `themeSecondaryColor` fields |
+| `streampipes-model/src/main/java/.../model/export/BulkExportRequest.java` | NEW — 6 boolean flags for bulk export |
+| `streampipes-data-export/src/main/java/.../export/BulkExportManager.java` | NEW — builds ZIP with subfolders + readable filenames; pipelines/adapters/assets/devices/device-mappings/settings |
+| `streampipes-data-export/src/main/java/.../export/generator/ExportPackageGenerator.java` | MODIFIED — null-assetId filter (`Objects::nonNull`) |
+| `streampipes-rest/src/main/java/.../rest/impl/admin/DataExportResource.java` | MODIFIED — `POST /bulk-download` endpoint |
+
+### Frontend (Angular) — this session
+
+| File | Change |
+|---|---|
+| `ui/projects/streampipes/platform-services/src/lib/model/config/general-config.model.ts` | MODIFIED — `themeColor?`, `themeSecondaryColor?` |
+| `ui/src/app/services/theme.service.ts` | NEW — `applyFromStorage()`, `applyFromConfig()`, `applyColors()`, `resetToDefaults()`; localStorage cache |
+| `ui/src/app/app.component.ts` | MODIFIED — `applyFromStorage()` + `applyFromConfig()` on init |
+| `ui/src/app/configuration/general-configuration/general-configuration.component.ts` | MODIFIED — two color pickers + reset; `ThemeService` injected |
+| `ui/src/app/configuration/general-configuration/general-configuration.component.html` | MODIFIED — color pickers + reset button in Basic Settings |
+| `ui/src/app/configuration/export/data-export.service.ts` | MODIFIED — `triggerBulkExport()` with 6 flags |
+| `ui/src/app/configuration/export/data-export-import.component.ts` | MODIFIED — 6 bulk fields + `downloadBulkExport()` |
+| `ui/src/app/configuration/export/data-export-import.component.html` | MODIFIED — 6 checkboxes in Bulk Export section |
 | `streampipes-storage-couchdb/src/main/java/.../impl/connect/SpDeviceStorageImpl.java` | NEW |
 | `streampipes-rest/src/main/java/.../rest/impl/connect/DeviceResource.java` | NEW — `GET/POST/PUT/DELETE /api/v2/devices`; Checkstyle import fix applied |
 | `streampipes-connect-management/src/main/java/.../compact/generator/AdapterSchemaGenerator.java` | MODIFIED — `utils.addTimestamp(event)` in default transform |
