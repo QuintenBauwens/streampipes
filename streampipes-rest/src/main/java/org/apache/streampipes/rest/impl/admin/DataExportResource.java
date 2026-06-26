@@ -18,8 +18,10 @@
 
 package org.apache.streampipes.rest.impl.admin;
 
+import org.apache.streampipes.export.BulkExportManager;
 import org.apache.streampipes.export.ExportManager;
 import org.apache.streampipes.manager.api.extensions.ExtensionServiceRequestManager;
+import org.apache.streampipes.model.export.BulkExportRequest;
 import org.apache.streampipes.model.export.ExportConfiguration;
 import org.apache.streampipes.rest.core.base.impl.AbstractAuthGuardedRestResource;
 import org.apache.streampipes.rest.security.AuthConstants;
@@ -61,6 +63,16 @@ public class DataExportResource extends AbstractAuthGuardedRestResource {
       produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
   public ResponseEntity<byte[]> download(@RequestBody ExportConfiguration exportConfiguration) throws IOException {
     var applicationPackage = ExportManager.getExportPackage(exportConfiguration, extensionServiceRequestManager);
+    return ok(applicationPackage);
+  }
+
+  @PostMapping(
+      path = "/bulk-download",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+  public ResponseEntity<byte[]> bulkDownload(@RequestBody BulkExportRequest request) throws IOException {
+    var exportConfig = BulkExportManager.buildExportConfiguration(request);
+    var applicationPackage = ExportManager.getExportPackage(exportConfig, extensionServiceRequestManager);
     return ok(applicationPackage);
   }
 

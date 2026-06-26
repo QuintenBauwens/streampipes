@@ -32,6 +32,7 @@ import {
     SpAsset,
 } from '@streampipes/platform-services';
 import { MatCheckbox, MatCheckboxChange } from '@angular/material/checkbox';
+import { DataExportService } from './data-export.service';
 import { SpDataExportDialogComponent } from './export-dialog/data-export-dialog.component';
 import { SpDataImportDialogComponent } from './import-dialog/data-import-dialog.component';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -41,6 +42,8 @@ import {
     LayoutDirective,
 } from '@ngbracket/ngx-layout/flex';
 import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'sp-data-export-import',
@@ -54,6 +57,8 @@ import { MatButton } from '@angular/material/button';
         SplitSectionComponent,
         MatCheckbox,
         MatButton,
+        MatIcon,
+        FormsModule,
         TranslatePipe,
     ],
 })
@@ -63,11 +68,17 @@ export class SpDataExportImportComponent implements OnInit {
     private dialogService = inject(DialogService);
     private tabService = inject(SpConfigurationTabsService);
     private translateService = inject(TranslateService);
+    private dataExportService = inject(DataExportService);
 
     tabs: SpNavigationItem[] = [];
 
     assets: SpAsset[];
     selectedAssets: string[] = [];
+
+    bulkIncludePipelines = true;
+    bulkIncludeAdapters = true;
+    bulkIncludeAssets = true;
+    bulkExportInProgress = false;
 
     ngOnInit(): void {
         this.tabs = this.tabService.getTabs();
@@ -119,5 +130,32 @@ export class SpDataExportImportComponent implements OnInit {
         });
 
         dialogRef.afterClosed().subscribe(() => {});
+    }
+
+    downloadBulkExport(): void {
+        this.bulkExportInProgress = true;
+        this.dataExportService
+            .triggerBulkExport({
+                includePipelines: this.bulkIncludePipelines,
+                includeAdapters: this.bulkIncludeAdapters,
+                includeAssets: this.bulkIncludeAssets,
+            })
+            .subscribe({
+                next: blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const anchor = document.createElement('a');
+                    anchor.href = url;
+                    anchor.download = 'streampipes_export.zip';
+                    anchor.style.display = 'none';
+                    document.body.appendChild(anchor);
+                    anchor.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(anchor);
+                    this.bulkExportInProgress = false;
+                },
+                error: () => {
+                    this.bulkExportInProgress = false;
+                },
+            });
     }
 }

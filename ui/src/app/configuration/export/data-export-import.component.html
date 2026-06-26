@@ -19,6 +19,53 @@
 <sp-basic-nav-tabs [spNavigationItems]="tabs" [activeLink]="'export'">
     <div fxLayout="column" class="page-container-padding-inner">
         <div fxFlex="100" fxLayout="column" fxLayoutAlign="start start">
+            <!-- Bulk Export -->
+            <sp-split-section
+                [title]="'Bulk Export' | translate"
+                [subtitle]="
+                    'Export all pipelines, adapters and/or assets into a single ZIP file.'
+                        | translate
+                "
+            >
+                <div fxLayout="column" fxLayoutGap="8px">
+                    <mat-checkbox [(ngModel)]="bulkIncludePipelines">
+                        <span class="text-md">{{
+                            'Pipelines' | translate
+                        }}</span>
+                    </mat-checkbox>
+                    <mat-checkbox [(ngModel)]="bulkIncludeAdapters">
+                        <span class="text-md">{{
+                            'Adapters' | translate
+                        }}</span>
+                    </mat-checkbox>
+                    <mat-checkbox [(ngModel)]="bulkIncludeAssets">
+                        <span class="text-md">{{ 'Assets' | translate }}</span>
+                    </mat-checkbox>
+                </div>
+                <div class="mt-10">
+                    <button
+                        mat-flat-button
+                        [disabled]="
+                            (!bulkIncludePipelines &&
+                                !bulkIncludeAdapters &&
+                                !bulkIncludeAssets) ||
+                            bulkExportInProgress
+                        "
+                        (click)="downloadBulkExport()"
+                        data-cy="bulk-export-button"
+                    >
+                        <mat-icon>download</mat-icon>
+                        <span>{{
+                            (bulkExportInProgress
+                                ? 'Exporting...'
+                                : 'Download ZIP'
+                            ) | translate
+                        }}</span>
+                    </button>
+                </div>
+            </sp-split-section>
+
+            <!-- Asset-linked Export -->
             <sp-split-section
                 [title]="'Export' | translate"
                 [subtitle]="
@@ -56,6 +103,8 @@
                 </div>
             </sp-split-section>
         </div>
+
+        <!-- Import -->
         <div fxFlex="100" fxLayout="column" fxLayoutAlign="start start">
             <sp-split-section
                 [title]="'Import' | translate"

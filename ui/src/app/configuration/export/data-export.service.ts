@@ -48,6 +48,16 @@ export class DataExportService {
         });
     }
 
+    triggerBulkExport(request: {
+        includePipelines: boolean;
+        includeAdapters: boolean;
+        includeAssets: boolean;
+    }): Observable<Blob> {
+        return this.http.post(this.exportBasePath + '/bulk-download', request, {
+            responseType: 'blob',
+        });
+    }
+
     triggerImport(file: File, config: AssetExportConfiguration) {
         const data: FormData = new FormData();
         data.append('file_upload', file, file.name);
