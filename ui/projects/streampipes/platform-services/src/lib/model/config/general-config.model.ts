@@ -36,4 +36,5 @@ export interface GeneralConfigModel {
     linkSettings: LinkSettings;
     userAcknowledgment: UserAcknowledgment;
     themeColor?: string;
+    themeSecondaryColor?: string;
 }

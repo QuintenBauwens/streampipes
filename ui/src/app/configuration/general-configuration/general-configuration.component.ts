@@ -50,6 +50,7 @@ import { map } from 'rxjs/operators';
 import {
     ThemeService,
     DEFAULT_THEME_COLOR,
+    DEFAULT_SECONDARY_COLOR,
 } from '../../services/theme.service';
 import {
     FlexDirective,
@@ -69,6 +70,7 @@ import { SpConfigurationLinkSettingsComponent } from './link-settings/link-setti
 import { UserAcknowledgmentComponent } from './user-acknowledgement/user-acknowledgment.component';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { AsyncPipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -98,6 +100,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         UserAcknowledgmentComponent,
         MatButton,
         MatIcon,
+        MatTooltip,
         AsyncPipe,
         TranslatePipe,
     ],
@@ -278,6 +281,14 @@ export class GeneralConfigurationComponent implements OnInit {
                 ),
             );
 
+            this.parentForm.addControl(
+                'themeSecondaryColor',
+                new UntypedFormControl(
+                    this.generalConfig.themeSecondaryColor ||
+                        DEFAULT_SECONDARY_COLOR,
+                ),
+            );
+
             this.formReady = true;
         });
     }
@@ -324,13 +335,28 @@ export class GeneralConfigurationComponent implements OnInit {
                 text: formValue.termsAcknowledgmentText,
             },
             themeColor: formValue.themeColor || DEFAULT_THEME_COLOR,
+            themeSecondaryColor:
+                formValue.themeSecondaryColor || DEFAULT_SECONDARY_COLOR,
         };
 
         this.generalConfigService
             .updateGeneralConfig(this.generalConfig)
             .subscribe(result => {
-                this.themeService.applyColor(this.generalConfig.themeColor);
+                this.themeService.applyColors(
+                    this.generalConfig.themeColor,
+                    this.generalConfig.themeSecondaryColor,
+                );
                 this.loadConfig();
             });
+    }
+
+    resetTheme(): void {
+        this.parentForm
+            .get('themeColor')
+            .setValue(DEFAULT_THEME_COLOR, { emitEvent: false });
+        this.parentForm
+            .get('themeSecondaryColor')
+            .setValue(DEFAULT_SECONDARY_COLOR, { emitEvent: false });
+        this.themeService.resetToDefaults();
     }
 }

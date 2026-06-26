@@ -20,45 +20,68 @@ import { Injectable, inject } from '@angular/core';
 import { GeneralConfigService } from '@streampipes/platform-services';
 
 export const DEFAULT_THEME_COLOR = '#1b1464';
-const STORAGE_KEY = 'sp-theme-color';
+export const DEFAULT_SECONDARY_COLOR = '#39b54a';
+
+const STORAGE_KEY_PRIMARY = 'sp-theme-color';
+const STORAGE_KEY_SECONDARY = 'sp-theme-secondary-color';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
     private generalConfigService = inject(GeneralConfigService);
 
     /**
-     * Reads the cached color from localStorage and applies it immediately
+     * Reads both cached colors from localStorage and applies them immediately
      * (synchronous — no flicker on hard refresh).
      * Call this as early as possible in app init.
      */
     applyFromStorage(): void {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        this.applyColor(stored || DEFAULT_THEME_COLOR);
+        const primary =
+            localStorage.getItem(STORAGE_KEY_PRIMARY) || DEFAULT_THEME_COLOR;
+        const secondary =
+            localStorage.getItem(STORAGE_KEY_SECONDARY) ||
+            DEFAULT_SECONDARY_COLOR;
+        this.applyColors(primary, secondary);
     }
 
     /**
-     * Fetches the persisted theme color from the backend, updates localStorage,
-     * and applies it. Keeps the cache in sync after any server-side change.
+     * Fetches the persisted theme colors from the backend, updates localStorage,
+     * and applies them. Keeps the cache in sync after any server-side change.
      */
     applyFromConfig(): void {
         this.generalConfigService.getGeneralConfig().subscribe(config => {
-            const color = config.themeColor || DEFAULT_THEME_COLOR;
-            this.applyColor(color);
+            this.applyColors(
+                config.themeColor || DEFAULT_THEME_COLOR,
+                config.themeSecondaryColor || DEFAULT_SECONDARY_COLOR,
+            );
         });
     }
 
     /**
-     * Applies a primary color to the document root as a CSS custom property
-     * and persists it to localStorage for instant reuse on next load.
-     * Both --color-primary (light) and --color-primary-dark (dark mode) are
-     * set so the chosen color takes effect in all color-scheme modes.
+     * Applies both theme colors to the document root and persists them to
+     * localStorage. Inline styles on html beat any stylesheet class rule.
      */
-    applyColor(color: string): void {
-        document.documentElement.style.setProperty('--color-primary', color);
+    applyColors(primary: string, secondary: string): void {
+        document.documentElement.style.setProperty('--color-primary', primary);
         document.documentElement.style.setProperty(
             '--color-primary-dark',
-            color,
+            primary,
         );
-        localStorage.setItem(STORAGE_KEY, color);
+        document.documentElement.style.setProperty(
+            '--color-secondary',
+            secondary,
+        );
+        document.documentElement.style.setProperty(
+            '--color-secondary-dark',
+            secondary,
+        );
+        localStorage.setItem(STORAGE_KEY_PRIMARY, primary);
+        localStorage.setItem(STORAGE_KEY_SECONDARY, secondary);
+    }
+
+    /** Resets both colors to their defaults and clears localStorage. */
+    resetToDefaults(): void {
+        localStorage.removeItem(STORAGE_KEY_PRIMARY);
+        localStorage.removeItem(STORAGE_KEY_SECONDARY);
+        this.applyColors(DEFAULT_THEME_COLOR, DEFAULT_SECONDARY_COLOR);
     }
 }

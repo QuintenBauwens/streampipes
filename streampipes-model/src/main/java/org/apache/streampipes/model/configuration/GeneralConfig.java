@@ -34,6 +34,7 @@ public class GeneralConfig {
   private LinkSettings linkSettings;
   private UserAcknowledgment userAcknowledgment;
   private String themeColor;
+  private String themeSecondaryColor;
 
   public GeneralConfig() {
   }
@@ -130,5 +131,13 @@ public class GeneralConfig {
 
   public void setThemeColor(String themeColor) {
     this.themeColor = themeColor;
+  }
+
+  public String getThemeSecondaryColor() {
+    return themeSecondaryColor;
+  }
+
+  public void setThemeSecondaryColor(String themeSecondaryColor) {
+    this.themeSecondaryColor = themeSecondaryColor;
   }
 }
