@@ -27,6 +27,9 @@ public class BulkExportRequest {
   private boolean includePipelines;
   private boolean includeAdapters;
   private boolean includeAssets;
+  private boolean includeDevices;
+  private boolean includeDeviceMappings;
+  private boolean includeSettings;
 
   public BulkExportRequest() {
   }
@@ -53,5 +56,29 @@ public class BulkExportRequest {
 
   public void setIncludeAssets(boolean includeAssets) {
     this.includeAssets = includeAssets;
+  }
+
+  public boolean isIncludeDevices() {
+    return includeDevices;
+  }
+
+  public void setIncludeDevices(boolean includeDevices) {
+    this.includeDevices = includeDevices;
+  }
+
+  public boolean isIncludeDeviceMappings() {
+    return includeDeviceMappings;
+  }
+
+  public void setIncludeDeviceMappings(boolean includeDeviceMappings) {
+    this.includeDeviceMappings = includeDeviceMappings;
+  }
+
+  public boolean isIncludeSettings() {
+    return includeSettings;
+  }
+
+  public void setIncludeSettings(boolean includeSettings) {
+    this.includeSettings = includeSettings;
   }
 }

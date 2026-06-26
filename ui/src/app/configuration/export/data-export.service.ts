@@ -52,6 +52,9 @@ export class DataExportService {
         includePipelines: boolean;
         includeAdapters: boolean;
         includeAssets: boolean;
+        includeDevices: boolean;
+        includeDeviceMappings: boolean;
+        includeSettings: boolean;
     }): Observable<Blob> {
         return this.http.post(this.exportBasePath + '/bulk-download', request, {
             responseType: 'blob',

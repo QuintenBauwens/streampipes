@@ -41,6 +41,19 @@
                     <mat-checkbox [(ngModel)]="bulkIncludeAssets">
                         <span class="text-md">{{ 'Assets' | translate }}</span>
                     </mat-checkbox>
+                    <mat-checkbox [(ngModel)]="bulkIncludeDevices">
+                        <span class="text-md">{{ 'Devices' | translate }}</span>
+                    </mat-checkbox>
+                    <mat-checkbox [(ngModel)]="bulkIncludeDeviceMappings">
+                        <span class="text-md">{{
+                            'Device Mappings' | translate
+                        }}</span>
+                    </mat-checkbox>
+                    <mat-checkbox [(ngModel)]="bulkIncludeSettings">
+                        <span class="text-md">{{
+                            'General Settings' | translate
+                        }}</span>
+                    </mat-checkbox>
                 </div>
                 <div class="mt-10">
                     <button
@@ -48,7 +61,10 @@
                         [disabled]="
                             (!bulkIncludePipelines &&
                                 !bulkIncludeAdapters &&
-                                !bulkIncludeAssets) ||
+                                !bulkIncludeAssets &&
+                                !bulkIncludeDevices &&
+                                !bulkIncludeDeviceMappings &&
+                                !bulkIncludeSettings) ||
                             bulkExportInProgress
                         "
                         (click)="downloadBulkExport()"

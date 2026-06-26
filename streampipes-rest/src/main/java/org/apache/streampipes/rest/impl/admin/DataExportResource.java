@@ -71,8 +71,7 @@ public class DataExportResource extends AbstractAuthGuardedRestResource {
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
   public ResponseEntity<byte[]> bulkDownload(@RequestBody BulkExportRequest request) throws IOException {
-    var exportConfig = BulkExportManager.buildExportConfiguration(request);
-    var applicationPackage = ExportManager.getExportPackage(exportConfig, extensionServiceRequestManager);
+    var applicationPackage = BulkExportManager.buildExportPackage(request, extensionServiceRequestManager);
     return ok(applicationPackage);
   }
 

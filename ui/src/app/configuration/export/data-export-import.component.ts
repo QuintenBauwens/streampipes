@@ -78,6 +78,9 @@ export class SpDataExportImportComponent implements OnInit {
     bulkIncludePipelines = true;
     bulkIncludeAdapters = true;
     bulkIncludeAssets = true;
+    bulkIncludeDevices = true;
+    bulkIncludeDeviceMappings = true;
+    bulkIncludeSettings = true;
     bulkExportInProgress = false;
 
     ngOnInit(): void {
@@ -139,6 +142,9 @@ export class SpDataExportImportComponent implements OnInit {
                 includePipelines: this.bulkIncludePipelines,
                 includeAdapters: this.bulkIncludeAdapters,
                 includeAssets: this.bulkIncludeAssets,
+                includeDevices: this.bulkIncludeDevices,
+                includeDeviceMappings: this.bulkIncludeDeviceMappings,
+                includeSettings: this.bulkIncludeSettings,
             })
             .subscribe({
                 next: blob => {
