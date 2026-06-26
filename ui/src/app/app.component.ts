@@ -23,6 +23,7 @@ import { Title } from '@angular/platform-browser';
 import { AppConstants } from './services/app.constants';
 import { TranslateService } from '@ngx-translate/core';
 import { LoadingBarModule } from '@ngx-loading-bar/core';
+import { ThemeService } from './services/theme.service';
 
 @Component({
     selector: 'sp-app-root',
@@ -34,6 +35,7 @@ export class AppComponent implements OnInit {
     private titleService = inject(Title);
     private appConstants = inject(AppConstants);
     private translate = inject(TranslateService);
+    private themeService = inject(ThemeService);
 
     constructor() {
         const translate = this.translate;
@@ -53,6 +55,7 @@ export class AppComponent implements OnInit {
 
     ngOnInit(): void {
         this.titleService.setTitle(this.appConstants.APP_TITLE);
+        this.themeService.applyFromConfig();
     }
 
     prepareRoute(outlet: RouterOutlet) {

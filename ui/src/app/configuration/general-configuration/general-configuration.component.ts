@@ -48,6 +48,10 @@ import {
 import { SpConfigurationRoutes } from '../configuration.breadcrumb';
 import { map } from 'rxjs/operators';
 import {
+    ThemeService,
+    DEFAULT_THEME_COLOR,
+} from '../../services/theme.service';
+import {
     FlexDirective,
     LayoutAlignDirective,
     LayoutDirective,
@@ -106,6 +110,7 @@ export class GeneralConfigurationComponent implements OnInit {
     private appConstants = inject(AppConstants);
     private breadcrumbService = inject(SpBreadcrumbService);
     private tabService = inject(SpConfigurationTabsService);
+    private themeService = inject(ThemeService);
 
     tabs: SpNavigationItem[] = [];
 
@@ -266,6 +271,13 @@ export class GeneralConfigurationComponent implements OnInit {
                 ),
             );
 
+            this.parentForm.addControl(
+                'themeColor',
+                new UntypedFormControl(
+                    this.generalConfig.themeColor || DEFAULT_THEME_COLOR,
+                ),
+            );
+
             this.formReady = true;
         });
     }
@@ -311,11 +323,13 @@ export class GeneralConfigurationComponent implements OnInit {
                 title: formValue.termsAcknowledgmentTitle,
                 text: formValue.termsAcknowledgmentText,
             },
+            themeColor: formValue.themeColor || DEFAULT_THEME_COLOR,
         };
 
         this.generalConfigService
             .updateGeneralConfig(this.generalConfig)
             .subscribe(result => {
+                this.themeService.applyColor(this.generalConfig.themeColor);
                 this.loadConfig();
             });
     }

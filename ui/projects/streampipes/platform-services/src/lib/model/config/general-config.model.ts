@@ -35,4 +35,5 @@ export interface GeneralConfigModel {
     appName: string;
     linkSettings: LinkSettings;
     userAcknowledgment: UserAcknowledgment;
+    themeColor?: string;
 }

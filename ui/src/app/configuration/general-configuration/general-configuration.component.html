@@ -65,6 +65,43 @@
                         <div fxLayout="column">
                             <sp-form-field
                                 [level]="2"
+                                [label]="'Theme Color' | translate"
+                                [description]="
+                                    'Primary color used throughout the application (buttons, toolbar, accents).'
+                                        | translate
+                                "
+                            >
+                                <div
+                                    fxLayout="row"
+                                    fxLayoutAlign="start center"
+                                    fxLayoutGap="12px"
+                                >
+                                    <input
+                                        type="color"
+                                        formControlName="themeColor"
+                                        data-cy="general-config-theme-color"
+                                        style="
+                                            width: 48px;
+                                            height: 36px;
+                                            padding: 2px;
+                                            border: 1px solid
+                                                var(--mat-sys-outline);
+                                            border-radius: var(
+                                                --button-border-radius
+                                            );
+                                            cursor: pointer;
+                                            background: none;
+                                        "
+                                    />
+                                    <span class="sp-secondary-text">{{
+                                        parentForm.get('themeColor').value
+                                    }}</span>
+                                </div>
+                            </sp-form-field>
+                        </div>
+                        <div fxLayout="column">
+                            <sp-form-field
+                                [level]="2"
                                 [label]="'Host and Port' | translate"
                                 [description]="
                                     'The URL where the application can be accessed, e.g., for links in emails.'

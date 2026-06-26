@@ -28,6 +28,9 @@ import org.apache.streampipes.model.connect.adapter.compact.CompactEventProperty
 import org.apache.streampipes.model.connect.adapter.compact.CreateOptions;
 import org.apache.streampipes.model.message.Notifications;
 import org.apache.streampipes.model.staticproperty.FreeTextStaticProperty;
+import org.apache.streampipes.model.staticproperty.StaticProperty;
+import org.apache.streampipes.model.staticproperty.StaticPropertyAlternatives;
+import org.apache.streampipes.model.staticproperty.StaticPropertyGroup;
 import org.apache.streampipes.storage.api.connect.ISpDeviceStorage;
 import org.apache.streampipes.storage.management.StorageDispatcher;
 
@@ -59,6 +62,7 @@ import java.util.stream.Collectors;
 public class DeviceResource extends AbstractAdapterResource<Void> {
 
   private static final String PLC_IP = "plc_ip";
+  private static final String OPCUA_SERVER_HOST = "OPC_SERVER_HOST";
   private static final String PLC_POLLING_INTERVAL = "plc_polling_interval";
   private static final String PLC_NODE_INPUT_ALTERNATIVES = "plc_node_input_alternatives";
   private static final String PLC_NODE_INPUT_CODE_BLOCK_ALTIVE = "plc_node_input_code_block_altive";
@@ -89,18 +93,52 @@ public class DeviceResource extends AbstractAdapterResource<Void> {
     return ok(devices);
   }
 
-  /** Extracts the value of the {@code plc_ip} FreeTextStaticProperty from an adapter config. */
+  /**
+   * Extracts the device host from an adapter config by searching for either
+   * {@code plc_ip} (PLC4x S7 adapters) or {@code OPC_SERVER_HOST} (OPC-UA adapters).
+   * The search is recursive so nested structures like {@code StaticPropertyAlternatives}
+   * and {@code StaticPropertyGroup} are traversed correctly.
+   */
   private String extractPlcIp(AdapterDescription adapter) {
     if (adapter.getConfig() == null) {
       return null;
     }
-    return adapter.getConfig().stream()
-        .filter(sp -> PLC_IP.equals(sp.getInternalName())
-            && sp instanceof FreeTextStaticProperty)
-        .map(sp -> ((FreeTextStaticProperty) sp).getValue())
-        .filter(v -> v != null && !v.isBlank())
-        .findFirst()
-        .orElse(null);
+    return extractDeviceHost(adapter.getConfig());
+  }
+
+  private String extractDeviceHost(List<StaticProperty> properties) {
+    if (properties == null) {
+      return null;
+    }
+    for (var sp : properties) {
+      var found = extractDeviceHostFromProperty(sp);
+      if (found != null) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  private String extractDeviceHostFromProperty(StaticProperty sp) {
+    if (sp instanceof FreeTextStaticProperty fts) {
+      var name = fts.getInternalName();
+      if ((PLC_IP.equals(name) || OPCUA_SERVER_HOST.equals(name))
+          && fts.getValue() != null && !fts.getValue().isBlank()) {
+        return fts.getValue();
+      }
+    } else if (sp instanceof StaticPropertyAlternatives spa && spa.getAlternatives() != null) {
+      for (var alt : spa.getAlternatives()) {
+        if (alt.getStaticProperty() != null) {
+          var found = extractDeviceHostFromProperty(alt.getStaticProperty());
+          if (found != null) {
+            return found;
+          }
+        }
+      }
+    } else if (sp instanceof StaticPropertyGroup spg) {
+      return extractDeviceHost(spg.getStaticProperties());
+    }
+    return null;
   }
 
   /** Strips a port suffix so {@code "10.1.1.1:102"} and {@code "10.1.1.1"} both normalise to {@code "10.1.1.1"}. */

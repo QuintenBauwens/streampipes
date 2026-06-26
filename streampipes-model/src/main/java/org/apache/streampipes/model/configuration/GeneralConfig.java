@@ -33,6 +33,7 @@ public class GeneralConfig {
   private List<String> defaultUserRoles;
   private LinkSettings linkSettings;
   private UserAcknowledgment userAcknowledgment;
+  private String themeColor;
 
   public GeneralConfig() {
   }
@@ -121,5 +122,13 @@ public class GeneralConfig {
 
   public void setUserAcknowledgment(UserAcknowledgment userAcknowledgment) {
     this.userAcknowledgment = userAcknowledgment;
+  }
+
+  public String getThemeColor() {
+    return themeColor;
+  }
+
+  public void setThemeColor(String themeColor) {
+    this.themeColor = themeColor;
   }
 }
