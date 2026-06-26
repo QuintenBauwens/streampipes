@@ -55,7 +55,8 @@ export class AppComponent implements OnInit {
 
     ngOnInit(): void {
         this.titleService.setTitle(this.appConstants.APP_TITLE);
-        this.themeService.applyFromConfig();
+        this.themeService.applyFromStorage(); // instant — reads localStorage, no flicker
+        this.themeService.applyFromConfig(); // async — keeps localStorage in sync
     }
 
     prepareRoute(outlet: RouterOutlet) {

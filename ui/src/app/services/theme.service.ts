@@ -20,24 +20,38 @@ import { Injectable, inject } from '@angular/core';
 import { GeneralConfigService } from '@streampipes/platform-services';
 
 export const DEFAULT_THEME_COLOR = '#1b1464';
+const STORAGE_KEY = 'sp-theme-color';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
     private generalConfigService = inject(GeneralConfigService);
 
-    /** Fetches the persisted theme color from the backend and applies it. */
+    /**
+     * Reads the cached color from localStorage and applies it immediately
+     * (synchronous — no flicker on hard refresh).
+     * Call this as early as possible in app init.
+     */
+    applyFromStorage(): void {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        this.applyColor(stored || DEFAULT_THEME_COLOR);
+    }
+
+    /**
+     * Fetches the persisted theme color from the backend, updates localStorage,
+     * and applies it. Keeps the cache in sync after any server-side change.
+     */
     applyFromConfig(): void {
         this.generalConfigService.getGeneralConfig().subscribe(config => {
-            this.applyColor(config.themeColor || DEFAULT_THEME_COLOR);
+            const color = config.themeColor || DEFAULT_THEME_COLOR;
+            this.applyColor(color);
         });
     }
 
     /**
-     * Applies a primary color to the document root as a CSS custom property.
-     * Both --color-primary (light mode) and --color-primary-dark (dark mode)
-     * are set so the chosen color takes effect in all color-scheme modes.
-     * Inline styles on the html element have higher specificity than any
-     * stylesheet class rule, so this overrides the defaults in _custom-variables.scss.
+     * Applies a primary color to the document root as a CSS custom property
+     * and persists it to localStorage for instant reuse on next load.
+     * Both --color-primary (light) and --color-primary-dark (dark mode) are
+     * set so the chosen color takes effect in all color-scheme modes.
      */
     applyColor(color: string): void {
         document.documentElement.style.setProperty('--color-primary', color);
@@ -45,5 +59,6 @@ export class ThemeService {
             '--color-primary-dark',
             color,
         );
+        localStorage.setItem(STORAGE_KEY, color);
     }
 }
